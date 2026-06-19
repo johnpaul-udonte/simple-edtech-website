@@ -880,3 +880,48 @@ button {
   font-weight: 700;
   line-height: 1.5;
 }
+
+.userMiniCard {
+  margin-bottom: 22px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.userMiniCard p {
+  margin: 0 0 6px;
+  color: #bcd6ff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.userMiniCard strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.userMiniCard span {
+  color: #dbeafe;
+  text-transform: capitalize;
+  font-size: 13px;
+}
+
+.logoutBtn {
+  width: 100%;
+  border: 0;
+  padding: 13px 15px;
+  border-radius: 14px;
+  color: white;
+  background: #b42318;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+}
+
+.logoutBtn:hover {
+  background: #912018;
+}

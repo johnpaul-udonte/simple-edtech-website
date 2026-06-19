@@ -1,6 +1,10 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function DashboardLayout({ role }) {
+  const navigate = useNavigate();
+  const { logout, profile } = useAuth();
+
   const roleLinks = {
     Student: [
       { label: "Dashboard", path: "/student/dashboard" },
@@ -22,30 +26,44 @@ function DashboardLayout({ role }) {
     ],
 
     Admin: [
-    { label: "Dashboard", path: "/admin/dashboard" },
-    { label: "Students", path: "/admin/students" },
-    { label: "Tutors", path: "/admin/tutors" },
-    { label: "Schedules", path: "/admin/schedules" },
-    { label: "Payments", path: "/admin/payments" },
-    { label: "Assignments", path: "/admin/assignments" },
-    { label: "Quizzes", path: "/admin/quizzes" },
-    { label: "Certificates", path: "/admin/certificates" },
-    { label: "Materials", path: "/admin/materials" },
-    { label: "Announcements", path: "/admin/announcements" },
-    { label: "Reports", path: "/admin/reports" },
+      { label: "Dashboard", path: "/admin/dashboard" },
+      { label: "Students", path: "/admin/students" },
+      { label: "Tutors", path: "/admin/tutors" },
+      { label: "Schedules", path: "/admin/schedules" },
+      { label: "Payments", path: "/admin/payments" },
+      { label: "Assignments", path: "/admin/assignments" },
+      { label: "Quizzes", path: "/admin/quizzes" },
+      { label: "Certificates", path: "/admin/certificates" },
+      { label: "Materials", path: "/admin/materials" },
+      { label: "Announcements", path: "/admin/announcements" },
+      { label: "Reports", path: "/admin/reports" },
     ],
   };
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
+  }
 
   return (
     <div className="dashboardShell">
       <aside className="sidebar">
         <Link to="/" className="dashboardBrand">
           <img src="/images/jlux-logo.png" alt="Jlux Academy Logo" />
+
           <div>
             <h2>Jlux Academy</h2>
             <p>{role} Portal</p>
           </div>
         </Link>
+
+        {profile && (
+          <div className="userMiniCard">
+            <p>Logged in as</p>
+            <strong>{profile.full_name}</strong>
+            <span>{profile.role}</span>
+          </div>
+        )}
 
         <nav className="sideNav">
           {(roleLinks[role] || []).map((item) => (
@@ -55,6 +73,10 @@ function DashboardLayout({ role }) {
           ))}
 
           <Link to="/">Back to Website</Link>
+
+          <button type="button" onClick={handleLogout} className="logoutBtn">
+            Logout
+          </button>
         </nav>
       </aside>
 
