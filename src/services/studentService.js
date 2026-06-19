@@ -436,3 +436,251 @@ export async function requestClassReschedule(
     error: updateError,
   };
 }
+
+export async function getStudentAssignmentsForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      assigned_tutor_id,
+      profiles (
+        full_name,
+        email
+      )
+    `
+    )
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const { data: assignments, error: assignmentsError } = await supabase
+    .from("assignments")
+    .select(
+      `
+      id,
+      title,
+      description,
+      tool,
+      due_date,
+      status,
+      created_at,
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      ),
+      assignment_submissions (
+        id,
+        student_id,
+        status,
+        submitted_at,
+        score,
+        feedback,
+        submission_text,
+        submission_link,
+        updated_at
+      )
+    `
+    )
+    .eq("tutor_id", student.assigned_tutor_id)
+    .in("status", ["published", "closed"])
+    .order("created_at", { ascending: false });
+
+  if (assignmentsError) {
+    return {
+      data: null,
+      error: assignmentsError,
+    };
+  }
+
+  const studentAssignments = (assignments || []).map((assignment) => {
+    const studentSubmission =
+      assignment.assignment_submissions?.find(
+        (submission) => submission.student_id === student.id
+      ) || null;
+
+    return {
+      ...assignment,
+      student_submission: studentSubmission,
+    };
+  });
+
+  return {
+    data: {
+      student,
+      assignments: studentAssignments,
+    },
+    error: null,
+  };
+}
+
+export async function submitAssignmentForStudent(
+  userId,
+  assignmentId,
+  submissionForm
+) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select("id, is_restricted")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  if (student.is_restricted) {
+    return {
+      data: null,
+      error: {
+        message:
+          "Your access is currently restricted. Please contact admin before submitting assignments.",
+      },
+    };
+  }
+
+  const { data: assignmentRows, error: assignmentError } = await supabase
+    .from("assignments")
+    .select("id, status")
+    .eq("id", assignmentId)
+    .limit(1);
+
+  if (assignmentError) {
+    return {
+      data: null,
+      error: assignmentError,
+    };
+  }
+
+  const assignment =
+    Array.isArray(assignmentRows) && assignmentRows.length > 0
+      ? assignmentRows[0]
+      : null;
+
+  if (!assignment) {
+    return {
+      data: null,
+      error: {
+        message: "Assignment could not be found.",
+      },
+    };
+  }
+
+  if (assignment.status === "closed") {
+    return {
+      data: null,
+      error: {
+        message: "This assignment is closed and can no longer be submitted.",
+      },
+    };
+  }
+
+  const { data: existingRows, error: existingError } = await supabase
+    .from("assignment_submissions")
+    .select("id, status")
+    .eq("assignment_id", assignmentId)
+    .eq("student_id", student.id)
+    .limit(1);
+
+  if (existingError) {
+    return {
+      data: null,
+      error: existingError,
+    };
+  }
+
+  const existingSubmission =
+    Array.isArray(existingRows) && existingRows.length > 0 ? existingRows[0] : null;
+
+  if (existingSubmission) {
+    const { data: updatedRows, error: updateError } = await supabase
+      .from("assignment_submissions")
+      .update({
+        status: "submitted",
+        submitted_at: new Date().toISOString(),
+        submission_text: submissionForm.submission_text,
+        submission_link: submissionForm.submission_link,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existingSubmission.id)
+      .select();
+
+    return {
+      data: Array.isArray(updatedRows) ? updatedRows[0] : null,
+      error: updateError,
+    };
+  }
+
+  const { data: insertedRows, error: insertError } = await supabase
+    .from("assignment_submissions")
+    .insert({
+      assignment_id: assignmentId,
+      student_id: student.id,
+      status: "submitted",
+      submitted_at: new Date().toISOString(),
+      submission_text: submissionForm.submission_text,
+      submission_link: submissionForm.submission_link,
+    })
+    .select();
+
+  return {
+    data: Array.isArray(insertedRows) ? insertedRows[0] : null,
+    error: insertError,
+  };
+}

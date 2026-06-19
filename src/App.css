@@ -1134,3 +1134,75 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.assignmentStack {
+  display: grid;
+  gap: 20px;
+}
+
+.assignmentBox {
+  border: 1px solid #e3e9f4;
+  border-radius: 20px;
+  padding: 22px;
+  background: #ffffff;
+}
+
+.assignmentTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.assignmentTop h3 {
+  margin: 0 0 8px;
+  color: #0b2f63;
+}
+
+.assignmentTop p {
+  margin: 0;
+  color: #60738c;
+}
+
+.assignmentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.assignmentMeta span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #0f5bd8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.submissionSummary {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fbff;
+  border: 1px solid #e3e9f4;
+  margin-bottom: 18px;
+}
+
+.submissionSummary h4 {
+  margin: 0 0 12px;
+  color: #0b2f63;
+}
+
+.submissionSummary p {
+  margin: 8px 0;
+  color: #344054;
+}
+
+.submissionSummary a {
+  color: #0f5bd8;
+  font-weight: 800;
+}
+
+.submissionForm {
+  margin-top: 16px;
+}
