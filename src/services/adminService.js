@@ -319,3 +319,102 @@ export async function getPaymentsForAdmin() {
     error: null,
   };
 }
+
+export async function getSchedulesForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const [slotsResult, bookingsResult] = await Promise.all([
+    supabase
+      .from("class_slots")
+      .select(
+        `
+        id,
+        slot_date,
+        start_time,
+        end_time,
+        capacity,
+        booked_count,
+        is_available,
+        tutors (
+          id,
+          profiles (
+            full_name,
+            email
+          )
+        )
+      `
+      )
+      .order("slot_date", { ascending: true }),
+
+    supabase
+      .from("class_bookings")
+      .select(
+        `
+        id,
+        status,
+        reschedule_count,
+        approved_at,
+        notes,
+        created_at,
+        students (
+          id,
+          student_code,
+          profiles (
+            full_name,
+            email
+          )
+        ),
+        tutors (
+          id,
+          profiles (
+            full_name,
+            email
+          )
+        ),
+        class_slots (
+          slot_date,
+          start_time,
+          end_time
+        ),
+        profiles:admin_approved_by (
+          full_name,
+          email
+        )
+      `
+      )
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const firstError = slotsResult.error || bookingsResult.error;
+
+  if (firstError) {
+    return {
+      data: null,
+      error: firstError,
+    };
+  }
+
+  const slots = slotsResult.data || [];
+  const bookings = bookingsResult.data || [];
+
+  return {
+    data: {
+      slots,
+      bookings,
+      pendingBookings: bookings.filter((booking) => booking.status === "scheduled"),
+      approvedBookings: bookings.filter((booking) => booking.status === "approved"),
+      completedBookings: bookings.filter((booking) => booking.status === "completed"),
+      missedBookings: bookings.filter((booking) => booking.status === "missed"),
+      cancelledBookings: bookings.filter((booking) => booking.status === "cancelled"),
+      rescheduledBookings: bookings.filter((booking) => booking.status === "rescheduled"),
+    },
+    error: null,
+  };
+}
