@@ -1069,3 +1069,68 @@ button {
   border-radius: 999px;
   background: #0f5bd8;
 }
+
+.portalForm {
+  display: grid;
+  gap: 18px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.portalForm label {
+  display: grid;
+  gap: 8px;
+  color: #0b2f63;
+  font-weight: 800;
+}
+
+.portalForm input,
+.portalForm select,
+.portalForm textarea {
+  width: 100%;
+  border: 1px solid #d5dce8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  color: #0b2f63;
+  background: white;
+}
+
+.portalForm textarea {
+  resize: vertical;
+}
+
+.statusPill.published {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.statusPill.draft {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.closed {
+  background: #f2f4f7;
+  color: #475467;
+}
+
+.statusPill.submitted {
+  background: #eef4ff;
+  color: #0f5bd8;
+}
+
+.statusPill.graded {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+@media (max-width: 800px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
