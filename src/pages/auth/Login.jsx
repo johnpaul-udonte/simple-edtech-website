@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { signInWithEmail } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
+import { signInWithEmail, signOut } from "../../services/authService";
+import { getProfileByUserId } from "../../services/profileService";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [notice, setNotice] = useState("");
@@ -9,10 +13,11 @@ function Login() {
 
   async function handleLogin(event) {
     event.preventDefault();
+
     setIsLoading(true);
     setNotice("");
 
-    const { error } = await signInWithEmail(email, password);
+    const { data, error } = await signInWithEmail(email, password);
 
     if (error) {
       setNotice(error.message);
@@ -20,7 +25,49 @@ function Login() {
       return;
     }
 
-    setNotice("Login successful. Role-based redirect will be added next.");
+    const userId = data?.user?.id;
+
+    if (!userId) {
+      setNotice("Login succeeded, but no user ID was returned.");
+      setIsLoading(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await getProfileByUserId(userId);
+
+    if (profileError || !profile) {
+      await signOut();
+      setNotice(
+        "Login succeeded, but no matching profile was found. Please create a profile record for this user."
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    if (profile.status !== "active") {
+      await signOut();
+      setNotice(`Your account is currently ${profile.status}. Please contact admin.`);
+      setIsLoading(false);
+      return;
+    }
+
+    if (profile.role === "admin") {
+      navigate("/admin/dashboard");
+      return;
+    }
+
+    if (profile.role === "tutor") {
+      navigate("/tutor/dashboard");
+      return;
+    }
+
+    if (profile.role === "student") {
+      navigate("/student/dashboard");
+      return;
+    }
+
+    await signOut();
+    setNotice("Unknown user role. Please contact admin.");
     setIsLoading(false);
   }
 
