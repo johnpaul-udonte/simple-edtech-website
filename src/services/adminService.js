@@ -131,3 +131,45 @@ export async function getRecentStudentsForAdmin() {
     .order("created_at", { ascending: false })
     .limit(5);
 }
+
+export async function getAllStudentsForAdmin() {
+  if (!supabase) {
+    return {
+      data: [],
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  return await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      total_paid_classes,
+      completed_classes,
+      missed_classes,
+      cancelled_classes,
+      rescheduled_classes,
+      payment_balance,
+      is_restricted,
+      created_at,
+      profiles (
+        full_name,
+        email,
+        status
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+}

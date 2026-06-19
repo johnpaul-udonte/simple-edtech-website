@@ -925,3 +925,8 @@ button {
 .logoutBtn:hover {
   background: #912018;
 }
+
+.dashboardPanel small {
+  color: #60738c;
+  font-size: 13px;
+}
