@@ -505,3 +505,127 @@ export async function gradeAssignmentSubmission(userId, submissionId, gradeForm)
     error: updateError,
   };
 }
+
+export async function getTutorMaterialsForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: tutorRows, error: tutorError } = await supabase
+    .from("tutors")
+    .select("id, specialisation, bio, is_active")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const tutor = firstRow(tutorRows);
+
+  if (!tutor) {
+    return {
+      data: null,
+      error: {
+        message: "No tutor record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const { data: materials, error: materialsError } = await supabase
+    .from("materials")
+    .select(
+      `
+      id,
+      title,
+      description,
+      tool,
+      material_type,
+      material_url,
+      visibility,
+      status,
+      created_at,
+      updated_at
+    `
+    )
+    .eq("tutor_id", tutor.id)
+    .order("created_at", { ascending: false });
+
+  if (materialsError) {
+    return {
+      data: null,
+      error: materialsError,
+    };
+  }
+
+  return {
+    data: {
+      tutor,
+      materials: materials || [],
+    },
+    error: null,
+  };
+}
+
+export async function createMaterialForTutor(userId, materialForm) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: tutorRows, error: tutorError } = await supabase
+    .from("tutors")
+    .select("id")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const tutor = firstRow(tutorRows);
+
+  if (!tutor) {
+    return {
+      data: null,
+      error: {
+        message: "No tutor record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const { data: insertedRows, error: insertError } = await supabase
+    .from("materials")
+    .insert({
+      tutor_id: tutor.id,
+      title: materialForm.title,
+      description: materialForm.description,
+      tool: materialForm.tool,
+      material_type: materialForm.material_type,
+      material_url: materialForm.material_url,
+      visibility: materialForm.visibility,
+      status: materialForm.status,
+      updated_at: new Date().toISOString(),
+    })
+    .select();
+
+  return {
+    data: firstRow(insertedRows),
+    error: insertError,
+  };
+}

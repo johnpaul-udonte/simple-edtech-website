@@ -684,3 +684,107 @@ export async function submitAssignmentForStudent(
     error: insertError,
   };
 }
+
+export async function getStudentCertificatesForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      total_paid_classes,
+      completed_classes,
+      payment_balance,
+      profiles (
+        full_name,
+        email
+      ),
+      tutors (
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const { data: certificates, error: certificatesError } = await supabase
+    .from("certificates")
+    .select(
+      `
+      id,
+      title,
+      certificate_title,
+      course,
+      status,
+      issued_at,
+      certificate_url,
+      notes,
+      created_at,
+      updated_at
+    `
+    )
+    .eq("student_id", student.id)
+    .order("created_at", { ascending: false });
+
+  if (certificatesError) {
+    return {
+      data: null,
+      error: certificatesError,
+    };
+  }
+
+  const totalPaidClasses = Number(student.total_paid_classes || 0);
+  const completedClasses = Number(student.completed_classes || 0);
+  const remainingClasses = Math.max(totalPaidClasses - completedClasses, 0);
+
+  return {
+    data: {
+      student,
+      certificates: certificates || [],
+      progress: {
+        totalPaidClasses,
+        completedClasses,
+        remainingClasses,
+        completionRate:
+          totalPaidClasses > 0
+            ? Math.round((completedClasses / totalPaidClasses) * 100)
+            : 0,
+        isEligible:
+          totalPaidClasses > 0 && completedClasses >= totalPaidClasses,
+      },
+    },
+    error: null,
+  };
+}
