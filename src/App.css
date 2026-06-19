@@ -1206,3 +1206,18 @@ button {
 .submissionForm {
   margin-top: 16px;
 }
+
+.statusPill.confirmed {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.statusPill.pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.rejected {
+  background: #fff1f3;
+  color: #b42318;
+}

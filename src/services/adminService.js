@@ -643,3 +643,407 @@ export async function updateClassBookingStatus(bookingId, newStatus, adminUserId
     error: null,
   };
 }
+
+export async function getAssignmentsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: assignments, error } = await supabase
+    .from("assignments")
+    .select(
+      `
+      id,
+      title,
+      description,
+      tool,
+      due_date,
+      status,
+      created_at,
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      ),
+      assignment_submissions (
+        id,
+        student_id,
+        status,
+        submitted_at,
+        score,
+        feedback,
+        submission_text,
+        submission_link,
+        updated_at,
+        students (
+          id,
+          student_code,
+          enrolled_course,
+          profiles (
+            full_name,
+            email
+          )
+        )
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  return {
+    data: assignments || [],
+    error: null,
+  };
+}
+
+export async function getReportsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const [
+    studentsResult,
+    tutorsResult,
+    paymentsResult,
+    bookingsResult,
+    assignmentsResult,
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select(
+        `
+        id,
+        student_code,
+        enrolled_course,
+        total_paid_classes,
+        completed_classes,
+        missed_classes,
+        cancelled_classes,
+        rescheduled_classes,
+        payment_balance,
+        is_restricted,
+        created_at,
+        profiles (
+          full_name,
+          email,
+          status
+        )
+      `
+      ),
+
+    supabase
+      .from("tutors")
+      .select(
+        `
+        id,
+        specialisation,
+        is_active,
+        created_at,
+        profiles (
+          full_name,
+          email,
+          status
+        ),
+        students (
+          id,
+          completed_classes,
+          total_paid_classes,
+          payment_balance,
+          is_restricted
+        )
+      `
+      ),
+
+    supabase
+      .from("payments")
+      .select(
+        `
+        id,
+        amount,
+        status,
+        confirmed_at,
+        created_at
+      `
+      ),
+
+    supabase
+      .from("class_bookings")
+      .select(
+        `
+        id,
+        status,
+        reschedule_count,
+        created_at,
+        class_slots (
+          slot_date,
+          start_time,
+          end_time
+        ),
+        students (
+          id,
+          student_code,
+          profiles (
+            full_name,
+            email
+          )
+        ),
+        tutors (
+          id,
+          profiles (
+            full_name,
+            email
+          )
+        )
+      `
+      ),
+
+    supabase
+      .from("assignments")
+      .select(
+        `
+        id,
+        title,
+        tool,
+        due_date,
+        status,
+        created_at,
+        tutors (
+          profiles (
+            full_name,
+            email
+          )
+        ),
+        assignment_submissions (
+          id,
+          status,
+          score,
+          submitted_at,
+          students (
+            student_code,
+            profiles (
+              full_name,
+              email
+            )
+          )
+        )
+      `
+      ),
+  ]);
+
+  const firstError =
+    studentsResult.error ||
+    tutorsResult.error ||
+    paymentsResult.error ||
+    bookingsResult.error ||
+    assignmentsResult.error;
+
+  if (firstError) {
+    return {
+      data: null,
+      error: firstError,
+    };
+  }
+
+  const students = studentsResult.data || [];
+  const tutors = tutorsResult.data || [];
+  const payments = paymentsResult.data || [];
+  const bookings = bookingsResult.data || [];
+  const assignments = assignmentsResult.data || [];
+
+  const totalOutstandingBalance = students.reduce(
+    (sum, student) => sum + Number(student.payment_balance || 0),
+    0
+  );
+
+  const totalCompletedClasses = students.reduce(
+    (sum, student) => sum + Number(student.completed_classes || 0),
+    0
+  );
+
+  const totalPaidClasses = students.reduce(
+    (sum, student) => sum + Number(student.total_paid_classes || 0),
+    0
+  );
+
+  const activeStudents = students.filter((student) => !student.is_restricted);
+  const restrictedStudents = students.filter((student) => student.is_restricted);
+
+  const confirmedPayments = payments.filter(
+    (payment) => payment.status === "confirmed"
+  );
+
+  const pendingPayments = payments.filter(
+    (payment) => payment.status === "pending"
+  );
+
+  const rejectedPayments = payments.filter(
+    (payment) => payment.status === "rejected"
+  );
+
+  const totalConfirmedPayment = confirmedPayments.reduce(
+    (sum, payment) => sum + Number(payment.amount || 0),
+    0
+  );
+
+  const courseMap = {};
+
+  students.forEach((student) => {
+    const course = student.enrolled_course || "Unassigned Course";
+
+    if (!courseMap[course]) {
+      courseMap[course] = {
+        course,
+        students: 0,
+        active: 0,
+        restricted: 0,
+        completedClasses: 0,
+        paidClasses: 0,
+        outstandingBalance: 0,
+      };
+    }
+
+    courseMap[course].students += 1;
+    courseMap[course].active += student.is_restricted ? 0 : 1;
+    courseMap[course].restricted += student.is_restricted ? 1 : 0;
+    courseMap[course].completedClasses += Number(
+      student.completed_classes || 0
+    );
+    courseMap[course].paidClasses += Number(student.total_paid_classes || 0);
+    courseMap[course].outstandingBalance += Number(
+      student.payment_balance || 0
+    );
+  });
+
+  const courseReports = Object.values(courseMap);
+
+  const bookingStatusMap = {};
+
+  bookings.forEach((booking) => {
+    const status = booking.status || "unknown";
+    bookingStatusMap[status] = (bookingStatusMap[status] || 0) + 1;
+  });
+
+  const bookingStatusReports = Object.entries(bookingStatusMap).map(
+    ([status, count]) => ({
+      status,
+      count,
+    })
+  );
+
+  const assignmentReports = assignments.map((assignment) => {
+    const submissions = assignment.assignment_submissions || [];
+    const graded = submissions.filter(
+      (submission) => submission.status === "graded"
+    );
+    const pending = submissions.filter(
+      (submission) => submission.status === "submitted"
+    );
+
+    const scores = graded
+      .map((submission) => Number(submission.score))
+      .filter((score) => !Number.isNaN(score));
+
+    const averageScore =
+      scores.length > 0
+        ? Math.round(
+            scores.reduce((sum, score) => sum + score, 0) / scores.length
+          )
+        : 0;
+
+    return {
+      id: assignment.id,
+      title: assignment.title,
+      tool: assignment.tool,
+      dueDate: assignment.due_date,
+      status: assignment.status,
+      tutorName:
+        assignment.tutors?.profiles?.full_name || "Tutor not assigned",
+      submissions: submissions.length,
+      pending: pending.length,
+      graded: graded.length,
+      averageScore,
+    };
+  });
+
+  const tutorReports = tutors.map((tutor) => {
+    const assignedStudents = tutor.students || [];
+
+    const completedClasses = assignedStudents.reduce(
+      (sum, student) => sum + Number(student.completed_classes || 0),
+      0
+    );
+
+    const totalStudentBalance = assignedStudents.reduce(
+      (sum, student) => sum + Number(student.payment_balance || 0),
+      0
+    );
+
+    const restrictedAssignedStudents = assignedStudents.filter(
+      (student) => student.is_restricted
+    ).length;
+
+    return {
+      id: tutor.id,
+      tutorName: tutor.profiles?.full_name || "Unnamed Tutor",
+      email: tutor.profiles?.email || "-",
+      specialisation: tutor.specialisation || "Not set",
+      isActive: tutor.is_active,
+      assignedStudents: assignedStudents.length,
+      completedClasses,
+      totalStudentBalance,
+      restrictedAssignedStudents,
+    };
+  });
+
+  return {
+    data: {
+      students,
+      tutors,
+      payments,
+      bookings,
+      assignments,
+      courseReports,
+      bookingStatusReports,
+      assignmentReports,
+      tutorReports,
+      summary: {
+        totalStudents: students.length,
+        activeStudents: activeStudents.length,
+        restrictedStudents: restrictedStudents.length,
+        totalTutors: tutors.length,
+        activeTutors: tutors.filter((tutor) => tutor.is_active).length,
+        totalOutstandingBalance,
+        totalCompletedClasses,
+        totalPaidClasses,
+        totalBookings: bookings.length,
+        totalAssignments: assignments.length,
+        totalSubmissions: assignments.flatMap(
+          (assignment) => assignment.assignment_submissions || []
+        ).length,
+        totalConfirmedPayment,
+        confirmedPayments: confirmedPayments.length,
+        pendingPayments: pendingPayments.length,
+        rejectedPayments: rejectedPayments.length,
+      },
+    },
+    error: null,
+  };
+}
