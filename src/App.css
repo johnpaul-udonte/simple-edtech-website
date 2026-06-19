@@ -840,3 +840,8 @@ button {
     padding: 24px;
   }
 }
+
+.sideNav a.active {
+  background: #ffffff;
+  color: #0b4ea2;
+}

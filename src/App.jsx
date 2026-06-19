@@ -15,6 +15,12 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
 import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentAssignments from "./pages/student/StudentAssignments";
+import StudentSchedule from "./pages/student/StudentSchedule";
+import StudentPractice from "./pages/student/StudentPractice";
+import StudentMaterials from "./pages/student/StudentMaterials";
+import StudentCertificates from "./pages/student/StudentCertificates";
+
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
@@ -22,7 +28,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public website pages */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -34,17 +39,19 @@ function App() {
           <Route path="/register" element={<Register />} />
         </Route>
 
-        {/* Student dashboard */}
         <Route element={<DashboardLayout role="Student" />}>
           <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/assignments" element={<StudentAssignments />} />
+          <Route path="/student/schedule" element={<StudentSchedule />} />
+          <Route path="/student/practice" element={<StudentPractice />} />
+          <Route path="/student/materials" element={<StudentMaterials />} />
+          <Route path="/student/certificates" element={<StudentCertificates />} />
         </Route>
 
-        {/* Tutor dashboard */}
         <Route element={<DashboardLayout role="Tutor" />}>
           <Route path="/tutor/dashboard" element={<TutorDashboard />} />
         </Route>
 
-        {/* Admin dashboard */}
         <Route element={<DashboardLayout role="Admin" />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
