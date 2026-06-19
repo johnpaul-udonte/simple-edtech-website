@@ -31,6 +31,11 @@ import TutorSchedule from "./pages/tutor/TutorSchedule";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
+import AdminStudents from "./pages/admin/AdminStudents";
+import AdminTutors from "./pages/admin/AdminTutors";
+import AdminSchedules from "./pages/admin/AdminSchedules";
+import AdminPayments from "./pages/admin/AdminPayments";
+
 function App() {
   return (
     <BrowserRouter>
@@ -67,6 +72,10 @@ function App() {
 
         <Route element={<DashboardLayout role="Admin" />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/students" element={<AdminStudents />} />
+          <Route path="/admin/tutors" element={<AdminTutors />} />
+          <Route path="/admin/schedules" element={<AdminSchedules />} />
+          <Route path="/admin/payments" element={<AdminPayments />} />
         </Route>
       </Routes>
     </BrowserRouter>

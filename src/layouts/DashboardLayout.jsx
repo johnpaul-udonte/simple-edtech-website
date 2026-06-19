@@ -23,6 +23,10 @@ function DashboardLayout({ role }) {
 
     Admin: [
       { label: "Dashboard", path: "/admin/dashboard" },
+      { label: "Students", path: "/admin/students" },
+      { label: "Tutors", path: "/admin/tutors" },
+      { label: "Schedules", path: "/admin/schedules" },
+      { label: "Payments", path: "/admin/payments" },
     ],
   };
 
