@@ -1047,3 +1047,246 @@ export async function getReportsForAdmin() {
     error: null,
   };
 }
+
+export async function getCertificatesForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const [studentsResult, certificatesResult] = await Promise.all([
+    supabase
+      .from("students")
+      .select(
+        `
+        id,
+        student_code,
+        enrolled_course,
+        total_paid_classes,
+        completed_classes,
+        missed_classes,
+        cancelled_classes,
+        rescheduled_classes,
+        payment_balance,
+        is_restricted,
+        created_at,
+        profiles (
+          full_name,
+          email,
+          status
+        ),
+        tutors (
+          profiles (
+            full_name,
+            email
+          )
+        )
+      `
+      )
+      .order("created_at", { ascending: false }),
+
+    supabase
+      .from("certificates")
+      .select(
+        `
+        id,
+        student_id,
+        title,
+        course,
+        status,
+        issued_at,
+        issued_by,
+        certificate_url,
+        notes,
+        created_at,
+        updated_at
+      `
+      )
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const firstError = studentsResult.error || certificatesResult.error;
+
+  if (firstError) {
+    return {
+      data: null,
+      error: firstError,
+    };
+  }
+
+  const students = studentsResult.data || [];
+  const certificates = certificatesResult.data || [];
+
+  const studentsWithCertificates = students.map((student) => {
+    const studentCertificates = certificates.filter(
+      (certificate) => certificate.student_id === student.id
+    );
+
+    const totalPaidClasses = Number(student.total_paid_classes || 0);
+    const completedClasses = Number(student.completed_classes || 0);
+    const remainingClasses = Math.max(totalPaidClasses - completedClasses, 0);
+
+    const hasIssuedCertificate = studentCertificates.some(
+      (certificate) => certificate.status === "issued"
+    );
+
+    const isEligible =
+      totalPaidClasses > 0 &&
+      completedClasses >= totalPaidClasses &&
+      !hasIssuedCertificate;
+
+    return {
+      ...student,
+      certificates: studentCertificates,
+      totalPaidClasses,
+      completedClasses,
+      remainingClasses,
+      hasIssuedCertificate,
+      isEligible,
+    };
+  });
+
+  const eligibleStudents = studentsWithCertificates.filter(
+    (student) => student.isEligible
+  );
+
+  const issuedCertificates = certificates.filter(
+    (certificate) => certificate.status === "issued"
+  );
+
+  const pendingCertificates = certificates.filter(
+    (certificate) => certificate.status === "pending_approval"
+  );
+
+  return {
+    data: {
+      students: studentsWithCertificates,
+      certificates,
+      eligibleStudents,
+      issuedCertificates,
+      pendingCertificates,
+      summary: {
+        totalStudents: students.length,
+        eligibleStudents: eligibleStudents.length,
+        totalCertificates: certificates.length,
+        issuedCertificates: issuedCertificates.length,
+        pendingCertificates: pendingCertificates.length,
+      },
+    },
+    error: null,
+  };
+}
+
+export async function issueCertificateForStudent(studentId, adminUserId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      total_paid_classes,
+      completed_classes,
+      profiles (
+        full_name,
+        email
+      )
+    `
+    )
+    .eq("id", studentId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "Student record could not be found.",
+      },
+    };
+  }
+
+  const totalPaidClasses = Number(student.total_paid_classes || 0);
+  const completedClasses = Number(student.completed_classes || 0);
+
+  if (totalPaidClasses <= 0 || completedClasses < totalPaidClasses) {
+    return {
+      data: null,
+      error: {
+        message:
+          "This student is not yet eligible. Completed classes must be equal to or greater than total paid classes.",
+      },
+    };
+  }
+
+  const { data: existingRows, error: existingError } = await supabase
+    .from("certificates")
+    .select("id, status")
+    .eq("student_id", studentId)
+    .eq("course", student.enrolled_course)
+    .eq("status", "issued")
+    .limit(1);
+
+  if (existingError) {
+    return {
+      data: null,
+      error: existingError,
+    };
+  }
+
+  const existingCertificate =
+    Array.isArray(existingRows) && existingRows.length > 0
+      ? existingRows[0]
+      : null;
+
+  if (existingCertificate) {
+    return {
+      data: null,
+      error: {
+        message: "This student already has an issued certificate for this course.",
+      },
+    };
+  }
+
+  const { data: insertedRows, error: insertError } = await supabase
+    .from("certificates")
+    .insert({
+      student_id: student.id,
+      title: `${student.enrolled_course} Certificate of Completion`,
+      course: student.enrolled_course,
+      status: "issued",
+      issued_at: new Date().toISOString(),
+      issued_by: adminUserId,
+      notes: `Certificate issued to ${
+        student.profiles?.full_name || "student"
+      } after completing ${completedClasses}/${totalPaidClasses} classes.`,
+    })
+    .select();
+
+  return {
+    data: Array.isArray(insertedRows) ? insertedRows[0] : null,
+    error: insertError,
+  };
+}
