@@ -173,3 +173,40 @@ export async function getAllStudentsForAdmin() {
     )
     .order("created_at", { ascending: false });
 }
+
+export async function getAllTutorsForAdmin() {
+  if (!supabase) {
+    return {
+      data: [],
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  return await supabase
+    .from("tutors")
+    .select(
+      `
+      id,
+      specialisation,
+      bio,
+      is_active,
+      created_at,
+      profiles (
+        full_name,
+        email,
+        status
+      ),
+      students (
+        id,
+        student_code,
+        completed_classes,
+        total_paid_classes,
+        payment_balance,
+        is_restricted
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+}
