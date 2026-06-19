@@ -3,6 +3,7 @@ import "./App.css";
 
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 import Home from "./pages/public/Home";
 import About from "./pages/public/About";
@@ -56,7 +57,13 @@ function App() {
           <Route path="/register" element={<Register />} />
         </Route>
 
-        <Route element={<DashboardLayout role="Student" />}>
+        <Route
+          element={
+            <ProtectedRoute allowedRole="student">
+              <DashboardLayout role="Student" />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/assignments" element={<StudentAssignments />} />
           <Route path="/student/schedule" element={<StudentSchedule />} />
@@ -65,7 +72,13 @@ function App() {
           <Route path="/student/certificates" element={<StudentCertificates />} />
         </Route>
 
-        <Route element={<DashboardLayout role="Tutor" />}>
+        <Route
+          element={
+            <ProtectedRoute allowedRole="tutor">
+              <DashboardLayout role="Tutor" />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/tutor/dashboard" element={<TutorDashboard />} />
           <Route path="/tutor/students" element={<TutorStudents />} />
           <Route path="/tutor/assignments" element={<TutorAssignments />} />
@@ -75,7 +88,13 @@ function App() {
           <Route path="/tutor/schedule" element={<TutorSchedule />} />
         </Route>
 
-        <Route element={<DashboardLayout role="Admin" />}>
+        <Route
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <DashboardLayout role="Admin" />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/tutors" element={<AdminTutors />} />
