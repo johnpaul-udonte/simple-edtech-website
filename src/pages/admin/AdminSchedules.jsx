@@ -1,27 +1,61 @@
 import { useEffect, useState } from "react";
-import { getSchedulesForAdmin } from "../../services/adminService";
+import { useAuth } from "../../context/AuthContext";
+import {
+  approveClassBooking,
+  getSchedulesForAdmin,
+} from "../../services/adminService";
 
 function AdminSchedules() {
+  const { session } = useAuth();
+
   const [scheduleData, setScheduleData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [approvingId, setApprovingId] = useState("");
 
-  useEffect(() => {
-    async function loadSchedules() {
-      const { data, error } = await getSchedulesForAdmin();
+  async function loadSchedules() {
+    const { data, error } = await getSchedulesForAdmin();
 
-      if (error) {
-        setNotice(error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setScheduleData(data);
+    if (error) {
+      setNotice(error.message);
       setIsLoading(false);
+      return;
     }
 
+    setScheduleData(data);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
     loadSchedules();
   }, []);
+
+  async function handleApproveBooking(bookingId) {
+    setNotice("");
+    setSuccessMessage("");
+    setApprovingId(bookingId);
+
+    const adminUserId = session?.user?.id;
+
+    if (!adminUserId) {
+      setNotice("Admin session not found. Please log in again.");
+      setApprovingId("");
+      return;
+    }
+
+    const { error } = await approveClassBooking(bookingId, adminUserId);
+
+    if (error) {
+      setNotice(error.message);
+      setApprovingId("");
+      return;
+    }
+
+    setSuccessMessage("Class booking approved successfully.");
+    await loadSchedules();
+    setApprovingId("");
+  }
 
   if (isLoading) {
     return (
@@ -34,9 +68,13 @@ function AdminSchedules() {
 
   if (notice) {
     return (
-      <section className="dashboardPanel">
-        <h2>Schedule management issue</h2>
-        <p>{notice}</p>
+      <section>
+        <div className="dashboardPanel">
+          <h2>Schedule management issue</h2>
+          <p>{notice}</p>
+        </div>
+
+        <button onClick={() => window.location.reload()}>Reload Page</button>
       </section>
     );
   }
@@ -58,6 +96,12 @@ function AdminSchedules() {
 
         <button>Create Class Slot</button>
       </div>
+
+      {successMessage && (
+        <div className="successNotice">
+          <strong>Success:</strong> {successMessage}
+        </div>
+      )}
 
       <div className="dashboardGrid">
         <article className="dashboardCard">
@@ -143,28 +187,47 @@ function AdminSchedules() {
                 <th>Status</th>
                 <th>Reschedules</th>
                 <th>Approved By</th>
+                <th>Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {bookings.map((booking) => (
-                <tr key={booking.id}>
-                  <td>
-                    {booking.students?.profiles?.full_name || "Unknown Student"}
-                    <br />
-                    <small>{booking.students?.student_code || "-"}</small>
-                  </td>
-                  <td>{booking.tutors?.profiles?.full_name || "No tutor assigned"}</td>
-                  <td>{booking.class_slots?.slot_date || "-"}</td>
-                  <td>
-                    {booking.class_slots?.start_time || "-"} -{" "}
-                    {booking.class_slots?.end_time || "-"}
-                  </td>
-                  <td>{booking.status}</td>
-                  <td>{booking.reschedule_count} / 3</td>
-                  <td>{booking.profiles?.full_name || "-"}</td>
-                </tr>
-              ))}
+              {bookings.map((booking) => {
+                const isScheduled = booking.status === "scheduled";
+                const isApproving = approvingId === booking.id;
+
+                return (
+                  <tr key={booking.id}>
+                    <td>
+                      {booking.students?.profiles?.full_name || "Unknown Student"}
+                      <br />
+                      <small>{booking.students?.student_code || "-"}</small>
+                    </td>
+                    <td>{booking.tutors?.profiles?.full_name || "No tutor assigned"}</td>
+                    <td>{booking.class_slots?.slot_date || "-"}</td>
+                    <td>
+                      {booking.class_slots?.start_time || "-"} -{" "}
+                      {booking.class_slots?.end_time || "-"}
+                    </td>
+                    <td>{booking.status}</td>
+                    <td>{booking.reschedule_count} / 3</td>
+                    <td>{booking.profiles?.full_name || "-"}</td>
+                    <td>
+                      {isScheduled ? (
+                        <button
+                          className="tableActionBtn"
+                          onClick={() => handleApproveBooking(booking.id)}
+                          disabled={isApproving}
+                        >
+                          {isApproving ? "Approving..." : "Approve"}
+                        </button>
+                      ) : (
+                        <span className="mutedText">No action</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

@@ -418,3 +418,89 @@ export async function getSchedulesForAdmin() {
     error: null,
   };
 }
+
+export async function approveClassBooking(bookingId, adminUserId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: booking, error: bookingError } = await supabase
+    .from("class_bookings")
+    .select(
+      `
+      id,
+      status,
+      class_slot_id,
+      class_slots (
+        id,
+        booked_count,
+        capacity
+      )
+    `
+    )
+    .eq("id", bookingId)
+    .single();
+
+  if (bookingError) {
+    return {
+      data: null,
+      error: bookingError,
+    };
+  }
+
+  if (booking.status === "approved") {
+    return {
+      data: booking,
+      error: {
+        message: "This booking has already been approved.",
+      },
+    };
+  }
+
+  const { data: updatedBooking, error: updateError } = await supabase
+    .from("class_bookings")
+    .update({
+      status: "approved",
+      approved_at: new Date().toISOString(),
+      admin_approved_by: adminUserId,
+    })
+    .eq("id", bookingId)
+    .select()
+    .single();
+
+  if (updateError) {
+    return {
+      data: null,
+      error: updateError,
+    };
+  }
+
+  const currentBookedCount = Number(booking.class_slots?.booked_count || 0);
+  const capacity = Number(booking.class_slots?.capacity || 1);
+  const newBookedCount = Math.min(currentBookedCount + 1, capacity);
+
+  const { error: slotUpdateError } = await supabase
+    .from("class_slots")
+    .update({
+      booked_count: newBookedCount,
+      is_available: newBookedCount < capacity,
+    })
+    .eq("id", booking.class_slot_id);
+
+  if (slotUpdateError) {
+    return {
+      data: updatedBooking,
+      error: slotUpdateError,
+    };
+  }
+
+  return {
+    data: updatedBooking,
+    error: null,
+  };
+}
