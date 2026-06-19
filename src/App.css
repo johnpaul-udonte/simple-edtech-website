@@ -994,3 +994,46 @@ button {
 .dangerBtn:hover {
   background: #912018;
 }
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+  background: #eef4ff;
+  color: #0f5bd8;
+}
+
+.statusPill.scheduled {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.approved {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.statusPill.completed {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.statusPill.missed {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusPill.cancelled {
+  background: #fff1f3;
+  color: #b42318;
+}
+
+.statusPill.rescheduled {
+  background: #f4f3ff;
+  color: #5925dc;
+}
