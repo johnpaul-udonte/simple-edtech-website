@@ -788,3 +788,108 @@ export async function getStudentCertificatesForCurrentUser(userId) {
     error: null,
   };
 }
+export async function getStudentMaterialsForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      assigned_tutor_id,
+      profiles (
+        full_name,
+        email
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  if (!student.assigned_tutor_id) {
+    return {
+      data: {
+        student,
+        materials: [],
+      },
+      error: null,
+    };
+  }
+
+  const { data: materials, error: materialsError } = await supabase
+    .from("materials")
+    .select(
+      `
+      id,
+      title,
+      description,
+      tool,
+      material_type,
+      material_url,
+      visibility,
+      status,
+      created_at,
+      updated_at,
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .eq("tutor_id", student.assigned_tutor_id)
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  if (materialsError) {
+    return {
+      data: null,
+      error: materialsError,
+    };
+  }
+
+  return {
+    data: {
+      student,
+      materials: materials || [],
+    },
+    error: null,
+  };
+}
