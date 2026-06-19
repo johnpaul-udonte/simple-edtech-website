@@ -3,17 +3,20 @@ import { useAuth } from "../../context/AuthContext";
 import {
   createAssignmentForTutor,
   getTutorAssignmentsForCurrentUser,
+  gradeAssignmentSubmission,
 } from "../../services/tutorService";
 
 function TutorAssignments() {
   const { session, profile } = useAuth();
 
   const [assignmentData, setAssignmentData] = useState(null);
+  const [gradingForms, setGradingForms] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [actionError, setActionError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [gradingId, setGradingId] = useState("");
 
   const [assignmentForm, setAssignmentForm] = useState({
     title: "",
@@ -54,6 +57,16 @@ function TutorAssignments() {
     setAssignmentForm((current) => ({
       ...current,
       [name]: value,
+    }));
+  }
+
+  function handleGradeChange(submissionId, field, value) {
+    setGradingForms((current) => ({
+      ...current,
+      [submissionId]: {
+        ...current[submissionId],
+        [field]: value,
+      },
     }));
   }
 
@@ -104,6 +117,40 @@ function TutorAssignments() {
     setIsCreating(false);
   }
 
+  async function handleGradeSubmission(submission) {
+    setSuccessMessage("");
+    setActionError("");
+    setGradingId(submission.id);
+
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      setActionError("Tutor session not found. Please log in again.");
+      setGradingId("");
+      return;
+    }
+
+    const form = gradingForms[submission.id] || {};
+    const score = form.score ?? submission.score ?? "";
+    const feedback = form.feedback ?? submission.feedback ?? "";
+
+    const { error } = await gradeAssignmentSubmission(userId, submission.id, {
+      score,
+      feedback,
+    });
+
+    if (error) {
+      setActionError(error.message);
+      setGradingId("");
+      return;
+    }
+
+    setSuccessMessage("Submission graded successfully.");
+    setGradingForms({});
+    await loadTutorAssignments();
+    setGradingId("");
+  }
+
   if (isLoading) {
     return (
       <section className="dashboardPanel">
@@ -136,8 +183,12 @@ function TutorAssignments() {
     (assignment) => assignment.status === "closed"
   );
 
-  const allSubmissions = assignments.flatMap(
-    (assignment) => assignment.assignment_submissions || []
+  const allSubmissions = assignments.flatMap((assignment) =>
+    (assignment.assignment_submissions || []).map((submission) => ({
+      ...submission,
+      assignment_title: assignment.title,
+      assignment_tool: assignment.tool,
+    }))
   );
 
   const pendingSubmissions = allSubmissions.filter(
@@ -156,7 +207,7 @@ function TutorAssignments() {
           <h1>Assignments</h1>
           <p>
             Welcome, {profile?.full_name || "Tutor"}. Create assignments, view
-            submitted work, and monitor grading progress.
+            submitted work, grade students, and give feedback.
           </p>
         </div>
 
@@ -349,49 +400,141 @@ function TutorAssignments() {
       </div>
 
       <div className="dashboardPanel">
-        <h2>Recent Submissions</h2>
+        <h2>Grade Submissions</h2>
 
         {allSubmissions.length === 0 ? (
           <p>No student submissions yet.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Student Code</th>
-                <th>Status</th>
-                <th>Submitted At</th>
-                <th>Score</th>
-                <th>Feedback</th>
-              </tr>
-            </thead>
+          <div className="assignmentStack">
+            {allSubmissions.map((submission) => {
+              const isGrading = gradingId === submission.id;
 
-            <tbody>
-              {allSubmissions.map((submission) => (
-                <tr key={submission.id}>
-                  <td>{submission.students?.profiles?.full_name || "Student"}</td>
+              return (
+                <article className="assignmentBox" key={submission.id}>
+                  <div className="assignmentTop">
+                    <div>
+                      <h3>{submission.assignment_title}</h3>
+                      <p>
+                        {submission.students?.profiles?.full_name || "Student"}{" "}
+                        | {submission.students?.student_code || "-"}
+                      </p>
+                    </div>
 
-                  <td>{submission.students?.student_code || "-"}</td>
-
-                  <td>
                     <span className={`statusPill ${submission.status}`}>
                       {submission.status}
                     </span>
-                  </td>
+                  </div>
 
-                  <td>
-                    {submission.submitted_at
-                      ? new Date(submission.submitted_at).toLocaleString()
-                      : "-"}
-                  </td>
+                  <div className="assignmentMeta">
+                    <span>Tool: {submission.assignment_tool || "General"}</span>
+                    <span>
+                      Submitted:{" "}
+                      {submission.submitted_at
+                        ? new Date(submission.submitted_at).toLocaleString()
+                        : "-"}
+                    </span>
+                    <span>Score: {submission.score ?? "Not graded"}</span>
+                  </div>
 
-                  <td>{submission.score ?? "-"}</td>
+                  <div className="submissionSummary">
+                    <h4>Student Work</h4>
 
-                  <td>{submission.feedback || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <p>
+                      <strong>Note:</strong>{" "}
+                      {submission.submission_text || "No note submitted."}
+                    </p>
+
+                    {submission.submission_link && (
+                      <p>
+                        <strong>Link:</strong>{" "}
+                        <a
+                          href={submission.submission_link}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open submitted work
+                        </a>
+                      </p>
+                    )}
+
+                    <p>
+                      <strong>Current Feedback:</strong>{" "}
+                      {submission.feedback || "No feedback yet."}
+                    </p>
+                  </div>
+
+                  <form
+                    className="portalForm submissionForm"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      handleGradeSubmission(submission);
+                    }}
+                  >
+                    <div className="formGrid">
+                      <label>
+                        Score / 100
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={
+                            gradingForms[submission.id]?.score ??
+                            submission.score ??
+                            ""
+                          }
+                          onChange={(event) =>
+                            handleGradeChange(
+                              submission.id,
+                              "score",
+                              event.target.value
+                            )
+                          }
+                          placeholder="Example: 85"
+                        />
+                      </label>
+
+                      <label>
+                        Status
+                        <input
+                          type="text"
+                          value="graded"
+                          readOnly
+                        />
+                      </label>
+                    </div>
+
+                    <label>
+                      Feedback
+                      <textarea
+                        rows="4"
+                        value={
+                          gradingForms[submission.id]?.feedback ??
+                          submission.feedback ??
+                          ""
+                        }
+                        onChange={(event) =>
+                          handleGradeChange(
+                            submission.id,
+                            "feedback",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Give clear feedback to the student."
+                      />
+                    </label>
+
+                    <button
+                      className="tableActionBtn"
+                      type="submit"
+                      disabled={isGrading}
+                    >
+                      {isGrading ? "Saving Grade..." : "Save Grade"}
+                    </button>
+                  </form>
+                </article>
+              );
+            })}
+          </div>
         )}
       </div>
     </section>

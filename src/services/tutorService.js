@@ -1,5 +1,9 @@
 import { supabase } from "../lib/supabaseClient";
 
+function firstRow(rows) {
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
 export async function getCurrentTutorRecord(userId) {
   if (!supabase) {
     return {
@@ -10,11 +14,16 @@ export async function getCurrentTutorRecord(userId) {
     };
   }
 
-  return await supabase
+  const { data, error } = await supabase
     .from("tutors")
     .select("id, specialisation, bio, is_active")
     .eq("profile_id", userId)
-    .single();
+    .limit(1);
+
+  return {
+    data: firstRow(data),
+    error,
+  };
 }
 
 export async function getAssignedStudents(tutorId) {
@@ -75,7 +84,7 @@ export async function getTutorScheduleForCurrentUser(userId) {
     };
   }
 
-  const tutor = Array.isArray(tutorRows) && tutorRows.length > 0 ? tutorRows[0] : null;
+  const tutor = firstRow(tutorRows);
 
   if (!tutor) {
     return {
@@ -159,7 +168,7 @@ export async function getTutorStudentsForCurrentUser(userId) {
     };
   }
 
-  const tutor = Array.isArray(tutorRows) && tutorRows.length > 0 ? tutorRows[0] : null;
+  const tutor = firstRow(tutorRows);
 
   if (!tutor) {
     return {
@@ -262,8 +271,7 @@ export async function getTutorAssignmentsForCurrentUser(userId) {
     };
   }
 
-  const tutor =
-    Array.isArray(tutorRows) && tutorRows.length > 0 ? tutorRows[0] : null;
+  const tutor = firstRow(tutorRows);
 
   if (!tutor) {
     return {
@@ -294,10 +302,15 @@ export async function getTutorAssignmentsForCurrentUser(userId) {
       ),
       assignment_submissions (
         id,
+        assignment_id,
+        student_id,
         status,
         submitted_at,
         score,
         feedback,
+        submission_text,
+        submission_link,
+        updated_at,
         students (
           id,
           student_code,
@@ -351,8 +364,7 @@ export async function createAssignmentForTutor(userId, assignmentForm) {
     };
   }
 
-  const tutor =
-    Array.isArray(tutorRows) && tutorRows.length > 0 ? tutorRows[0] : null;
+  const tutor = firstRow(tutorRows);
 
   if (!tutor) {
     return {
@@ -376,7 +388,120 @@ export async function createAssignmentForTutor(userId, assignmentForm) {
     .select();
 
   return {
-    data: Array.isArray(insertedRows) ? insertedRows[0] : null,
+    data: firstRow(insertedRows),
     error: insertError,
+  };
+}
+
+export async function gradeAssignmentSubmission(userId, submissionId, gradeForm) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: tutorRows, error: tutorError } = await supabase
+    .from("tutors")
+    .select("id")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const tutor = firstRow(tutorRows);
+
+  if (!tutor) {
+    return {
+      data: null,
+      error: {
+        message: "No tutor record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const { data: submissionRows, error: submissionError } = await supabase
+    .from("assignment_submissions")
+    .select(
+      `
+      id,
+      assignment_id,
+      assignments (
+        id,
+        tutor_id
+      )
+    `
+    )
+    .eq("id", submissionId)
+    .limit(1);
+
+  if (submissionError) {
+    return {
+      data: null,
+      error: submissionError,
+    };
+  }
+
+  const submission = firstRow(submissionRows);
+
+  if (!submission) {
+    return {
+      data: null,
+      error: {
+        message: "Submission could not be found.",
+      },
+    };
+  }
+
+  if (submission.assignments?.tutor_id !== tutor.id) {
+    return {
+      data: null,
+      error: {
+        message: "You cannot grade a submission for another tutor's assignment.",
+      },
+    };
+  }
+
+  const score = Number(gradeForm.score);
+
+  if (Number.isNaN(score) || score < 0 || score > 100) {
+    return {
+      data: null,
+      error: {
+        message: "Score must be a number between 0 and 100.",
+      },
+    };
+  }
+
+  if (!gradeForm.feedback.trim()) {
+    return {
+      data: null,
+      error: {
+        message: "Feedback is required before grading.",
+      },
+    };
+  }
+
+  const { data: updatedRows, error: updateError } = await supabase
+    .from("assignment_submissions")
+    .update({
+      score,
+      feedback: gradeForm.feedback,
+      status: "graded",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", submissionId)
+    .select();
+
+  return {
+    data: firstRow(updatedRows),
+    error: updateError,
   };
 }
