@@ -1053,3 +1053,19 @@ button {
   color: #0b2f63;
   background: white;
 }
+
+.progressTrack {
+  width: 100%;
+  min-width: 120px;
+  height: 9px;
+  border-radius: 999px;
+  background: #e6edf7;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: #0f5bd8;
+}
