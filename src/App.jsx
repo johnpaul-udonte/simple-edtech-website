@@ -30,11 +30,16 @@ import TutorAnnouncements from "./pages/tutor/TutorAnnouncements";
 import TutorSchedule from "./pages/tutor/TutorSchedule";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
-
 import AdminStudents from "./pages/admin/AdminStudents";
 import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSchedules from "./pages/admin/AdminSchedules";
 import AdminPayments from "./pages/admin/AdminPayments";
+import AdminAssignments from "./pages/admin/AdminAssignments";
+import AdminQuizzes from "./pages/admin/AdminQuizzes";
+import AdminCertificates from "./pages/admin/AdminCertificates";
+import AdminMaterials from "./pages/admin/AdminMaterials";
+import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
+import AdminReports from "./pages/admin/AdminReports";
 
 function App() {
   return (
@@ -76,6 +81,12 @@ function App() {
           <Route path="/admin/tutors" element={<AdminTutors />} />
           <Route path="/admin/schedules" element={<AdminSchedules />} />
           <Route path="/admin/payments" element={<AdminPayments />} />
+          <Route path="/admin/assignments" element={<AdminAssignments />} />
+          <Route path="/admin/quizzes" element={<AdminQuizzes />} />
+          <Route path="/admin/certificates" element={<AdminCertificates />} />
+          <Route path="/admin/materials" element={<AdminMaterials />} />
+          <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
         </Route>
       </Routes>
     </BrowserRouter>
