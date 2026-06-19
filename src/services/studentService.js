@@ -1,5 +1,9 @@
 import { supabase } from "../lib/supabaseClient";
 
+function firstRow(rows) {
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
 export async function getCurrentStudentRecord(userId) {
   if (!supabase) {
     return {
@@ -10,7 +14,7 @@ export async function getCurrentStudentRecord(userId) {
     };
   }
 
-  return await supabase
+  const { data, error } = await supabase
     .from("students")
     .select(
       `
@@ -34,7 +38,12 @@ export async function getCurrentStudentRecord(userId) {
     `
     )
     .eq("profile_id", userId)
-    .single();
+    .limit(1);
+
+  return {
+    data: firstRow(data),
+    error,
+  };
 }
 
 export async function getStudentScheduleForCurrentUser(userId) {
@@ -47,16 +56,27 @@ export async function getStudentScheduleForCurrentUser(userId) {
     };
   }
 
-  const { data: student, error: studentError } = await supabase
+  const { data: studentRows, error: studentError } = await supabase
     .from("students")
     .select("id, student_code, enrolled_course")
     .eq("profile_id", userId)
-    .single();
+    .limit(1);
 
   if (studentError) {
     return {
       data: null,
       error: studentError,
+    };
+  }
+
+  const student = firstRow(studentRows);
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
     };
   }
 
@@ -78,6 +98,7 @@ export async function getStudentScheduleForCurrentUser(userId) {
         )
       ),
       class_slots (
+        id,
         slot_date,
         start_time,
         end_time
@@ -151,16 +172,27 @@ export async function requestClassBooking(userId, classSlotId, tutorId) {
     };
   }
 
-  const { data: student, error: studentError } = await supabase
+  const { data: studentRows, error: studentError } = await supabase
     .from("students")
     .select("id, is_restricted")
     .eq("profile_id", userId)
-    .single();
+    .limit(1);
 
   if (studentError) {
     return {
       data: null,
       error: studentError,
+    };
+  }
+
+  const student = firstRow(studentRows);
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
     };
   }
 
@@ -174,13 +206,13 @@ export async function requestClassBooking(userId, classSlotId, tutorId) {
     };
   }
 
-  const { data: existingBooking, error: existingError } = await supabase
+  const { data: existingBookings, error: existingError } = await supabase
     .from("class_bookings")
     .select("id, status")
     .eq("student_id", student.id)
     .eq("class_slot_id", classSlotId)
     .in("status", ["scheduled", "approved"])
-    .maybeSingle();
+    .limit(1);
 
   if (existingError) {
     return {
@@ -189,17 +221,18 @@ export async function requestClassBooking(userId, classSlotId, tutorId) {
     };
   }
 
+  const existingBooking = firstRow(existingBookings);
+
   if (existingBooking) {
     return {
       data: null,
       error: {
-        message:
-          "You have already requested or booked this class slot.",
+        message: "You have already requested or booked this class slot.",
       },
     };
   }
 
-  return await supabase
+  const { data: insertedRows, error: insertError } = await supabase
     .from("class_bookings")
     .insert({
       student_id: student.id,
@@ -209,6 +242,197 @@ export async function requestClassBooking(userId, classSlotId, tutorId) {
       reschedule_count: 0,
       notes: "Student requested this class slot from the portal.",
     })
-    .select()
-    .single();
+    .select();
+
+  return {
+    data: firstRow(insertedRows),
+    error: insertError,
+  };
+}
+
+export async function requestClassReschedule(
+  userId,
+  bookingId,
+  newClassSlotId,
+  newTutorId
+) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select("id, is_restricted")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student = firstRow(studentRows);
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  if (student.is_restricted) {
+    return {
+      data: null,
+      error: {
+        message:
+          "Your access is currently restricted. Please contact admin before rescheduling a class.",
+      },
+    };
+  }
+
+  const { data: bookingRows, error: bookingError } = await supabase
+    .from("class_bookings")
+    .select(
+      `
+      id,
+      student_id,
+      status,
+      class_slot_id,
+      reschedule_count,
+      class_slots (
+        id,
+        booked_count,
+        capacity
+      )
+    `
+    )
+    .eq("id", bookingId)
+    .eq("student_id", student.id)
+    .limit(1);
+
+  if (bookingError) {
+    return {
+      data: null,
+      error: bookingError,
+    };
+  }
+
+  const booking = firstRow(bookingRows);
+
+  if (!booking) {
+    return {
+      data: null,
+      error: {
+        message: "This booking could not be found.",
+      },
+    };
+  }
+
+  const finalStatuses = ["completed", "missed", "cancelled"];
+
+  if (finalStatuses.includes(booking.status)) {
+    return {
+      data: null,
+      error: {
+        message:
+          "This class can no longer be rescheduled because it is already final.",
+      },
+    };
+  }
+
+  const currentRescheduleCount = Number(booking.reschedule_count || 0);
+
+  if (currentRescheduleCount >= 3) {
+    return {
+      data: null,
+      error: {
+        message: "You have reached the maximum of 3 reschedules for this class.",
+      },
+    };
+  }
+
+  if (booking.class_slot_id === newClassSlotId) {
+    return {
+      data: null,
+      error: {
+        message: "Please choose a different class slot.",
+      },
+    };
+  }
+
+  const { data: existingBookings, error: existingError } = await supabase
+    .from("class_bookings")
+    .select("id, status")
+    .eq("student_id", student.id)
+    .eq("class_slot_id", newClassSlotId)
+    .in("status", ["scheduled", "approved"])
+    .limit(1);
+
+  if (existingError) {
+    return {
+      data: null,
+      error: existingError,
+    };
+  }
+
+  const existingBooking = firstRow(existingBookings);
+
+  if (existingBooking) {
+    return {
+      data: null,
+      error: {
+        message:
+          "You already have a pending or approved booking for this new slot.",
+      },
+    };
+  }
+
+  if (booking.status === "approved") {
+    const currentBookedCount = Number(booking.class_slots?.booked_count || 0);
+    const capacity = Number(booking.class_slots?.capacity || 1);
+    const newBookedCount = Math.max(currentBookedCount - 1, 0);
+
+    const { error: oldSlotUpdateError } = await supabase
+      .from("class_slots")
+      .update({
+        booked_count: newBookedCount,
+        is_available: newBookedCount < capacity,
+      })
+      .eq("id", booking.class_slot_id);
+
+    if (oldSlotUpdateError) {
+      return {
+        data: null,
+        error: oldSlotUpdateError,
+      };
+    }
+  }
+
+  const { data: updatedRows, error: updateError } = await supabase
+    .from("class_bookings")
+    .update({
+      class_slot_id: newClassSlotId,
+      tutor_id: newTutorId,
+      status: "scheduled",
+      reschedule_count: currentRescheduleCount + 1,
+      approved_at: null,
+      admin_approved_by: null,
+      notes: "Student requested a reschedule. Waiting for admin approval.",
+    })
+    .eq("id", bookingId)
+    .select();
+
+  return {
+    data: firstRow(updatedRows),
+    error: updateError,
+  };
 }

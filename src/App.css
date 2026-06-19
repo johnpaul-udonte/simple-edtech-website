@@ -1037,3 +1037,19 @@ button {
   background: #f4f3ff;
   color: #5925dc;
 }
+
+.rescheduleBox {
+  display: grid;
+  gap: 8px;
+  min-width: 240px;
+}
+
+.rescheduleBox select {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid #d5dce8;
+  font-weight: 700;
+  color: #0b2f63;
+  background: white;
+}
