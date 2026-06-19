@@ -870,3 +870,13 @@ button {
 .dashboardHeader > div p:not(.eyebrow) {
   margin-top: 0;
 }
+
+.formNotice {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #eaf2ff;
+  color: #0b4ea2;
+  font-weight: 700;
+  line-height: 1.5;
+}
