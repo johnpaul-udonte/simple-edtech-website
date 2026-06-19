@@ -1290,3 +1290,130 @@ export async function issueCertificateForStudent(studentId, adminUserId) {
     error: insertError,
   };
 }
+
+export async function getMaterialsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: materials, error } = await supabase
+    .from("materials")
+    .select(
+      `
+      id,
+      tutor_id,
+      title,
+      description,
+      tool,
+      material_type,
+      material_url,
+      visibility,
+      status,
+      created_at,
+      updated_at,
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  const allMaterials = materials || [];
+
+  const toolReports = {};
+
+  allMaterials.forEach((material) => {
+    const tool = material.tool || "General";
+
+    if (!toolReports[tool]) {
+      toolReports[tool] = {
+        tool,
+        total: 0,
+        published: 0,
+        draft: 0,
+      };
+    }
+
+    toolReports[tool].total += 1;
+
+    if (material.status === "published") {
+      toolReports[tool].published += 1;
+    }
+
+    if (material.status === "draft") {
+      toolReports[tool].draft += 1;
+    }
+  });
+
+  const tutorReports = {};
+
+  allMaterials.forEach((material) => {
+    const tutorName =
+      material.tutors?.profiles?.full_name || "Tutor not assigned";
+
+    if (!tutorReports[tutorName]) {
+      tutorReports[tutorName] = {
+        tutorName,
+        email: material.tutors?.profiles?.email || "-",
+        total: 0,
+        published: 0,
+        draft: 0,
+      };
+    }
+
+    tutorReports[tutorName].total += 1;
+
+    if (material.status === "published") {
+      tutorReports[tutorName].published += 1;
+    }
+
+    if (material.status === "draft") {
+      tutorReports[tutorName].draft += 1;
+    }
+  });
+
+  return {
+    data: {
+      materials: allMaterials,
+      toolReports: Object.values(toolReports),
+      tutorReports: Object.values(tutorReports),
+      summary: {
+        totalMaterials: allMaterials.length,
+        publishedMaterials: allMaterials.filter(
+          (material) => material.status === "published"
+        ).length,
+        draftMaterials: allMaterials.filter(
+          (material) => material.status === "draft"
+        ).length,
+        excelMaterials: allMaterials.filter(
+          (material) => material.tool === "Excel"
+        ).length,
+        powerBiMaterials: allMaterials.filter(
+          (material) => material.tool === "Power BI"
+        ).length,
+        sqlMaterials: allMaterials.filter((material) => material.tool === "SQL")
+          .length,
+        pythonMaterials: allMaterials.filter(
+          (material) => material.tool === "Python"
+        ).length,
+      },
+    },
+    error: null,
+  };
+}
