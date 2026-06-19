@@ -210,3 +210,112 @@ export async function getAllTutorsForAdmin() {
     )
     .order("created_at", { ascending: false });
 }
+
+export async function getPaymentsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const [studentsResult, paymentsResult] = await Promise.all([
+    supabase
+      .from("students")
+      .select(
+        `
+        id,
+        student_code,
+        enrolled_course,
+        payment_balance,
+        is_restricted,
+        profiles (
+          full_name,
+          email,
+          status
+        )
+      `
+      )
+      .order("created_at", { ascending: false }),
+
+    supabase
+      .from("payments")
+      .select(
+        `
+        id,
+        amount,
+        status,
+        confirmed_at,
+        notes,
+        created_at,
+        students (
+          id,
+          student_code,
+          profiles (
+            full_name,
+            email
+          )
+        ),
+        profiles:confirmed_by (
+          full_name,
+          email
+        )
+      `
+      )
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const firstError = studentsResult.error || paymentsResult.error;
+
+  if (firstError) {
+    return {
+      data: null,
+      error: firstError,
+    };
+  }
+
+  const students = studentsResult.data || [];
+  const payments = paymentsResult.data || [];
+
+  const totalOutstandingBalance = students.reduce(
+    (sum, student) => sum + Number(student.payment_balance || 0),
+    0
+  );
+
+  const confirmedPayments = payments.filter(
+    (payment) => payment.status === "confirmed"
+  );
+
+  const pendingPayments = payments.filter(
+    (payment) => payment.status === "pending"
+  );
+
+  const rejectedPayments = payments.filter(
+    (payment) => payment.status === "rejected"
+  );
+
+  const totalConfirmedAmount = confirmedPayments.reduce(
+    (sum, payment) => sum + Number(payment.amount || 0),
+    0
+  );
+
+  const restrictedStudents = students.filter(
+    (student) => student.is_restricted
+  ).length;
+
+  return {
+    data: {
+      students,
+      payments,
+      totalOutstandingBalance,
+      totalConfirmedAmount,
+      confirmedPaymentsCount: confirmedPayments.length,
+      pendingPaymentsCount: pendingPayments.length,
+      rejectedPaymentsCount: rejectedPayments.length,
+      restrictedStudents,
+    },
+    error: null,
+  };
+}
