@@ -963,3 +963,34 @@ button {
   color: #75859a;
   font-size: 13px;
 }
+
+.errorNotice {
+  margin: 20px 0;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #fff1f3;
+  color: #b42318;
+  border: 1px solid #fecdd6;
+}
+
+.tableActionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.warningBtn {
+  background: #dc6803;
+}
+
+.warningBtn:hover {
+  background: #b54708;
+}
+
+.dangerBtn {
+  background: #b42318;
+}
+
+.dangerBtn:hover {
+  background: #912018;
+}

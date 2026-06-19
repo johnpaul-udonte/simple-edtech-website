@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   approveClassBooking,
   getSchedulesForAdmin,
+  updateClassBookingStatus,
 } from "../../services/adminService";
 
 function AdminSchedules() {
@@ -12,7 +13,8 @@ function AdminSchedules() {
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [approvingId, setApprovingId] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [workingId, setWorkingId] = useState("");
 
   async function loadSchedules() {
     const { data, error } = await getSchedulesForAdmin();
@@ -32,29 +34,65 @@ function AdminSchedules() {
   }, []);
 
   async function handleApproveBooking(bookingId) {
-    setNotice("");
+    setActionError("");
     setSuccessMessage("");
-    setApprovingId(bookingId);
+    setWorkingId(bookingId);
 
     const adminUserId = session?.user?.id;
 
     if (!adminUserId) {
-      setNotice("Admin session not found. Please log in again.");
-      setApprovingId("");
+      setActionError("Admin session not found. Please log in again.");
+      setWorkingId("");
       return;
     }
 
     const { error } = await approveClassBooking(bookingId, adminUserId);
 
     if (error) {
-      setNotice(error.message);
-      setApprovingId("");
+      setActionError(error.message);
+      setWorkingId("");
       return;
     }
 
     setSuccessMessage("Class booking approved successfully.");
     await loadSchedules();
-    setApprovingId("");
+    setWorkingId("");
+  }
+
+  async function handleUpdateStatus(bookingId, newStatus) {
+    setActionError("");
+    setSuccessMessage("");
+    setWorkingId(bookingId);
+
+    const adminUserId = session?.user?.id;
+
+    if (!adminUserId) {
+      setActionError("Admin session not found. Please log in again.");
+      setWorkingId("");
+      return;
+    }
+
+    const { error } = await updateClassBookingStatus(
+      bookingId,
+      newStatus,
+      adminUserId
+    );
+
+    if (error) {
+      setActionError(error.message);
+      setWorkingId("");
+      return;
+    }
+
+    const messageMap = {
+      completed: "Class marked as completed successfully.",
+      missed: "Class marked as missed successfully.",
+      cancelled: "Class booking cancelled successfully.",
+    };
+
+    setSuccessMessage(messageMap[newStatus] || "Class booking updated.");
+    await loadSchedules();
+    setWorkingId("");
   }
 
   if (isLoading) {
@@ -89,8 +127,9 @@ function AdminSchedules() {
           <p className="eyebrow">Admin Portal</p>
           <h1>Schedule Approval</h1>
           <p>
-            View real class slots, student bookings, approval status, reschedules,
-            missed classes, cancelled classes, and completed classes from Supabase.
+            View real class slots, student bookings, approval status,
+            reschedules, missed classes, cancelled classes, and completed
+            classes from Supabase.
           </p>
         </div>
 
@@ -100,6 +139,12 @@ function AdminSchedules() {
       {successMessage && (
         <div className="successNotice">
           <strong>Success:</strong> {successMessage}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="errorNotice">
+          <strong>Error:</strong> {actionError}
         </div>
       )}
 
@@ -130,8 +175,8 @@ function AdminSchedules() {
         </article>
 
         <article className="dashboardCard">
-          <p>Rescheduled Classes</p>
-          <h2>{scheduleData?.rescheduledBookings?.length || 0}</h2>
+          <p>Cancelled Classes</p>
+          <h2>{scheduleData?.cancelledBookings?.length || 0}</h2>
         </article>
       </div>
 
@@ -194,7 +239,11 @@ function AdminSchedules() {
             <tbody>
               {bookings.map((booking) => {
                 const isScheduled = booking.status === "scheduled";
-                const isApproving = approvingId === booking.id;
+                const isApproved = booking.status === "approved";
+                const isFinalStatus = ["completed", "missed", "cancelled"].includes(
+                  booking.status
+                );
+                const isWorking = workingId === booking.id;
 
                 return (
                   <tr key={booking.id}>
@@ -213,16 +262,62 @@ function AdminSchedules() {
                     <td>{booking.reschedule_count} / 3</td>
                     <td>{booking.profiles?.full_name || "-"}</td>
                     <td>
-                      {isScheduled ? (
-                        <button
-                          className="tableActionBtn"
-                          onClick={() => handleApproveBooking(booking.id)}
-                          disabled={isApproving}
-                        >
-                          {isApproving ? "Approving..." : "Approve"}
-                        </button>
-                      ) : (
-                        <span className="mutedText">No action</span>
+                      {isScheduled && (
+                        <div className="tableActionGroup">
+                          <button
+                            className="tableActionBtn"
+                            onClick={() => handleApproveBooking(booking.id)}
+                            disabled={isWorking}
+                          >
+                            {isWorking ? "Working..." : "Approve"}
+                          </button>
+
+                          <button
+                            className="tableActionBtn dangerBtn"
+                            onClick={() =>
+                              handleUpdateStatus(booking.id, "cancelled")
+                            }
+                            disabled={isWorking}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+
+                      {isApproved && (
+                        <div className="tableActionGroup">
+                          <button
+                            className="tableActionBtn"
+                            onClick={() =>
+                              handleUpdateStatus(booking.id, "completed")
+                            }
+                            disabled={isWorking}
+                          >
+                            {isWorking ? "Working..." : "Completed"}
+                          </button>
+
+                          <button
+                            className="tableActionBtn warningBtn"
+                            onClick={() => handleUpdateStatus(booking.id, "missed")}
+                            disabled={isWorking}
+                          >
+                            Missed
+                          </button>
+
+                          <button
+                            className="tableActionBtn dangerBtn"
+                            onClick={() =>
+                              handleUpdateStatus(booking.id, "cancelled")
+                            }
+                            disabled={isWorking}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+
+                      {isFinalStatus && (
+                        <span className="mutedText">Final status</span>
                       )}
                     </td>
                   </tr>

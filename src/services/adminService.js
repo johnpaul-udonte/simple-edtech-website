@@ -504,3 +504,142 @@ export async function approveClassBooking(bookingId, adminUserId) {
     error: null,
   };
 }
+
+export async function updateClassBookingStatus(bookingId, newStatus, adminUserId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const allowedStatuses = ["completed", "missed", "cancelled"];
+
+  if (!allowedStatuses.includes(newStatus)) {
+    return {
+      data: null,
+      error: {
+        message: "Invalid class status selected.",
+      },
+    };
+  }
+
+  const { data: booking, error: bookingError } = await supabase
+    .from("class_bookings")
+    .select(
+      `
+      id,
+      status,
+      student_id,
+      class_slot_id,
+      class_slots (
+        id,
+        booked_count,
+        capacity
+      ),
+      students (
+        id,
+        completed_classes,
+        missed_classes,
+        cancelled_classes
+      )
+    `
+    )
+    .eq("id", bookingId)
+    .single();
+
+  if (bookingError) {
+    return {
+      data: null,
+      error: bookingError,
+    };
+  }
+
+  if (booking.status === newStatus) {
+    return {
+      data: booking,
+      error: {
+        message: `This booking is already marked as ${newStatus}.`,
+      },
+    };
+  }
+
+  const { data: updatedBooking, error: updateError } = await supabase
+    .from("class_bookings")
+    .update({
+      status: newStatus,
+      admin_approved_by: adminUserId,
+    })
+    .eq("id", bookingId)
+    .select()
+    .single();
+
+  if (updateError) {
+    return {
+      data: null,
+      error: updateError,
+    };
+  }
+
+  const student = booking.students;
+
+  if (student) {
+    const studentUpdate = {};
+
+    if (newStatus === "completed") {
+      studentUpdate.completed_classes =
+        Number(student.completed_classes || 0) + 1;
+    }
+
+    if (newStatus === "missed") {
+      studentUpdate.missed_classes = Number(student.missed_classes || 0) + 1;
+    }
+
+    if (newStatus === "cancelled") {
+      studentUpdate.cancelled_classes =
+        Number(student.cancelled_classes || 0) + 1;
+    }
+
+    if (Object.keys(studentUpdate).length > 0) {
+      const { error: studentUpdateError } = await supabase
+        .from("students")
+        .update(studentUpdate)
+        .eq("id", booking.student_id);
+
+      if (studentUpdateError) {
+        return {
+          data: updatedBooking,
+          error: studentUpdateError,
+        };
+      }
+    }
+  }
+
+  if (newStatus === "cancelled" && booking.status === "approved") {
+    const currentBookedCount = Number(booking.class_slots?.booked_count || 0);
+    const capacity = Number(booking.class_slots?.capacity || 1);
+    const newBookedCount = Math.max(currentBookedCount - 1, 0);
+
+    const { error: slotUpdateError } = await supabase
+      .from("class_slots")
+      .update({
+        booked_count: newBookedCount,
+        is_available: newBookedCount < capacity,
+      })
+      .eq("id", booking.class_slot_id);
+
+    if (slotUpdateError) {
+      return {
+        data: updatedBooking,
+        error: slotUpdateError,
+      };
+    }
+  }
+
+  return {
+    data: updatedBooking,
+    error: null,
+  };
+}
