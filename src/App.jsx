@@ -22,6 +22,13 @@ import StudentMaterials from "./pages/student/StudentMaterials";
 import StudentCertificates from "./pages/student/StudentCertificates";
 
 import TutorDashboard from "./pages/tutor/TutorDashboard";
+import TutorStudents from "./pages/tutor/TutorStudents";
+import TutorAssignments from "./pages/tutor/TutorAssignments";
+import TutorQuizzes from "./pages/tutor/TutorQuizzes";
+import TutorMaterials from "./pages/tutor/TutorMaterials";
+import TutorAnnouncements from "./pages/tutor/TutorAnnouncements";
+import TutorSchedule from "./pages/tutor/TutorSchedule";
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
@@ -50,6 +57,12 @@ function App() {
 
         <Route element={<DashboardLayout role="Tutor" />}>
           <Route path="/tutor/dashboard" element={<TutorDashboard />} />
+          <Route path="/tutor/students" element={<TutorStudents />} />
+          <Route path="/tutor/assignments" element={<TutorAssignments />} />
+          <Route path="/tutor/quizzes" element={<TutorQuizzes />} />
+          <Route path="/tutor/materials" element={<TutorMaterials />} />
+          <Route path="/tutor/announcements" element={<TutorAnnouncements />} />
+          <Route path="/tutor/schedule" element={<TutorSchedule />} />
         </Route>
 
         <Route element={<DashboardLayout role="Admin" />}>
