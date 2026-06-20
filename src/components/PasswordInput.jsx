@@ -12,7 +12,7 @@ function PasswordInput({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <label className="passwordField">
+    <label className="passwordField passwordInputLabel" htmlFor={inputId}>
       {label}
 
       <div className="passwordRevealBox">
@@ -30,8 +30,10 @@ function PasswordInput({
           type="button"
           className="passwordRevealBtn"
           onClick={() => setShowPassword((current) => !current)}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          title={showPassword ? "Hide password" : "Show password"}
         >
-          {showPassword ? "Hide" : "Show"}
+          {showPassword ? "🙈" : "👁️"}
         </button>
       </div>
     </label>

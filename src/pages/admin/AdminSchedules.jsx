@@ -1,333 +1,345 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
-  approveClassBooking,
-  getSchedulesForAdmin,
-  updateClassBookingStatus,
-} from "../../services/adminService";
+  approveScheduleRequestForAdmin,
+  getScheduleRequestsForAdmin,
+  rejectScheduleRequestForAdmin,
+} from "../../services/scheduleRequestService";
+
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getScheduleSlots(request) {
+  if (Array.isArray(request?.requested_slots) && request.requested_slots.length) {
+    return request.requested_slots;
+  }
+
+  if (Array.isArray(request?.requested_days)) {
+    return request.requested_days.map((day) => ({
+      day,
+      time: request.requested_time || "-",
+    }));
+  }
+
+  return [];
+}
+
+function formatSchedule(request) {
+  const slots = getScheduleSlots(request);
+
+  if (slots.length > 0) {
+    return slots.map((slot) => `${slot.day}: ${slot.time}`).join(" | ");
+  }
+
+  return request?.requested_time || "-";
+}
 
 function AdminSchedules() {
-  const { session } = useAuth();
+  const { profile } = useAuth();
 
-  const [scheduleData, setScheduleData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [requests, setRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [adminNotes, setAdminNotes] = useState("");
   const [notice, setNotice] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [workingId, setWorkingId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [processingId, setProcessingId] = useState("");
 
-  async function loadSchedules() {
-    const { data, error } = await getSchedulesForAdmin();
+  async function loadRequests() {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    const { data, error } = await getScheduleRequestsForAdmin();
 
     if (error) {
-      setNotice(error.message);
+      setErrorMessage(error.message || "Could not load schedule requests.");
       setIsLoading(false);
       return;
     }
 
-    setScheduleData(data);
+    setRequests(data || []);
     setIsLoading(false);
   }
 
   useEffect(() => {
-    loadSchedules();
+    loadRequests();
   }, []);
 
-  async function handleApproveBooking(bookingId) {
-    setActionError("");
-    setSuccessMessage("");
-    setWorkingId(bookingId);
-
-    const adminUserId = session?.user?.id;
-
-    if (!adminUserId) {
-      setActionError("Admin session not found. Please log in again.");
-      setWorkingId("");
-      return;
-    }
-
-    const { error } = await approveClassBooking(bookingId, adminUserId);
-
-    if (error) {
-      setActionError(error.message);
-      setWorkingId("");
-      return;
-    }
-
-    setSuccessMessage("Class booking approved successfully.");
-    await loadSchedules();
-    setWorkingId("");
-  }
-
-  async function handleUpdateStatus(bookingId, newStatus) {
-    setActionError("");
-    setSuccessMessage("");
-    setWorkingId(bookingId);
-
-    const adminUserId = session?.user?.id;
-
-    if (!adminUserId) {
-      setActionError("Admin session not found. Please log in again.");
-      setWorkingId("");
-      return;
-    }
-
-    const { error } = await updateClassBookingStatus(
-      bookingId,
-      newStatus,
-      adminUserId
-    );
-
-    if (error) {
-      setActionError(error.message);
-      setWorkingId("");
-      return;
-    }
-
-    const messageMap = {
-      completed: "Class marked as completed successfully.",
-      missed: "Class marked as missed successfully.",
-      cancelled: "Class booking cancelled successfully.",
+  const summary = useMemo(() => {
+    return {
+      total: requests.length,
+      pending: requests.filter((item) => item.status === "pending").length,
+      approved: requests.filter((item) => item.status === "approved").length,
+      rejected: requests.filter((item) => item.status === "rejected").length,
     };
+  }, [requests]);
 
-    setSuccessMessage(messageMap[newStatus] || "Class booking updated.");
-    await loadSchedules();
-    setWorkingId("");
+  function openReview(request) {
+    setSelectedRequest(request);
+    setAdminNotes(request.admin_notes || "");
+    setNotice("");
+    setErrorMessage("");
   }
 
-  if (isLoading) {
-    return (
-      <section className="dashboardPanel">
-        <h2>Loading schedules...</h2>
-        <p>Please wait while class slots and bookings are loaded.</p>
-      </section>
+  async function handleApprove(request) {
+    const confirmed = window.confirm(
+      `Approve schedule for ${request.student_name}?`
     );
-  }
 
-  if (notice) {
-    return (
-      <section>
-        <div className="dashboardPanel">
-          <h2>Schedule management issue</h2>
-          <p>{notice}</p>
-        </div>
+    if (!confirmed) return;
 
-        <button onClick={() => window.location.reload()}>Reload Page</button>
-      </section>
+    setProcessingId(request.id);
+    setNotice("");
+    setErrorMessage("");
+
+    const { error } = await approveScheduleRequestForAdmin(
+      request,
+      profile,
+      adminNotes
     );
+
+    if (error) {
+      setErrorMessage(error.message || "Could not approve schedule.");
+      setProcessingId("");
+      return;
+    }
+
+    setNotice(`${request.student_name}'s schedule has been approved.`);
+    setProcessingId("");
+    setSelectedRequest(null);
+    setAdminNotes("");
+    await loadRequests();
   }
 
-  const slots = scheduleData?.slots || [];
-  const bookings = scheduleData?.bookings || [];
+  async function handleReject(request) {
+    const confirmed = window.confirm(
+      `Reject schedule request for ${request.student_name}?`
+    );
+
+    if (!confirmed) return;
+
+    setProcessingId(request.id);
+    setNotice("");
+    setErrorMessage("");
+
+    const { error } = await rejectScheduleRequestForAdmin(
+      request,
+      profile,
+      adminNotes
+    );
+
+    if (error) {
+      setErrorMessage(error.message || "Could not reject schedule.");
+      setProcessingId("");
+      return;
+    }
+
+    setNotice(`${request.student_name}'s schedule request has been rejected.`);
+    setProcessingId("");
+    setSelectedRequest(null);
+    setAdminNotes("");
+    await loadRequests();
+  }
 
   return (
-    <section>
-      <div className="dashboardHeader">
+    <>
+      <header className="dashboardHeader">
         <div>
-          <p className="eyebrow">Admin Portal</p>
-          <h1>Schedule Approval</h1>
+          <p className="eyebrow">Admin Schedule Approval</p>
+          <h1>Student Schedule Requests</h1>
           <p>
-            View real class slots, student bookings, approval status,
-            reschedules, missed classes, cancelled classes, and completed
-            classes from Supabase.
+            Review student weekly schedule choices. Each student must select 2
+            different days, and each day can have a different 1-hour time.
           </p>
         </div>
 
-        <button>Create Class Slot</button>
-      </div>
+        <button type="button" onClick={loadRequests}>
+          Refresh
+        </button>
+      </header>
 
-      {successMessage && (
-        <div className="successNotice">
-          <strong>Success:</strong> {successMessage}
-        </div>
-      )}
+      {notice && <div className="successNotice">{notice}</div>}
+      {errorMessage && <div className="errorNotice">{errorMessage}</div>}
 
-      {actionError && (
-        <div className="errorNotice">
-          <strong>Error:</strong> {actionError}
-        </div>
-      )}
-
-      <div className="dashboardGrid">
+      <section className="dashboardGrid">
         <article className="dashboardCard">
-          <p>Available Slots</p>
-          <h2>{slots.length}</h2>
+          <p>Total Requests</p>
+          <h2>{summary.total}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Pending Approvals</p>
-          <h2>{scheduleData?.pendingBookings?.length || 0}</h2>
+          <p>Pending</p>
+          <h2>{summary.pending}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Approved Classes</p>
-          <h2>{scheduleData?.approvedBookings?.length || 0}</h2>
+          <p>Approved</p>
+          <h2>{summary.approved}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Completed Classes</p>
-          <h2>{scheduleData?.completedBookings?.length || 0}</h2>
+          <p>Rejected</p>
+          <h2>{summary.rejected}</h2>
         </article>
+      </section>
 
-        <article className="dashboardCard">
-          <p>Missed Classes</p>
-          <h2>{scheduleData?.missedBookings?.length || 0}</h2>
-        </article>
+      <section className="dashboardPanel">
+        <h2>Schedule Request List</h2>
 
-        <article className="dashboardCard">
-          <p>Cancelled Classes</p>
-          <h2>{scheduleData?.cancelledBookings?.length || 0}</h2>
-        </article>
-      </div>
-
-      <div className="dashboardPanel">
-        <h2>Class Slots</h2>
-
-        {slots.length === 0 ? (
-          <p>No class slots have been created yet.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Tutor</th>
-                <th>Capacity</th>
-                <th>Booked</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {slots.map((slot) => (
-                <tr key={slot.id}>
-                  <td>{slot.slot_date}</td>
-                  <td>
-                    {slot.start_time} - {slot.end_time}
-                  </td>
-                  <td>{slot.tutors?.profiles?.full_name || "No tutor assigned"}</td>
-                  <td>{slot.capacity}</td>
-                  <td>{slot.booked_count}</td>
-                  <td>{slot.is_available ? "Available" : "Closed"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      <div className="dashboardPanel">
-        <h2>Class Bookings</h2>
-
-        {bookings.length === 0 ? (
-          <p>No student class bookings have been created yet.</p>
+        {isLoading ? (
+          <p>Loading schedule requests...</p>
+        ) : requests.length === 0 ? (
+          <p>No schedule request has been submitted yet.</p>
         ) : (
           <table>
             <thead>
               <tr>
                 <th>Student</th>
-                <th>Tutor</th>
-                <th>Date</th>
-                <th>Time</th>
+                <th>Schedule</th>
+                <th>Mode</th>
                 <th>Status</th>
-                <th>Reschedules</th>
-                <th>Approved By</th>
+                <th>Submitted</th>
                 <th>Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {bookings.map((booking) => {
-                const isScheduled = booking.status === "scheduled";
-                const isApproved = booking.status === "approved";
-                const isFinalStatus = ["completed", "missed", "cancelled"].includes(
-                  booking.status
-                );
-                const isWorking = workingId === booking.id;
-
-                return (
-                  <tr key={booking.id}>
-                    <td>
-                      {booking.students?.profiles?.full_name || "Unknown Student"}
-                      <br />
-                      <small>{booking.students?.student_code || "-"}</small>
-                    </td>
-                    <td>{booking.tutors?.profiles?.full_name || "No tutor assigned"}</td>
-                    <td>{booking.class_slots?.slot_date || "-"}</td>
-                    <td>
-                      {booking.class_slots?.start_time || "-"} -{" "}
-                      {booking.class_slots?.end_time || "-"}
-                    </td>
-                    <td>{booking.status}</td>
-                    <td>{booking.reschedule_count} / 3</td>
-                    <td>{booking.profiles?.full_name || "-"}</td>
-                    <td>
-                      {isScheduled && (
-                        <div className="tableActionGroup">
-                          <button
-                            className="tableActionBtn"
-                            onClick={() => handleApproveBooking(booking.id)}
-                            disabled={isWorking}
-                          >
-                            {isWorking ? "Working..." : "Approve"}
-                          </button>
-
-                          <button
-                            className="tableActionBtn dangerBtn"
-                            onClick={() =>
-                              handleUpdateStatus(booking.id, "cancelled")
-                            }
-                            disabled={isWorking}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-
-                      {isApproved && (
-                        <div className="tableActionGroup">
-                          <button
-                            className="tableActionBtn"
-                            onClick={() =>
-                              handleUpdateStatus(booking.id, "completed")
-                            }
-                            disabled={isWorking}
-                          >
-                            {isWorking ? "Working..." : "Completed"}
-                          </button>
-
-                          <button
-                            className="tableActionBtn warningBtn"
-                            onClick={() => handleUpdateStatus(booking.id, "missed")}
-                            disabled={isWorking}
-                          >
-                            Missed
-                          </button>
-
-                          <button
-                            className="tableActionBtn dangerBtn"
-                            onClick={() =>
-                              handleUpdateStatus(booking.id, "cancelled")
-                            }
-                            disabled={isWorking}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-
-                      {isFinalStatus && (
-                        <span className="mutedText">Final status</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {requests.map((request) => (
+                <tr key={request.id}>
+                  <td>
+                    <strong>{request.student_name || "-"}</strong>
+                    <br />
+                    <small>{request.student_email || "-"}</small>
+                  </td>
+                  <td>{formatSchedule(request)}</td>
+                  <td>{request.learning_mode}</td>
+                  <td>
+                    <span className={`statusPill ${request.status}`}>
+                      {request.status}
+                    </span>
+                  </td>
+                  <td>{formatDateTime(request.created_at)}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="tableActionBtn"
+                      onClick={() => openReview(request)}
+                    >
+                      Review
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
-      </div>
-    </section>
+      </section>
+
+      {selectedRequest && (
+        <section className="dashboardPanel">
+          <div className="panelHeaderRow">
+            <div>
+              <h2>Review Schedule Request</h2>
+              <p>
+                Approve or reject this student's selected weekly class schedule.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="tableActionBtn"
+              onClick={() => setSelectedRequest(null)}
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="applicationReviewGrid">
+            <div>
+              <h3>Student</h3>
+              <p>
+                <strong>Name:</strong> {selectedRequest.student_name || "-"}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedRequest.student_email || "-"}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedRequest.status}
+              </p>
+            </div>
+
+            <div>
+              <h3>Requested Schedule</h3>
+
+              {getScheduleSlots(selectedRequest).map((slot, index) => (
+                <p key={`${slot.day}-${index}`}>
+                  <strong>Class {index + 1}:</strong> {slot.day} — {slot.time}
+                </p>
+              ))}
+
+              <p>
+                <strong>Mode:</strong> {selectedRequest.learning_mode}
+              </p>
+            </div>
+
+            <div>
+              <h3>Student Note</h3>
+              <p>{selectedRequest.request_notes || "-"}</p>
+            </div>
+
+            <div>
+              <h3>Admin Decision</h3>
+              <label className="adminNotesBox">
+                Admin Notes
+                <textarea
+                  rows="4"
+                  value={adminNotes}
+                  placeholder="Add approval or rejection note..."
+                  onChange={(event) => setAdminNotes(event.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="tableActionGroup">
+            <button
+              type="button"
+              className="tableActionBtn restoreBtn"
+              disabled={
+                processingId === selectedRequest.id ||
+                selectedRequest.status !== "pending"
+              }
+              onClick={() => handleApprove(selectedRequest)}
+            >
+              {processingId === selectedRequest.id
+                ? "Processing..."
+                : "Approve Schedule"}
+            </button>
+
+            <button
+              type="button"
+              className="tableActionBtn dangerBtn"
+              disabled={
+                processingId === selectedRequest.id ||
+                selectedRequest.status !== "pending"
+              }
+              onClick={() => handleReject(selectedRequest)}
+            >
+              Reject Schedule
+            </button>
+          </div>
+        </section>
+      )}
+    </>
   );
 }
 

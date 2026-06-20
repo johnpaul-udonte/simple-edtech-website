@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { changeMyStudentPassword } from "../../services/studentPasswordService";
-import PasswordInput from "../../components/PasswordInput";
 
 function StudentChangePassword() {
   const { profile } = useAuth();
@@ -9,6 +8,11 @@ function StudentChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [notice, setNotice] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,32 +87,64 @@ function StudentChangePassword() {
         <h2>Update Login Password</h2>
 
         <form className="passwordForm" onSubmit={handleSubmit}>
-          <PasswordInput
-            label="Current Password"
-            name="currentPassword"
-            value={currentPassword}
-            autoComplete="current-password"
-            placeholder="Enter your current password"
-            onChange={(event) => setCurrentPassword(event.target.value)}
-          />
+          <label className="passwordField">
+            Current Password
+            <input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              autoComplete="current-password"
+              placeholder="Enter your current password"
+              onChange={(event) => setCurrentPassword(event.target.value)}
+            />
 
-          <PasswordInput
-            label="New Password"
-            name="newPassword"
-            value={newPassword}
-            autoComplete="new-password"
-            placeholder="Enter your new password"
-            onChange={(event) => setNewPassword(event.target.value)}
-          />
+            <button
+              type="button"
+              className="passwordToggleButton"
+              onClick={() => setShowCurrentPassword((current) => !current)}
+            >
+              {showCurrentPassword ? "Hide Current Password" : "Show Current Password"}
+            </button>
+          </label>
 
-          <PasswordInput
-            label="Confirm New Password"
-            name="confirmPassword"
-            value={confirmPassword}
-            autoComplete="new-password"
-            placeholder="Re-enter your new password"
-            onChange={(event) => setConfirmPassword(event.target.value)}
-          />
+          <label className="passwordField">
+            New Password
+            <input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              autoComplete="new-password"
+              placeholder="Enter your new password"
+              onChange={(event) => setNewPassword(event.target.value)}
+            />
+
+            <button
+              type="button"
+              className="passwordToggleButton"
+              onClick={() => setShowNewPassword((current) => !current)}
+            >
+              {showNewPassword ? "Hide New Password" : "Show New Password"}
+            </button>
+          </label>
+
+          <label className="passwordField">
+            Confirm New Password
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              autoComplete="new-password"
+              placeholder="Re-enter your new password"
+              onChange={(event) => setConfirmPassword(event.target.value)}
+            />
+
+            <button
+              type="button"
+              className="passwordToggleButton"
+              onClick={() => setShowConfirmPassword((current) => !current)}
+            >
+              {showConfirmPassword
+                ? "Hide Confirm Password"
+                : "Show Confirm Password"}
+            </button>
+          </label>
 
           <p className="passwordHelp">
             Password must be at least 8 characters and should contain uppercase,

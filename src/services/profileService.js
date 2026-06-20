@@ -10,9 +10,23 @@ export async function getProfileByUserId(userId) {
     };
   }
 
-  return await supabase
+  if (!userId) {
+    return {
+      data: null,
+      error: {
+        message: "User ID is required.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, status")
+    .select("id, full_name, email, role, status, portrait_path")
     .eq("id", userId)
     .single();
+
+  return {
+    data,
+    error,
+  };
 }

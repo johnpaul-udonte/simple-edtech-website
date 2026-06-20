@@ -1,6 +1,23 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const navigate = useNavigate();
+  const { profile, logout } = useAuth();
+
+  function getDashboardPath() {
+    if (profile?.role === "admin") return "/admin/dashboard";
+    if (profile?.role === "tutor") return "/tutor/dashboard";
+    if (profile?.role === "student") return "/student/dashboard";
+
+    return "/login";
+  }
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
+  }
+
   return (
     <nav className="navbar">
       <Link to="/" className="brand">
@@ -25,12 +42,31 @@ function Navbar() {
       </div>
 
       <div className="navActions">
-        <Link to="/login" className="loginBtn">
-          Login
-        </Link>
-        <Link to="/register" className="primaryNavBtn">
-          Register
-        </Link>
+        {profile ? (
+          <>
+            <Link to={getDashboardPath()} className="loginBtn">
+              Dashboard
+            </Link>
+
+            <button
+              type="button"
+              className="primaryNavBtn navLogoutBtn"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className="loginBtn">
+              Login
+            </Link>
+
+            <Link to="/register" className="primaryNavBtn">
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

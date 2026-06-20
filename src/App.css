@@ -2597,3 +2597,2014 @@ iframe {
     padding-right: 12px;
   }
 }
+
+/* PASSWORD EYE REVEAL INPUT */
+.passwordInputLabel {
+  width: 100%;
+}
+
+.passwordRevealBox {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+.passwordRevealBox input {
+  width: 100%;
+  padding-right: 58px !important;
+}
+
+.passwordRevealBtn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: #eaf2ff;
+  color: #0b4ea2;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.passwordRevealBtn:hover {
+  background: #dcecff;
+}
+
+.passwordRevealBtn:focus {
+  outline: 3px solid rgba(11, 78, 162, 0.2);
+}
+
+/* DEFINITE PASSWORD EYE FIX */
+.jpPasswordBox {
+  position: relative !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.jpPasswordBox input {
+  width: 100% !important;
+  padding-right: 62px !important;
+}
+
+.jpPasswordEyeBtn {
+  position: absolute !important;
+  top: 50% !important;
+  right: 10px !important;
+  transform: translateY(-50%) !important;
+  width: 42px !important;
+  height: 42px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: #eaf2ff !important;
+  color: #0b4ea2 !important;
+  cursor: pointer !important;
+  display: grid !important;
+  place-items: center !important;
+  z-index: 20 !important;
+  padding: 0 !important;
+}
+
+.jpPasswordEyeBtn:hover {
+  background: #dcecff !important;
+}
+
+.jpPasswordEyeBtn svg {
+  display: block !important;
+}
+
+/* SIMPLE PASSWORD SHOW/HIDE BUTTON */
+.passwordToggleButton {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #0b4ea2;
+  padding: 10px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.passwordToggleButton:hover {
+  background: #dcecff;
+}
+
+@media (max-width: 760px) {
+  .passwordToggleButton {
+    width: 100%;
+  }
+}
+
+/* LOGIN PASSWORD EYE ICON */
+.eyePasswordField {
+  display: grid;
+  gap: 8px;
+  color: #0b2f63;
+  font-weight: 800;
+}
+
+.eyePasswordBox {
+  position: relative;
+  width: 100%;
+}
+
+.eyePasswordBox input {
+  width: 100%;
+  padding-right: 58px !important;
+}
+
+.eyePasswordButton {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: #eaf2ff;
+  color: #0b4ea2;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.eyePasswordButton:hover {
+  background: #dcecff;
+}
+
+
+/* CLEAN LOGIN PASSWORD EYE ICON FIX */
+.authCard .eyePasswordField {
+  display: grid !important;
+  gap: 8px !important;
+  width: 100% !important;
+  color: #0b2f63 !important;
+  font-weight: 800 !important;
+  text-align: left !important;
+}
+
+.authCard .eyePasswordBox {
+  position: relative !important;
+  width: 100% !important;
+}
+
+.authCard .eyePasswordBox input {
+  width: 100% !important;
+  height: 64px !important;
+  padding: 14px 58px 14px 20px !important;
+  border-radius: 16px !important;
+  border: 1px solid #cfe0f8 !important;
+  background: #eaf2ff !important;
+  color: #061f49 !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+.authCard .eyePasswordButton {
+  position: absolute !important;
+  top: 50% !important;
+  right: 12px !important;
+  transform: translateY(-50%) !important;
+
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+
+  background: transparent !important;
+  color: #0b4ea2 !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.authCard .eyePasswordButton:hover {
+  background: #dcecff !important;
+}
+
+.authCard .eyePasswordButton svg {
+  display: block !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* STUDENT PROFILE PHOTO */
+.studentProfilePhotoWrap {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, #dbeafe, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.studentProfilePhoto {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+/* STUDENT PROFILE PHOTO */
+.studentProfilePhotoWrap {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, #dbeafe, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.studentProfilePhoto {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+/* =========================================
+   JLUX DASHBOARD INTERFACE POLISH
+   Student / Tutor / Admin Portal
+========================================= */
+
+.dashboardShell {
+  display: grid !important;
+  grid-template-columns: 330px minmax(0, 1fr) !important;
+  min-height: 100vh !important;
+  background:
+    radial-gradient(circle at top right, rgba(11, 78, 162, 0.08), transparent 35%),
+    linear-gradient(180deg, #f4f8ff 0%, #eef5ff 100%) !important;
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: sticky !important;
+  top: 0 !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+  padding: 28px 24px !important;
+  background: linear-gradient(180deg, #061f49 0%, #082b61 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+/* BRAND */
+.dashboardBrand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin-bottom: 28px !important;
+  text-decoration: none !important;
+  color: #ffffff !important;
+}
+
+.dashboardBrand img {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 18px !important;
+  object-fit: cover !important;
+  background: #ffffff !important;
+  padding: 6px !important;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.25) !important;
+}
+
+.dashboardBrand h2 {
+  margin: 0 !important;
+  font-size: 24px !important;
+  line-height: 1.1 !important;
+  color: #ffffff !important;
+}
+
+.dashboardBrand p {
+  margin: 5px 0 0 !important;
+  color: #bfdbfe !important;
+  font-size: 15px !important;
+}
+
+/* PROFILE CARD */
+.userMiniCard {
+  padding: 24px 18px !important;
+  margin-bottom: 26px !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  text-align: center !important;
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.16) !important;
+}
+
+.studentProfilePhotoWrap {
+  width: 96px !important;
+  height: 96px !important;
+  margin: 0 auto 18px !important;
+  border-radius: 50% !important;
+  padding: 5px !important;
+  background: linear-gradient(135deg, #ffffff, #bfdbfe) !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22) !important;
+}
+
+.studentProfilePhoto {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+}
+
+.userMiniCard p {
+  margin: 0 0 10px !important;
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+.userMiniCard strong {
+  display: block !important;
+  margin-bottom: 8px !important;
+  color: #ffffff !important;
+  font-size: 19px !important;
+  line-height: 1.25 !important;
+}
+
+.userMiniCard span {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 7px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(219, 234, 254, 0.14) !important;
+  color: #dbeafe !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  text-transform: capitalize !important;
+}
+
+/* SIDEBAR MENU */
+.sideNav {
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.sideNav a,
+.logoutBtn {
+  min-height: 56px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 14px 16px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #f8fbff !important;
+  text-decoration: none !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  border: 1px solid transparent !important;
+  transition: 0.2s ease !important;
+}
+
+.sideNav a:hover,
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  transform: translateY(-1px) !important;
+}
+
+.sideNav a.active {
+  background: #ffffff !important;
+  color: #0b4ea2 !important;
+  box-shadow: 0 14px 30px rgba(255, 255, 255, 0.12) !important;
+}
+
+.logoutBtn {
+  margin-top: 8px !important;
+  background: #b42318 !important;
+  cursor: pointer !important;
+}
+
+/* MAIN DASHBOARD AREA */
+.dashboardMain {
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin: 0 auto !important;
+  padding: 56px 48px 80px !important;
+}
+
+.dashboardHeader {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 28px !important;
+  margin-bottom: 34px !important;
+  padding: 0 !important;
+}
+
+.dashboardHeader > div {
+  text-align: center !important;
+}
+
+.dashboardHeader .eyebrow {
+  margin-bottom: 14px !important;
+  color: #667085 !important;
+  letter-spacing: 0.16em !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+.dashboardHeader h1 {
+  max-width: 760px !important;
+  margin: 0 auto 18px !important;
+  color: #082b61 !important;
+  font-size: clamp(42px, 5vw, 68px) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -0.05em !important;
+}
+
+.dashboardHeader p {
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  color: #5f718b !important;
+  font-size: 22px !important;
+  line-height: 1.55 !important;
+}
+
+.dashboardHeader button,
+.dashboardHeader a {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #0b4ea2 !important;
+  color: #ffffff !important;
+  padding: 16px 28px !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 16px 35px rgba(11, 78, 162, 0.18) !important;
+}
+
+/* PANELS */
+.dashboardPanel {
+  padding: 34px !important;
+  border-radius: 34px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid #e5eefb !important;
+  box-shadow: 0 22px 55px rgba(8, 43, 97, 0.08) !important;
+  margin-bottom: 28px !important;
+}
+
+.dashboardPanel h2 {
+  margin-top: 0 !important;
+  color: #082b61 !important;
+  font-size: 30px !important;
+  letter-spacing: -0.03em !important;
+}
+
+.dashboardPanel p {
+  color: #5f718b !important;
+  line-height: 1.65 !important;
+}
+
+/* DASHBOARD CARDS */
+.dashboardGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+  margin-bottom: 30px !important;
+}
+
+.dashboardCard {
+  padding: 28px 24px !important;
+  border-radius: 28px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5eefb !important;
+  box-shadow: 0 18px 45px rgba(8, 43, 97, 0.07) !important;
+  text-align: center !important;
+}
+
+.dashboardCard p {
+  margin: 0 0 12px !important;
+  color: #64748b !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+.dashboardCard h2 {
+  margin: 0 !important;
+  color: #0b4ea2 !important;
+  font-size: 34px !important;
+}
+
+/* TABLES */
+.dashboardPanel table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+.dashboardPanel th {
+  background: #f1f6ff !important;
+  color: #082b61 !important;
+  font-weight: 900 !important;
+  padding: 16px !important;
+  text-align: left !important;
+}
+
+.dashboardPanel td {
+  padding: 16px !important;
+  border-bottom: 1px solid #eef3fb !important;
+  color: #334155 !important;
+}
+
+.tableActionBtn {
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: #0b4ea2 !important;
+  color: #ffffff !important;
+  padding: 11px 16px !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+/* ANNOUNCEMENT / NOTICE LOOK */
+.successNotice,
+.errorNotice,
+.formNotice {
+  border-radius: 20px !important;
+  padding: 18px 22px !important;
+  margin-bottom: 22px !important;
+  font-weight: 800 !important;
+}
+
+.successNotice {
+  background: #ecfdf3 !important;
+  color: #067647 !important;
+  border: 1px solid #abefc6 !important;
+}
+
+.errorNotice {
+  background: #fff1f3 !important;
+  color: #b42318 !important;
+  border: 1px solid #fecdd3 !important;
+}
+
+/* MOBILE */
+@media (max-width: 1050px) {
+  .dashboardShell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sidebar {
+    position: relative !important;
+    height: auto !important;
+    padding: 22px 5% !important;
+    border-radius: 0 0 30px 30px !important;
+  }
+
+  .dashboardBrand {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .sideNav {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboardMain {
+    padding: 34px 5% 70px !important;
+  }
+
+  .dashboardHeader {
+    grid-template-columns: 1fr !important;
+    text-align: center !important;
+  }
+
+  .dashboardHeader button,
+  .dashboardHeader a {
+    width: 100% !important;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .sideNav {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboardPanel {
+    padding: 24px !important;
+    border-radius: 26px !important;
+  }
+
+  .dashboardHeader h1 {
+    font-size: 38px !important;
+  }
+
+  .dashboardHeader p {
+    font-size: 17px !important;
+  }
+}
+
+/* =========================================
+   JLUX DASHBOARD BALANCED LAYOUT FIX
+   Keeps sidebar simple, improves main area
+========================================= */
+
+/* MAIN SHELL - balanced, not too wide */
+.dashboardShell {
+  display: grid !important;
+  grid-template-columns: 300px minmax(0, 1fr) !important;
+  min-height: 100vh !important;
+  background: #f4f8ff !important;
+}
+
+/* SIDEBAR - closer to previous look */
+.sidebar {
+  position: sticky !important;
+  top: 0 !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+  padding: 24px 20px !important;
+  background: #061f49 !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+}
+
+/* BRAND - compact */
+.dashboardBrand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  margin-bottom: 24px !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.dashboardBrand img {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 16px !important;
+  padding: 5px !important;
+  background: #ffffff !important;
+  object-fit: cover !important;
+  box-shadow: none !important;
+}
+
+.dashboardBrand h2 {
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: 22px !important;
+  line-height: 1.1 !important;
+}
+
+.dashboardBrand p {
+  margin: 5px 0 0 !important;
+  color: #bfdbfe !important;
+  font-size: 14px !important;
+}
+
+/* PROFILE CARD - neat but not too big */
+.userMiniCard {
+  padding: 22px 16px !important;
+  margin-bottom: 22px !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.09) !important;
+  border: none !important;
+  text-align: center !important;
+  box-shadow: none !important;
+}
+
+.studentProfilePhotoWrap {
+  width: 84px !important;
+  height: 84px !important;
+  margin: 0 auto 14px !important;
+  border-radius: 50% !important;
+  padding: 4px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.studentProfilePhoto {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+.userMiniCard p {
+  margin: 0 0 8px !important;
+  color: #dbeafe !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.userMiniCard strong {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 17px !important;
+  line-height: 1.3 !important;
+  margin-bottom: 8px !important;
+}
+
+.userMiniCard span {
+  display: inline-block !important;
+  color: #dbeafe !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* SIDE MENU - restore simpler feel */
+.sideNav {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.sideNav a,
+.logoutBtn {
+  min-height: 48px !important;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.sideNav a:hover,
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.sideNav a.active {
+  background: #ffffff !important;
+  color: #0b4ea2 !important;
+}
+
+.logoutBtn {
+  background: #b42318 !important;
+  margin-top: 8px !important;
+  cursor: pointer !important;
+}
+
+/* MAIN CONTENT - better spacing and arrangement */
+.dashboardMain {
+  width: 100% !important;
+  max-width: 1120px !important;
+  margin: 0 auto !important;
+  padding: 36px 36px 60px !important;
+}
+
+/* HEADER - clean and not too large */
+.dashboardHeader {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 24px !important;
+  margin-bottom: 26px !important;
+  padding: 0 !important;
+}
+
+.dashboardHeader > div {
+  text-align: left !important;
+}
+
+.dashboardHeader .eyebrow {
+  margin: 0 0 8px !important;
+  color: #667085 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+}
+
+.dashboardHeader h1 {
+  margin: 0 0 10px !important;
+  color: #082b61 !important;
+  font-size: clamp(34px, 4vw, 52px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.04em !important;
+  max-width: 760px !important;
+}
+
+.dashboardHeader p {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: #5f718b !important;
+  font-size: 17px !important;
+  line-height: 1.6 !important;
+}
+
+.dashboardHeader button,
+.dashboardHeader a {
+  border: none !important;
+  border-radius: 999px !important;
+  background: #0b4ea2 !important;
+  color: #ffffff !important;
+  padding: 13px 22px !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.18) !important;
+}
+
+/* PANELS - cleaner and more compact */
+.dashboardPanel {
+  padding: 26px !important;
+  border-radius: 26px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5eefb !important;
+  box-shadow: 0 12px 35px rgba(8, 43, 97, 0.06) !important;
+  margin-bottom: 24px !important;
+}
+
+.dashboardPanel h2 {
+  margin: 0 0 14px !important;
+  color: #082b61 !important;
+  font-size: 26px !important;
+  line-height: 1.2 !important;
+}
+
+.dashboardPanel h3 {
+  color: #082b61 !important;
+}
+
+.dashboardPanel p {
+  color: #5f718b !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+
+/* DASHBOARD CARDS - better managed space */
+.dashboardGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  margin-bottom: 24px !important;
+}
+
+.dashboardCard {
+  padding: 22px 18px !important;
+  border-radius: 22px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5eefb !important;
+  box-shadow: 0 10px 28px rgba(8, 43, 97, 0.06) !important;
+  text-align: center !important;
+}
+
+.dashboardCard p {
+  margin: 0 0 8px !important;
+  color: #64748b !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+.dashboardCard h2 {
+  margin: 0 !important;
+  color: #0b4ea2 !important;
+  font-size: 30px !important;
+}
+
+/* ANNOUNCEMENT BOXES */
+.dashboardPanel .statusPill,
+.statusPill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  padding: 7px 12px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: capitalize !important;
+}
+
+/* TABLES - compact and readable */
+.dashboardPanel table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 15px !important;
+}
+
+.dashboardPanel th {
+  background: #f1f6ff !important;
+  color: #082b61 !important;
+  font-weight: 900 !important;
+  padding: 14px !important;
+  text-align: left !important;
+}
+
+.dashboardPanel td {
+  padding: 14px !important;
+  border-bottom: 1px solid #eef3fb !important;
+  color: #344054 !important;
+}
+
+.tableActionBtn {
+  border: none !important;
+  border-radius: 12px !important;
+  background: #0b4ea2 !important;
+  color: #ffffff !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+}
+
+/* NOTICES */
+.successNotice,
+.errorNotice,
+.formNotice {
+  border-radius: 18px !important;
+  padding: 15px 18px !important;
+  margin-bottom: 20px !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+}
+
+.successNotice {
+  background: #ecfdf3 !important;
+  color: #067647 !important;
+  border: 1px solid #abefc6 !important;
+}
+
+.errorNotice {
+  background: #fff1f3 !important;
+  color: #b42318 !important;
+  border: 1px solid #fecdd3 !important;
+}
+
+/* FORMS */
+.dashboardPanel input,
+.dashboardPanel select,
+.dashboardPanel textarea {
+  border-radius: 14px !important;
+  border: 1px solid #d5dce8 !important;
+  background: #ffffff !important;
+  color: #0b2f63 !important;
+}
+
+/* MOBILE */
+@media (max-width: 1050px) {
+  .dashboardShell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sidebar {
+    position: relative !important;
+    height: auto !important;
+    padding: 22px 5% !important;
+  }
+
+  .dashboardBrand {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .sideNav {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboardMain {
+    padding: 30px 5% 60px !important;
+  }
+
+  .dashboardHeader {
+    grid-template-columns: 1fr !important;
+    text-align: left !important;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .sideNav {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboardPanel {
+    padding: 22px !important;
+    border-radius: 22px !important;
+  }
+
+  .dashboardHeader h1 {
+    font-size: 34px !important;
+  }
+
+  .dashboardHeader p {
+    font-size: 16px !important;
+  }
+}
+
+/* =========================================
+   STUDENT DASHBOARD LAYOUT REFINEMENT
+   Better spacing, cards, announcement area
+========================================= */
+
+.dashboardMain {
+  max-width: 1080px !important;
+  padding: 32px 34px 56px !important;
+}
+
+/* Make the main announcement panel cleaner */
+.dashboardPanel {
+  padding: 24px 28px !important;
+  border-radius: 26px !important;
+  margin-bottom: 22px !important;
+}
+
+/* Better dashboard panel heading alignment */
+.dashboardPanel h2 {
+  font-size: 28px !important;
+  margin-bottom: 8px !important;
+  color: #082b61 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.dashboardPanel > p {
+  max-width: 680px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  font-size: 17px !important;
+  line-height: 1.55 !important;
+}
+
+/* Announcement card inside the panel */
+.dashboardPanel article,
+.dashboardPanel .announcementCard,
+.dashboardPanel .notificationCard {
+  border-radius: 22px !important;
+}
+
+/* Student dashboard announcement area */
+.dashboardPanel .announcementItem,
+.dashboardPanel .announcement-card,
+.dashboardPanel .studentAnnouncementCard {
+  padding: 22px !important;
+  border-radius: 22px !important;
+}
+
+/* Reduce oversized urgent announcement box */
+.dashboardPanel div[style*="pink"],
+.dashboardPanel div[style*="red"] {
+  padding: 22px !important;
+}
+
+/* More compact and balanced stats cards */
+.dashboardGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  margin-top: 18px !important;
+  margin-bottom: 24px !important;
+}
+
+.dashboardCard {
+  min-height: 145px !important;
+  padding: 22px 18px !important;
+  border-radius: 22px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 10px !important;
+  background: #ffffff !important;
+  border: 1px solid #e3edf9 !important;
+  box-shadow: 0 10px 26px rgba(8, 43, 97, 0.055) !important;
+}
+
+.dashboardCard p {
+  max-width: 140px !important;
+  margin: 0 !important;
+  color: #5f718b !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+}
+
+.dashboardCard h2 {
+  margin: 0 !important;
+  color: #0b4ea2 !important;
+  font-size: clamp(26px, 2.2vw, 34px) !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.03em !important;
+  word-break: break-word !important;
+}
+
+/* Make long values like student code look clean */
+.dashboardCard h2,
+.dashboardCard strong {
+  overflow-wrap: anywhere !important;
+}
+
+/* Improve announcement block specifically when it is inside dashboard panel */
+.dashboardPanel .statusPill {
+  padding: 8px 13px !important;
+  font-size: 12px !important;
+}
+
+/* Keep urgent reminder cleaner */
+.dashboardPanel small {
+  color: #667085 !important;
+  font-size: 14px !important;
+}
+
+/* Better mobile behavior */
+@media (max-width: 1050px) {
+  .dashboardMain {
+    padding: 28px 5% 54px !important;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .dashboardPanel {
+    padding: 20px !important;
+    border-radius: 22px !important;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboardCard {
+    min-height: auto !important;
+    padding: 20px !important;
+  }
+
+  .dashboardCard p {
+    max-width: 100% !important;
+  }
+}
+
+/* STUDENT SCHEDULE REQUEST */
+.scheduleRequestForm {
+  display: grid;
+  gap: 20px;
+  max-width: 760px;
+}
+
+.scheduleFormLabel {
+  display: grid;
+  gap: 8px;
+  color: #0b2f63;
+  font-weight: 900;
+}
+
+.scheduleFormLabel select,
+.scheduleFormLabel textarea {
+  width: 100%;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+  color: #0b2f63;
+  background: #ffffff;
+}
+
+.dayChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dayChoiceBtn {
+  border: 1px solid #d5dce8;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #0b2f63;
+  padding: 14px 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.dayChoiceBtn.selected {
+  background: #0b4ea2;
+  color: #ffffff;
+  border-color: #0b4ea2;
+}
+
+.dayChoiceBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.scheduleRequestForm > button {
+  width: fit-content;
+  border: none;
+  border-radius: 999px;
+  background: #0b4ea2;
+  color: #ffffff;
+  padding: 14px 24px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.scheduleRequestForm > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.approvedSchedulePanel {
+  border-color: #abefc6 !important;
+  background: #ecfdf3 !important;
+}
+
+.pendingSchedulePanel {
+  border-color: #fedf89 !important;
+  background: #fffbeb !important;
+}
+
+.statusPill.pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.approved {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.statusPill.rejected {
+  background: #fff1f3;
+  color: #b42318;
+}
+
+.statusPill.superseded {
+  background: #f1f5f9;
+  color: #475467;
+}
+
+@media (max-width: 760px) {
+  .dayChoiceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleRequestForm > button {
+    width: 100%;
+  }
+}
+
+/* DIFFERENT DAY/TIME SCHEDULE REQUEST */
+.scheduleSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.scheduleSlotCard {
+  padding: 18px;
+  border-radius: 20px;
+  background: #f8fbff;
+  border: 1px solid #e5eefb;
+}
+
+.scheduleSlotCard h3 {
+  margin: 0 0 14px;
+  color: #082b61;
+}
+
+.scheduleRequestForm {
+  display: grid;
+  gap: 20px;
+  max-width: 900px;
+}
+
+.scheduleFormLabel {
+  display: grid;
+  gap: 8px;
+  color: #0b2f63;
+  font-weight: 900;
+}
+
+.scheduleFormLabel select,
+.scheduleFormLabel textarea {
+  width: 100%;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+  color: #0b2f63;
+  background: #ffffff;
+}
+
+.scheduleRequestForm > button {
+  width: fit-content;
+  border: none;
+  border-radius: 999px;
+  background: #0b4ea2;
+  color: #ffffff;
+  padding: 14px 24px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.scheduleRequestForm > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .scheduleSlotGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleRequestForm > button {
+    width: 100%;
+  }
+}
+
+/* SIDEBAR NOTIFICATION BADGE */
+.sideNav a {
+  position: relative;
+}
+
+.navNotificationBadge {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  margin-left: 8px;
+}
+
+/* PUBLIC NAV LOGOUT BUTTON */
+.navLogoutBtn {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* PRICING PAGE UPGRADE */
+.pricingHeader {
+  max-width: 920px;
+}
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 1120px;
+  margin: 0 auto 28px;
+}
+
+.pricingCard {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 26px;
+  border-radius: 26px;
+  background: #ffffff;
+  border: 1px solid #e4edf9;
+  box-shadow: 0 16px 38px rgba(8, 43, 97, 0.07);
+}
+
+.featuredPricingCard {
+  background: linear-gradient(180deg, #0b4ea2 0%, #082b61 100%);
+  color: #ffffff;
+  border-color: #0b4ea2;
+}
+
+.pricingTopRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.pricingTopRow span {
+  display: inline-flex;
+  width: fit-content;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #0b4ea2;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.featuredPricingCard .pricingTopRow span {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.pricingCard h3 {
+  margin: 0;
+  color: #082b61;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.featuredPricingCard h3 {
+  color: #ffffff;
+}
+
+.pricingCard strong {
+  display: block;
+  color: #0b4ea2;
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.featuredPricingCard strong {
+  color: #ffffff;
+}
+
+.pricingCard p {
+  margin: 0;
+  color: #5f718b;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.featuredPricingCard p {
+  color: #dbeafe;
+}
+
+.pricingActionBtn {
+  width: fit-content;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #0b4ea2;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.featuredPricingCard .pricingActionBtn {
+  background: #ffffff;
+  color: #0b4ea2;
+}
+
+.pricingNoteBox {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 28px;
+  border-radius: 24px;
+  background: #f8fbff;
+  border: 1px solid #e4edf9;
+}
+
+.pricingNoteBox h3 {
+  margin: 0 0 8px;
+  color: #082b61;
+  font-size: 24px;
+}
+
+.pricingNoteBox p {
+  margin: 0;
+  color: #5f718b;
+  line-height: 1.6;
+}
+
+@media (max-width: 980px) {
+  .pricingGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricingCard {
+    padding: 22px;
+  }
+
+  .pricingCard strong {
+    font-size: 32px;
+  }
+}
+
+/* =========================================
+   COMPACT HOME PAGE UPGRADE
+========================================= */
+
+.compactHomeHero {
+  padding-top: 42px !important;
+  padding-bottom: 34px !important;
+}
+
+.compactHomeHero .hero {
+  align-items: center !important;
+  gap: 34px !important;
+}
+
+.compactHomeHero .heroText h2 {
+  max-width: 760px !important;
+  font-size: clamp(42px, 5vw, 66px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.compactHomeHero .heroDescription {
+  max-width: 680px !important;
+  font-size: 18px !important;
+  line-height: 1.65 !important;
+}
+
+.compactPortalPreview {
+  padding: 24px !important;
+  border-radius: 28px !important;
+}
+
+.compactPortalPreview .miniGrid {
+  gap: 12px !important;
+}
+
+.compactPortalPreview .miniCard {
+  padding: 14px !important;
+  border-radius: 16px !important;
+}
+
+.compactPortalPreview .miniCard span {
+  font-size: 13px !important;
+}
+
+.compactPortalPreview .miniCard strong {
+  font-size: 14px !important;
+}
+
+/* DATA QUOTE STRIP */
+.dataQuoteStrip {
+  max-width: 1120px;
+  margin: 26px auto 0;
+  padding: 0 5%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dataQuoteStrip article {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #082b61, #0b4ea2);
+  color: #ffffff;
+  box-shadow: 0 14px 32px rgba(8, 43, 97, 0.14);
+}
+
+.dataQuoteStrip span {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 900;
+  color: #bfdbfe;
+}
+
+.dataQuoteStrip p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 800;
+}
+
+/* GENERAL COMPACT SECTIONS */
+.compactSection {
+  padding-top: 54px !important;
+  padding-bottom: 34px !important;
+}
+
+.compactSectionHeader {
+  max-width: 760px !important;
+  margin-bottom: 24px !important;
+}
+
+.compactSectionHeader h2 {
+  font-size: clamp(30px, 3.5vw, 44px) !important;
+  letter-spacing: -0.04em !important;
+}
+
+.compactSectionHeader p {
+  font-size: 17px !important;
+}
+
+.compactCourseGrid {
+  gap: 18px !important;
+}
+
+.compactCourseCard {
+  padding: 24px !important;
+  border-radius: 24px !important;
+}
+
+.compactCourseCard .courseIcon {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 16px !important;
+  font-size: 20px !important;
+}
+
+.compactCourseCard h3 {
+  font-size: 23px !important;
+}
+
+.compactCourseCard p {
+  font-size: 15.5px !important;
+  line-height: 1.55 !important;
+}
+
+/* DATA FACTS */
+.dataFactsSection {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 44px 5% 28px;
+}
+
+.dataFactsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dataFactsGrid article {
+  padding: 20px;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #e4edf9;
+  box-shadow: 0 12px 28px rgba(8, 43, 97, 0.06);
+}
+
+.dataFactsGrid h3 {
+  margin: 0 0 8px;
+  color: #082b61;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.dataFactsGrid p {
+  margin: 0;
+  color: #5f718b;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+/* PORTAL SECTION */
+.compactPortalSection {
+  max-width: 1120px !important;
+  margin: 32px auto !important;
+  padding: 34px !important;
+  border-radius: 30px !important;
+  gap: 26px !important;
+}
+
+.compactPortalSection h2 {
+  font-size: clamp(30px, 3.5vw, 44px) !important;
+  letter-spacing: -0.04em !important;
+}
+
+.compactPortalCards {
+  gap: 14px !important;
+}
+
+.compactPortalCards div {
+  padding: 20px !important;
+  border-radius: 22px !important;
+}
+
+.compactPortalCards h3 {
+  font-size: 21px !important;
+}
+
+/* PRICING SNAPSHOT */
+.homePricingGrid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.homePricingGrid article {
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #e4edf9;
+  box-shadow: 0 12px 28px rgba(8, 43, 97, 0.06);
+}
+
+.homePricingGrid span {
+  display: block;
+  margin-bottom: 8px;
+  color: #5f718b;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.homePricingGrid strong {
+  color: #0b4ea2;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.homeCenterAction {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+/* STEPS */
+.compactSteps {
+  gap: 16px !important;
+}
+
+.compactSteps div {
+  padding: 22px !important;
+  border-radius: 22px !important;
+}
+
+.compactSteps span {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+}
+
+.compactSteps h3 {
+  font-size: 21px !important;
+}
+
+/* CTA */
+.compactCta {
+  max-width: 1120px !important;
+  margin-top: 34px !important;
+  padding: 42px 34px !important;
+  border-radius: 32px !important;
+}
+
+.compactCta h2 {
+  font-size: clamp(32px, 4vw, 48px) !important;
+  letter-spacing: -0.04em !important;
+}
+
+.compactCta p {
+  max-width: 720px !important;
+  font-size: 17px !important;
+}
+
+/* RESPONSIVE */
+@media (max-width: 980px) {
+  .dataQuoteStrip,
+  .dataFactsGrid,
+  .homePricingGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compactPortalSection {
+    margin-left: 5% !important;
+    margin-right: 5% !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .dataQuoteStrip,
+  .dataFactsGrid,
+  .homePricingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .compactHomeHero .heroText h2 {
+    font-size: 38px !important;
+  }
+
+  .compactPortalSection,
+  .compactCta {
+    padding: 26px 22px !important;
+    border-radius: 24px !important;
+  }
+}
+
+/* STUDENT ASSIGNMENTS COMPACT FIX */
+.studentAssignmentPage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.assignmentSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.assignmentSummaryGrid .dashboardCard {
+  min-height: 112px !important;
+  padding: 18px 14px !important;
+  border-radius: 20px !important;
+}
+
+.assignmentSummaryGrid .dashboardCard p {
+  font-size: 13px !important;
+  margin-bottom: 6px !important;
+}
+
+.assignmentSummaryGrid .dashboardCard h2 {
+  font-size: 24px !important;
+  overflow-wrap: anywhere;
+}
+
+.wideAssignmentCard {
+  grid-column: span 2;
+}
+
+.assignmentStack {
+  display: grid;
+  gap: 16px;
+}
+
+.assignmentBox {
+  padding: 20px;
+  border-radius: 22px;
+  background: #f8fbff;
+  border: 1px solid #e4edf9;
+}
+
+.assignmentTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.assignmentTop h3 {
+  margin: 0 0 6px;
+  color: #082b61;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.assignmentTop p {
+  margin: 0;
+  color: #5f718b;
+  line-height: 1.55;
+}
+
+.assignmentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.assignmentMeta span {
+  display: inline-flex;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e4edf9;
+  color: #0b2f63;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.submissionSummary {
+  padding: 16px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e4edf9;
+  margin-bottom: 14px;
+}
+
+.submissionSummary h4 {
+  margin: 0 0 10px;
+  color: #082b61;
+}
+
+.submissionSummary p {
+  margin: 8px 0;
+}
+
+.submissionForm {
+  display: grid;
+  gap: 14px;
+}
+
+.submissionForm label {
+  display: grid;
+  gap: 8px;
+  color: #0b2f63;
+  font-weight: 900;
+}
+
+.submissionForm textarea,
+.submissionForm input {
+  width: 100%;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 13px 14px;
+  font: inherit;
+}
+
+.emptyStateBox {
+  padding: 24px;
+  border-radius: 22px;
+  background: #f8fbff;
+  border: 1px dashed #bfd4f2;
+  text-align: center;
+}
+
+.emptyStateBox h3 {
+  margin: 0 0 8px;
+  color: #082b61;
+}
+
+.emptyStateBox p {
+  max-width: 580px;
+  margin: 0 auto;
+  color: #5f718b;
+}
+
+@media (max-width: 1050px) {
+  .assignmentSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wideAssignmentCard {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .assignmentSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignmentTop {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .assignmentSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,48 +1,94 @@
+import { Link } from "react-router-dom";
+
 const tools = [
   {
     title: "Excel",
-    text: "Master formulas, pivot tables, dashboards, and business reporting.",
+    text: "Build reports, clean data, use formulas, pivot tables, and dashboards.",
   },
   {
     title: "Power BI",
-    text: "Build interactive dashboards and transform raw data into insights.",
+    text: "Turn raw records into interactive dashboards and business insights.",
   },
   {
     title: "SQL",
-    text: "Query databases, clean data, and analyse real business records.",
+    text: "Query databases, join tables, filter records, and answer data questions.",
   },
   {
     title: "Python",
-    text: "Automate analysis, clean datasets, and work with practical data projects.",
+    text: "Clean data, automate tasks, analyse datasets, and build practical projects.",
   },
 ];
 
 const dashboardCards = [
-  "Course Progress",
-  "Classes Remaining",
-  "Upcoming Class",
-  "Payment Balance",
-  "Assignment Status",
-  "Weekly Practice Score",
+  "Progress",
+  "Classes Left",
+  "Schedule",
+  "Balance",
+  "Assignments",
+  "Drills",
+];
+
+const dataFacts = [
+  {
+    title: "Data tells the story",
+    text: "Every sale, payment, customer, and complaint produces useful information.",
+  },
+  {
+    title: "Dashboards save time",
+    text: "A good dashboard helps managers see what is working and what needs attention.",
+  },
+  {
+    title: "SQL is a data language",
+    text: "Many business reports start from asking the database the right question.",
+  },
+  {
+    title: "Python automates work",
+    text: "Python helps reduce repetitive spreadsheet work and manual reporting.",
+  },
+];
+
+const dataQuotes = [
+  "Without data, you are only guessing.",
+  "Good data skills turn confusion into clear decisions.",
+  "A dashboard is only powerful when it answers a real business question.",
+];
+
+const pricingSnapshot = [
+  { course: "Full Data Analysis", fee: "₦120,000" },
+  { course: "Excel", fee: "₦40,000" },
+  { course: "Power BI", fee: "₦40,000" },
+  { course: "SQL", fee: "₦40,000" },
+  { course: "Python", fee: "₦50,000" },
+  { course: "Excel + Power BI + SQL", fee: "₦120,000" },
 ];
 
 function Home() {
   return (
     <>
-      <header className="homeHero">
+      <header className="homeHero compactHomeHero">
         <section className="hero">
           <div className="heroText">
             <p className="eyebrow">Premium Data Skills Academy</p>
-            <h2>Learn practical data skills with structure, coaching, and accountability.</h2>
+
+            <h2>
+              Learn practical data skills with coaching, structure, and
+              accountability.
+            </h2>
+
             <p className="heroDescription">
-              Jlux Academy helps beginners, professionals, undergraduates, NYSC members,
-              and business owners learn Excel, Power BI, SQL, and Python through guided
-              private coaching and a modern student portal experience.
+              Jlux Academy helps students, professionals, NYSC members, business
+              owners, and career switchers learn Excel, Power BI, SQL, and Python
+              with a guided portal experience.
             </p>
 
             <div className="heroActions">
-              <a href="/register" className="primaryBtn">Start Learning</a>
-              <a href="/courses" className="secondaryBtn">View Courses</a>
+              <Link to="/register" className="primaryBtn">
+                Start Learning
+              </Link>
+
+              <Link to="/courses" className="secondaryBtn">
+                View Courses
+              </Link>
             </div>
 
             <div className="trustRow">
@@ -53,14 +99,14 @@ function Home() {
             </div>
           </div>
 
-          <div className="heroCard">
+          <div className="heroCard compactPortalPreview">
             <div className="portalTop">
-              <span>Student Portal Preview</span>
+              <span>Student Portal</span>
               <strong>72%</strong>
             </div>
 
             <div className="progressBlock">
-              <p>Overall Course Progress</p>
+              <p>Course Progress</p>
               <div className="progressTrack">
                 <div className="progressFill"></div>
               </div>
@@ -79,92 +125,155 @@ function Home() {
       </header>
 
       <main>
-        <section className="section">
-          <div className="sectionHeader">
+        <section className="dataQuoteStrip">
+          {dataQuotes.map((quote) => (
+            <article key={quote}>
+              <span>“</span>
+              <p>{quote}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="section compactSection">
+          <div className="sectionHeader compactSectionHeader">
             <p className="eyebrow">Tool-Based Learning</p>
             <h2>Courses built around real business data skills</h2>
             <p>
-              Learn the exact tools needed for business reporting, automation,
-              dashboarding, and decision-making.
+              Learn the tools needed for reporting, automation, dashboards, and
+              decision-making.
             </p>
           </div>
 
-          <div className="courseGrid">
+          <div className="courseGrid compactCourseGrid">
             {tools.map((tool) => (
-              <article className="courseCard" key={tool.title}>
+              <article className="courseCard compactCourseCard" key={tool.title}>
                 <div className="courseIcon">{tool.title[0]}</div>
                 <h3>{tool.title}</h3>
                 <p>{tool.text}</p>
-                <a href="/courses">Explore {tool.title}</a>
+                <Link to="/courses">Explore {tool.title}</Link>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="portalSection">
+        <section className="dataFactsSection">
+          <div className="sectionHeader compactSectionHeader">
+            <p className="eyebrow">Data Facts</p>
+            <h2>Why data skills matter</h2>
+          </div>
+
+          <div className="dataFactsGrid">
+            {dataFacts.map((fact) => (
+              <article key={fact.title}>
+                <h3>{fact.title}</h3>
+                <p>{fact.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="portalSection compactPortalSection">
           <div>
             <p className="eyebrow">Learning Management Portal</p>
             <h2>Student, Tutor, and Admin dashboards</h2>
             <p>
-              The full LMS will include student progress tracking, assignment submission,
-              weekly practice tests, schedule booking, payment balance, attendance,
-              certificates, and admin approvals.
+              Track progress, manage schedules, approve learning activities,
+              record payments, upload certificates, and monitor student growth.
             </p>
           </div>
 
-          <div className="portalCards">
+          <div className="portalCards compactPortalCards">
             <div>
               <h3>Student Portal</h3>
-              <p>Track progress, submit assignments, book classes, and view certificates.</p>
+              <p>
+                View progress, book classes, submit assignments, see balance,
+                receive certificates, and take drills.
+              </p>
             </div>
+
             <div>
               <h3>Tutor Portal</h3>
-              <p>Review students, mark assignments, give feedback, and manage materials.</p>
+              <p>
+                View assigned students, approve schedules, review assignments,
+                and monitor learning progress.
+              </p>
             </div>
+
             <div>
               <h3>Admin Portal</h3>
-              <p>Approve schedules, manage payments, students, tutors, classes, and reports.</p>
+              <p>
+                Approve students, tutors, schedules, payments, certificates,
+                assignments, and reports.
+              </p>
             </div>
           </div>
         </section>
 
-        <section className="section">
-          <div className="sectionHeader">
-            <p className="eyebrow">How Learning Works</p>
-            <h2>A guided path from beginner to job-ready</h2>
+        <section className="section compactSection">
+          <div className="sectionHeader compactSectionHeader">
+            <p className="eyebrow">Pricing Snapshot</p>
+            <h2>Clear training fees</h2>
           </div>
 
-          <div className="steps">
+          <div className="homePricingGrid">
+            {pricingSnapshot.map((item) => (
+              <article key={item.course}>
+                <span>{item.course}</span>
+                <strong>{item.fee}</strong>
+              </article>
+            ))}
+          </div>
+
+          <div className="homeCenterAction">
+            <Link to="/pricing" className="primaryBtn">
+              View Full Pricing
+            </Link>
+          </div>
+        </section>
+
+        <section className="section compactSection">
+          <div className="sectionHeader compactSectionHeader">
+            <p className="eyebrow">How Learning Works</p>
+            <h2>A guided path from beginner to confident analyst</h2>
+          </div>
+
+          <div className="steps compactSteps">
             <div>
               <span>01</span>
-              <h3>Enroll</h3>
-              <p>Admin creates your student record and confirms your payment manually.</p>
+              <h3>Register</h3>
+              <p>Apply as a student or tutor and wait for admin approval.</p>
             </div>
+
             <div>
               <span>02</span>
               <h3>Book Classes</h3>
-              <p>Students choose two weekly 1-hour sessions from available slots.</p>
+              <p>Students choose two weekly 1-hour sessions.</p>
             </div>
+
             <div>
               <span>03</span>
               <h3>Learn & Submit</h3>
-              <p>Complete lessons, submit assignments, and take weekly practice tests.</p>
+              <p>Attend classes, submit assignments, and complete drills.</p>
             </div>
+
             <div>
               <span>04</span>
               <h3>Get Certified</h3>
-              <p>Earn certificates for Excel, Power BI, SQL, and Python as you complete tools.</p>
+              <p>Download certificates after completing approved courses.</p>
             </div>
           </div>
         </section>
 
-        <section className="cta">
+        <section className="cta compactCta">
           <h2>Ready to build serious data skills?</h2>
           <p>
-            Join Jlux Academy and learn through structure, coaching, accountability,
-            and real business projects.
+            Join Jlux Academy and learn through structure, coaching,
+            accountability, and real business projects.
           </p>
-          <a href="/contact" className="primaryBtn">Contact Jlux Academy</a>
+
+          <Link to="/contact" className="primaryBtn">
+            Contact Jlux Academy
+          </Link>
         </section>
       </main>
     </>

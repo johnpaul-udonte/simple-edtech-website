@@ -51,10 +51,14 @@ async function findAuthUserByEmail(adminClient: any, email: string) {
   return null;
 }
 
-async function getExistingProfile(adminClient: any, authUserId: string, email: string) {
+async function getExistingProfile(
+  adminClient: any,
+  authUserId: string,
+  email: string
+) {
   const { data: profileById, error: profileByIdError } = await adminClient
     .from("profiles")
-    .select("id, role, email")
+    .select("id, role, email, portrait_path")
     .eq("id", authUserId)
     .maybeSingle();
 
@@ -64,11 +68,12 @@ async function getExistingProfile(adminClient: any, authUserId: string, email: s
 
   if (profileById) return profileById;
 
-  const { data: profileByEmail, error: profileByEmailError } = await adminClient
-    .from("profiles")
-    .select("id, role, email")
-    .ilike("email", email)
-    .maybeSingle();
+  const { data: profileByEmail, error: profileByEmailError } =
+    await adminClient
+      .from("profiles")
+      .select("id, role, email, portrait_path")
+      .ilike("email", String(email || "").trim())
+      .maybeSingle();
 
   if (profileByEmailError) {
     throw new Error(profileByEmailError.message);
@@ -268,6 +273,8 @@ serve(async (request: Request) => {
       email: application.email,
       role: "student",
       status: "active",
+      portrait_path:
+        application.portrait_path || existingProfile?.portrait_path || null,
       updated_at: new Date().toISOString(),
     });
 
@@ -343,6 +350,7 @@ serve(async (request: Request) => {
           temporary_password: temporaryPassword,
           login_url: loginUrl,
           password_status: "active",
+          password_type: "temporary",
           generated_by: user.id,
           generated_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -395,8 +403,11 @@ serve(async (request: Request) => {
         loginEmail: application.email,
         temporaryPassword,
         loginUrl,
+        portraitPath:
+          application.portrait_path || existingProfile?.portrait_path || null,
         emailSent: false,
-        emailError: "Email sending disabled. Admin should copy login details manually.",
+        emailError:
+          "Email sending disabled. Admin should copy login details manually.",
       },
     });
   } catch (error) {

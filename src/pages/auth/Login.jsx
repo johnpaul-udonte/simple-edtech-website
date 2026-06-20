@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmail, signOut } from "../../services/authService";
 import { getProfileByUserId } from "../../services/profileService";
+import EyePasswordInput from "../../components/EyePasswordInput";
 
 function Login() {
   const navigate = useNavigate();
@@ -33,7 +34,9 @@ function Login() {
       return;
     }
 
-    const { data: profile, error: profileError } = await getProfileByUserId(userId);
+    const { data: profile, error: profileError } = await getProfileByUserId(
+      userId
+    );
 
     if (profileError || !profile) {
       await signOut();
@@ -46,7 +49,9 @@ function Login() {
 
     if (profile.status !== "active") {
       await signOut();
-      setNotice(`Your account is currently ${profile.status}. Please contact admin.`);
+      setNotice(
+        `Your account is currently ${profile.status}. Please contact admin.`
+      );
       setIsLoading(false);
       return;
     }
@@ -92,16 +97,14 @@ function Login() {
             />
           </label>
 
-          <label>
-            Password
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </label>
+          <EyePasswordInput
+            label="Password"
+            name="password"
+            value={password}
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            onChange={(event) => setPassword(event.target.value)}
+          />
 
           <button type="submit" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}

@@ -447,6 +447,15 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
     };
   }
 
+  if (!userId || userId === "null" || userId === "undefined") {
+    return {
+      data: null,
+      error: {
+        message: "Student session was not found. Please log in again.",
+      },
+    };
+  }
+
   const { data: studentRows, error: studentError } = await supabase
     .from("students")
     .select(
@@ -458,6 +467,13 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
       profiles:profiles!students_profile_id_fkey (
         full_name,
         email
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
       )
     `
     )
@@ -482,6 +498,24 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
     };
   }
 
+  const assignedTutorId = student.assigned_tutor_id;
+
+  if (
+    !assignedTutorId ||
+    assignedTutorId === "null" ||
+    assignedTutorId === "undefined"
+  ) {
+    return {
+      data: {
+        student,
+        assignments: [],
+        assignmentMessage:
+          "No tutor has been assigned to you yet. Once admin assigns a tutor, your assignments will appear here.",
+      },
+      error: null,
+    };
+  }
+
   const { data: assignments, error: assignmentsError } = await supabase
     .from("assignments")
     .select(
@@ -493,6 +527,7 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
       due_date,
       status,
       created_at,
+      tutor_id,
       tutors (
         id,
         profiles (
@@ -513,7 +548,7 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
       )
     `
     )
-    .eq("tutor_id", student.assigned_tutor_id)
+    .eq("tutor_id", assignedTutorId)
     .in("status", ["published", "closed"])
     .order("created_at", { ascending: false });
 
@@ -540,6 +575,10 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
     data: {
       student,
       assignments: studentAssignments,
+      assignmentMessage:
+        studentAssignments.length === 0
+          ? "No assignment has been published for you yet."
+          : "",
     },
     error: null,
   };
@@ -1213,7 +1252,7 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
     return {
       data: null,
       error: {
-        message: "No quiz questions were selected.",
+        message: "No drill questions were selected.",
       },
     };
   }
@@ -1315,7 +1354,7 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
     return {
       data: null,
       error: {
-        message: "Quiz attempt was not saved.",
+        message: "Drill attempt was not saved.",
       },
     };
   }

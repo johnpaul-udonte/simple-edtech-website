@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import "./App.css";
 
 import PublicLayout from "./layouts/PublicLayout";
@@ -21,14 +21,14 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentSchedule from "./pages/student/StudentSchedule";
 import StudentPractice from "./pages/student/StudentPractice";
-import StudentMaterials from "./pages/student/StudentMaterials";
 import StudentCertificates from "./pages/student/StudentCertificates";
+import StudentNotifications from "./pages/student/StudentNotifications";
+import StudentChangePassword from "./pages/student/StudentChangePassword";
 
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 import TutorStudents from "./pages/tutor/TutorStudents";
 import TutorAssignments from "./pages/tutor/TutorAssignments";
-import TutorQuizzes from "./pages/tutor/TutorQuizzes";
-import TutorMaterials from "./pages/tutor/TutorMaterials";
+import TutorDrills from "./pages/tutor/TutorQuizzes";
 import TutorAnnouncements from "./pages/tutor/TutorAnnouncements";
 import TutorSchedule from "./pages/tutor/TutorSchedule";
 
@@ -39,18 +39,13 @@ import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSchedules from "./pages/admin/AdminSchedules";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminAssignments from "./pages/admin/AdminAssignments";
-import AdminQuizzes from "./pages/admin/AdminQuizzes";
+import AdminDrills from "./pages/admin/AdminQuizzes";
 import AdminCertificates from "./pages/admin/AdminCertificates";
-import AdminMaterials from "./pages/admin/AdminMaterials";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminReports from "./pages/admin/AdminReports";
-
-import StudentRestrictionGuard from "./components/StudentRestrictionGuard";
-
-import StudentNotifications from "./pages/student/StudentNotifications";
 import AdminLoginCredentials from "./pages/admin/AdminLoginCredentials";
 
-import StudentChangePassword from "./pages/student/StudentChangePassword";
+import StudentRestrictionGuard from "./components/StudentRestrictionGuard";
 
 function App() {
   return (
@@ -97,7 +92,7 @@ function App() {
           />
 
           <Route
-            path="/student/practice"
+            path="/student/drills"
             element={
               <StudentRestrictionGuard>
                 <StudentPractice />
@@ -106,21 +101,15 @@ function App() {
           />
 
           <Route
-            path="/student/materials"
-            element={
-              <StudentRestrictionGuard>
-                <StudentMaterials />
-              </StudentRestrictionGuard>
-            }
+            path="/student/practice"
+            element={<Navigate to="/student/drills" replace />}
           />
+
           <Route
-            path="/student/change-password"
-            element={
-              <StudentRestrictionGuard>
-                <StudentChangePassword />
-              </StudentRestrictionGuard>
-            }
+            path="/student/materials"
+            element={<Navigate to="/student/dashboard" replace />}
           />
+
           <Route
             path="/student/certificates"
             element={
@@ -129,11 +118,21 @@ function App() {
               </StudentRestrictionGuard>
             }
           />
+
           <Route
             path="/student/notifications"
             element={
               <StudentRestrictionGuard>
                 <StudentNotifications />
+              </StudentRestrictionGuard>
+            }
+          />
+
+          <Route
+            path="/student/change-password"
+            element={
+              <StudentRestrictionGuard>
+                <StudentChangePassword />
               </StudentRestrictionGuard>
             }
           />
@@ -149,8 +148,15 @@ function App() {
           <Route path="/tutor/dashboard" element={<TutorDashboard />} />
           <Route path="/tutor/students" element={<TutorStudents />} />
           <Route path="/tutor/assignments" element={<TutorAssignments />} />
-          <Route path="/tutor/quizzes" element={<TutorQuizzes />} />
-          <Route path="/tutor/materials" element={<TutorMaterials />} />
+          <Route path="/tutor/drills" element={<TutorDrills />} />
+          <Route
+            path="/tutor/quizzes"
+            element={<Navigate to="/tutor/drills" replace />}
+          />
+          <Route
+            path="/tutor/materials"
+            element={<Navigate to="/tutor/dashboard" replace />}
+          />
           <Route path="/tutor/announcements" element={<TutorAnnouncements />} />
           <Route path="/tutor/schedule" element={<TutorSchedule />} />
         </Route>
@@ -164,18 +170,24 @@ function App() {
         >
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/applications" element={<AdminApplications />} />
+          <Route path="/admin/login-credentials" element={<AdminLoginCredentials />} />
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/tutors" element={<AdminTutors />} />
           <Route path="/admin/schedules" element={<AdminSchedules />} />
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/assignments" element={<AdminAssignments />} />
-          <Route path="/admin/quizzes" element={<AdminQuizzes />} />
+          <Route path="/admin/drills" element={<AdminDrills />} />
+          <Route
+            path="/admin/quizzes"
+            element={<Navigate to="/admin/drills" replace />}
+          />
           <Route path="/admin/certificates" element={<AdminCertificates />} />
-          <Route path="/admin/materials" element={<AdminMaterials />} />
+          <Route
+            path="/admin/materials"
+            element={<Navigate to="/admin/dashboard" replace />}
+          />
           <Route path="/admin/announcements" element={<AdminAnnouncements />} />
           <Route path="/admin/reports" element={<AdminReports />} />
-          <Route path="/admin/login-credentials" element={<AdminLoginCredentials />}
-/>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -5,10 +5,35 @@ import {
   submitAssignmentForStudent,
 } from "../../services/studentService";
 
+function formatDate(value) {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleDateString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function StudentAssignments() {
   const { session, profile } = useAuth();
 
-  const [assignmentData, setAssignmentData] = useState(null);
+  const [assignmentData, setAssignmentData] = useState({
+    assignments: [],
+    student: null,
+  });
   const [submissionForms, setSubmissionForms] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
@@ -17,8 +42,12 @@ function StudentAssignments() {
   const [submittingId, setSubmittingId] = useState("");
 
   async function loadStudentAssignments() {
+    setIsLoading(true);
+    setNotice("");
+    setActionError("");
+
     if (!session?.user?.id) {
-      setNotice("No active student session found.");
+      setNotice("No active student session found. Please log in again.");
       setIsLoading(false);
       return;
     }
@@ -28,18 +57,22 @@ function StudentAssignments() {
     );
 
     if (error) {
-      setNotice(error.message);
+      setNotice(error.message || "Could not load assignments.");
       setIsLoading(false);
       return;
     }
 
-    setAssignmentData(data);
+    setAssignmentData({
+      assignments: Array.isArray(data?.assignments) ? data.assignments : [],
+      student: data?.student || null,
+    });
+
     setIsLoading(false);
   }
 
   useEffect(() => {
     loadStudentAssignments();
-  }, [session]);
+  }, [session?.user?.id]);
 
   function handleSubmissionChange(assignmentId, field, value) {
     setSubmissionForms((current) => ({
@@ -80,7 +113,7 @@ function StudentAssignments() {
     });
 
     if (error) {
-      setActionError(error.message);
+      setActionError(error.message || "Could not submit assignment.");
       setSubmittingId("");
       return;
     }
@@ -102,10 +135,27 @@ function StudentAssignments() {
 
   if (notice) {
     return (
-      <section className="dashboardPanel">
-        <h2>Assignment issue</h2>
-        <p>{notice}</p>
-      </section>
+      <>
+        <header className="dashboardHeader">
+          <div>
+            <p className="eyebrow">Student Assignments</p>
+            <h1>My Assignments</h1>
+            <p>
+              Something stopped your assignments from loading. Use refresh, and
+              if it continues, we will check the assignment service file.
+            </p>
+          </div>
+
+          <button type="button" onClick={loadStudentAssignments}>
+            Refresh
+          </button>
+        </header>
+
+        <section className="dashboardPanel">
+          <h2>Assignment Issue</h2>
+          <p>{notice}</p>
+        </section>
+      </>
     );
   }
 
@@ -124,23 +174,26 @@ function StudentAssignments() {
   );
 
   const pendingAssignments = assignments.filter(
-    (assignment) => !assignment.student_submission
+    (assignment) =>
+      assignment.status !== "closed" && !assignment.student_submission
   );
 
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="studentAssignmentPage">
+      <header className="dashboardHeader">
         <div>
-          <p className="eyebrow">Student Portal</p>
+          <p className="eyebrow">Student Assignments</p>
           <h1>My Assignments</h1>
           <p>
-            Welcome, {profile?.full_name || "Student"}. View assignments from
-            your tutor, submit your work, and track grading feedback.
+            Welcome, {profile?.full_name || "Student"}. View your assignments,
+            submit your work, and track tutor feedback.
           </p>
         </div>
 
-        <button>View Materials</button>
-      </div>
+        <button type="button" onClick={loadStudentAssignments}>
+          Refresh
+        </button>
+      </header>
 
       {successMessage && (
         <div className="successNotice">
@@ -154,9 +207,9 @@ function StudentAssignments() {
         </div>
       )}
 
-      <div className="dashboardGrid">
+      <section className="assignmentSummaryGrid">
         <article className="dashboardCard">
-          <p>Total Assignments</p>
+          <p>Total</p>
           <h2>{assignments.length}</h2>
         </article>
 
@@ -171,7 +224,7 @@ function StudentAssignments() {
         </article>
 
         <article className="dashboardCard">
-          <p>Pending Submission</p>
+          <p>Pending</p>
           <h2>{pendingAssignments.length}</h2>
         </article>
 
@@ -185,17 +238,28 @@ function StudentAssignments() {
           <h2>{assignmentData?.student?.student_code || "N/A"}</h2>
         </article>
 
-        <article className="dashboardCard">
+        <article className="dashboardCard wideAssignmentCard">
           <p>Course</p>
           <h2>{assignmentData?.student?.enrolled_course || "Data Analysis"}</h2>
         </article>
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Assignment List</h2>
+      <section className="dashboardPanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Assignment List</h2>
+            <p>Submit your work using a note, project link, or both.</p>
+          </div>
+        </div>
 
         {assignments.length === 0 ? (
-          <p>No assignments have been published for you yet.</p>
+          <div className="emptyStateBox">
+            <h3>No assignment yet</h3>
+            <p>
+              No assignment has been published for you yet. Once your tutor or
+              admin publishes one, it will appear here.
+            </p>
+          </div>
         ) : (
           <div className="assignmentStack">
             {assignments.map((assignment) => {
@@ -218,10 +282,11 @@ function StudentAssignments() {
 
                   <div className="assignmentMeta">
                     <span>Tool: {assignment.tool || "General"}</span>
-                    <span>Due: {assignment.due_date || "-"}</span>
+                    <span>Due: {formatDate(assignment.due_date)}</span>
                     <span>
                       Tutor:{" "}
                       {assignment.tutors?.profiles?.full_name ||
+                        assignment.tutor_name ||
                         "Tutor not assigned"}
                     </span>
                   </div>
@@ -238,10 +303,8 @@ function StudentAssignments() {
                       </p>
 
                       <p>
-                        <strong>Submitted At:</strong>{" "}
-                        {submission.submitted_at
-                          ? new Date(submission.submitted_at).toLocaleString()
-                          : "-"}
+                        <strong>Submitted:</strong>{" "}
+                        {formatDateTime(submission.submitted_at)}
                       </p>
 
                       {submission.submission_text && (
@@ -264,7 +327,8 @@ function StudentAssignments() {
                       )}
 
                       <p>
-                        <strong>Score:</strong> {submission.score ?? "Not graded yet"}
+                        <strong>Score:</strong>{" "}
+                        {submission.score ?? "Not graded yet"}
                       </p>
 
                       <p>
@@ -276,7 +340,7 @@ function StudentAssignments() {
                     <p className="mutedText">You have not submitted this yet.</p>
                   )}
 
-                  {!isClosed && (
+                  {!isClosed ? (
                     <form
                       className="portalForm submissionForm"
                       onSubmit={(event) => {
@@ -287,7 +351,7 @@ function StudentAssignments() {
                       <label>
                         Submission Note
                         <textarea
-                          rows="4"
+                          rows="3"
                           value={
                             submissionForms[assignment.id]?.submission_text || ""
                           }
@@ -332,9 +396,7 @@ function StudentAssignments() {
                           : "Submit Assignment"}
                       </button>
                     </form>
-                  )}
-
-                  {isClosed && (
+                  ) : (
                     <p className="mutedText">
                       This assignment is closed and can no longer be submitted.
                     </p>
@@ -344,7 +406,7 @@ function StudentAssignments() {
             })}
           </div>
         )}
-      </div>
+      </section>
     </section>
   );
 }
