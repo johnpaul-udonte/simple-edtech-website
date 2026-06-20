@@ -85,6 +85,9 @@ function AdminApplications() {
     setAdminNotes(application.admin_notes || "");
     setNotice("");
     setErrorMessage("");
+  }
+
+  function clearApprovalResult() {
     setApprovalResult(null);
   }
 
@@ -93,17 +96,22 @@ function AdminApplications() {
 
     const loginText = `Jlux Academy Student Login Details
 
-Email: ${approvalResult.loginEmail}
-Temporary Password: ${approvalResult.temporaryPassword}
-Login Link: ${approvalResult.loginUrl}
+Student Name: ${approvalResult.studentName || "-"}
+Email: ${approvalResult.loginEmail || "-"}
+Temporary Password: ${approvalResult.temporaryPassword || "-"}
+Login Link: ${approvalResult.loginUrl || "-"}
 
 Please change your password after logging in.`;
 
     try {
       await navigator.clipboard.writeText(loginText);
-      setNotice("Login details copied. You can now send them to the student manually.");
+      setNotice(
+        "Login details copied. You can now send them to the student manually."
+      );
     } catch {
-      setErrorMessage("Could not copy automatically. Please highlight and copy the login details manually.");
+      setErrorMessage(
+        "Could not copy automatically. Please highlight and copy the login details manually."
+      );
     }
   }
 
@@ -130,11 +138,37 @@ Please change your password after logging in.`;
       return;
     }
 
-    const result = data?.data || data;
+    const rawResult = data?.data || data || {};
 
-    setApprovalResult(result);
+    const normalizedResult = {
+      studentName: application.full_name,
+      loginEmail: rawResult.loginEmail || application.email || "-",
+      temporaryPassword:
+        rawResult.temporaryPassword || "Temporary password was not returned.",
+      loginUrl: rawResult.loginUrl || `${window.location.origin}/login`,
+      emailSent: rawResult.emailSent === true,
+      emailError: rawResult.emailError || null,
+      emailResult: rawResult.emailResult || null,
+      userAlreadyExisted: rawResult.userAlreadyExisted === true,
+      message: rawResult.message || "Student approved successfully.",
+    };
 
-    if (result?.emailSent) {
+    setApprovalResult(normalizedResult);
+
+    window.alert(
+      `Student Approved Successfully!
+
+Student: ${normalizedResult.studentName}
+Email: ${normalizedResult.loginEmail}
+Temporary Password: ${normalizedResult.temporaryPassword}
+Login Link: ${normalizedResult.loginUrl}
+
+Email Sent: ${normalizedResult.emailSent ? "Yes" : "No"}
+
+Copy these details now if email was not sent.`
+    );
+
+    if (normalizedResult.emailSent) {
       setNotice(
         `${application.full_name} has been approved. Login details were sent by email.`
       );
@@ -147,7 +181,17 @@ Please change your password after logging in.`;
     setProcessingId("");
     setSelectedApplication(null);
     setAdminNotes("");
+
     await loadApplications();
+
+    setApprovalResult(normalizedResult);
+
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 100);
   }
 
   async function handleReject(application) {
@@ -202,46 +246,88 @@ Please change your password after logging in.`;
       {errorMessage && <div className="errorNotice">{errorMessage}</div>}
 
       {approvalResult && (
-        <section className="dashboardPanel">
-          <h2>Student Login Details</h2>
-
-          <p>
-            <strong>Email:</strong> {approvalResult.loginEmail || "-"}
-          </p>
-
-          <p>
-            <strong>Temporary Password:</strong>{" "}
-            <span style={{ fontWeight: 900, color: "#0b4ea2" }}>
-              {approvalResult.temporaryPassword || "-"}
-            </span>
-          </p>
-
-          <p>
-            <strong>Login Link:</strong>{" "}
-            {approvalResult.loginUrl ? (
-              <a
-                href={approvalResult.loginUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {approvalResult.loginUrl}
-              </a>
-            ) : (
-              "-"
-            )}
-          </p>
-
-          <p>
-            <strong>Email Sent:</strong>{" "}
-            {approvalResult.emailSent ? "Yes" : "No"}
-          </p>
-
-          {!approvalResult.emailSent && (
-            <div className="errorNotice">
-              <strong>Email Error:</strong>{" "}
-              {getEmailErrorText(approvalResult.emailError)}
+        <section
+          className="dashboardPanel"
+          style={{
+            border: "2px solid #0b4ea2",
+            background: "#f8fbff",
+          }}
+        >
+          <div className="panelHeaderRow">
+            <div>
+              <h2>Student Login Details</h2>
+              <p>
+                Copy these details and send them to the student manually if the
+                email was not delivered.
+              </p>
             </div>
-          )}
+
+            <button
+              type="button"
+              className="tableActionBtn"
+              onClick={clearApprovalResult}
+            >
+              Hide
+            </button>
+          </div>
+
+          <div className="applicationReviewGrid">
+            <div>
+              <h3>Login Credentials</h3>
+
+              <p>
+                <strong>Student Name:</strong>{" "}
+                {approvalResult.studentName || "-"}
+              </p>
+
+              <p>
+                <strong>Email:</strong> {approvalResult.loginEmail || "-"}
+              </p>
+
+              <p>
+                <strong>Temporary Password:</strong>{" "}
+                <span style={{ fontWeight: 900, color: "#0b4ea2" }}>
+                  {approvalResult.temporaryPassword || "-"}
+                </span>
+              </p>
+
+              <p>
+                <strong>Login Link:</strong>{" "}
+                {approvalResult.loginUrl ? (
+                  <a
+                    href={approvalResult.loginUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {approvalResult.loginUrl}
+                  </a>
+                ) : (
+                  "-"
+                )}
+              </p>
+            </div>
+
+            <div>
+              <h3>Email Status</h3>
+
+              <p>
+                <strong>Email Sent:</strong>{" "}
+                {approvalResult.emailSent ? "Yes" : "No"}
+              </p>
+
+              <p>
+                <strong>Existing User Reused:</strong>{" "}
+                {approvalResult.userAlreadyExisted ? "Yes" : "No"}
+              </p>
+
+              {!approvalResult.emailSent && (
+                <div className="errorNotice">
+                  <strong>Email Error:</strong>{" "}
+                  {getEmailErrorText(approvalResult.emailError)}
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="tableActionGroup">
             <button
