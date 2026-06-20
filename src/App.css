@@ -1546,3 +1546,46 @@ button {
     flex-direction: column;
   }
 }
+
+.accessBlockedPanel {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.accessBlockedPanel h2 {
+  color: #0b2f63;
+  font-size: 34px;
+  margin: 18px 0 10px;
+}
+
+.accessBlockedPanel p {
+  color: #60738c;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.restrictionReasonBox {
+  margin: 22px auto;
+  padding: 18px 22px;
+  border-radius: 16px;
+  border: 1px solid #fecdd3;
+  background: #fff1f3;
+  text-align: left;
+  max-width: 560px;
+}
+
+.restrictionReasonBox strong {
+  color: #b42318;
+}
+
+.restrictionReasonBox p {
+  margin: 6px 0 0;
+  font-size: 16px;
+}
+
+.accessBackLink {
+  display: inline-flex;
+  margin-top: 12px;
+  text-decoration: none;
+}

@@ -455,7 +455,7 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
       student_code,
       enrolled_course,
       assigned_tutor_id,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       )
@@ -471,8 +471,7 @@ export async function getStudentAssignmentsForCurrentUser(userId) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
@@ -573,8 +572,7 @@ export async function submitAssignmentForStudent(
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
@@ -608,10 +606,7 @@ export async function submitAssignmentForStudent(
     };
   }
 
-  const assignment =
-    Array.isArray(assignmentRows) && assignmentRows.length > 0
-      ? assignmentRows[0]
-      : null;
+  const assignment = firstRow(assignmentRows);
 
   if (!assignment) {
     return {
@@ -645,8 +640,7 @@ export async function submitAssignmentForStudent(
     };
   }
 
-  const existingSubmission =
-    Array.isArray(existingRows) && existingRows.length > 0 ? existingRows[0] : null;
+  const existingSubmission = firstRow(existingRows);
 
   if (existingSubmission) {
     const { data: updatedRows, error: updateError } = await supabase
@@ -662,7 +656,7 @@ export async function submitAssignmentForStudent(
       .select();
 
     return {
-      data: Array.isArray(updatedRows) ? updatedRows[0] : null,
+      data: firstRow(updatedRows),
       error: updateError,
     };
   }
@@ -680,7 +674,7 @@ export async function submitAssignmentForStudent(
     .select();
 
   return {
-    data: Array.isArray(insertedRows) ? insertedRows[0] : null,
+    data: firstRow(insertedRows),
     error: insertError,
   };
 }
@@ -705,7 +699,7 @@ export async function getStudentCertificatesForCurrentUser(userId) {
       total_paid_classes,
       completed_classes,
       payment_balance,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       ),
@@ -727,8 +721,7 @@ export async function getStudentCertificatesForCurrentUser(userId) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
@@ -788,6 +781,7 @@ export async function getStudentCertificatesForCurrentUser(userId) {
     error: null,
   };
 }
+
 export async function getStudentMaterialsForCurrentUser(userId) {
   if (!supabase) {
     return {
@@ -806,7 +800,7 @@ export async function getStudentMaterialsForCurrentUser(userId) {
       student_code,
       enrolled_course,
       assigned_tutor_id,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       ),
@@ -829,8 +823,7 @@ export async function getStudentMaterialsForCurrentUser(userId) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
@@ -912,7 +905,7 @@ export async function getStudentAnnouncementsForCurrentUser(userId) {
       student_code,
       assigned_tutor_id,
       enrolled_course,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       ),
@@ -935,8 +928,7 @@ export async function getStudentAnnouncementsForCurrentUser(userId) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
@@ -1029,7 +1021,7 @@ export async function getStudentPracticeForCurrentUser(userId) {
       student_code,
       enrolled_course,
       assigned_tutor_id,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       ),
@@ -1052,8 +1044,7 @@ export async function getStudentPracticeForCurrentUser(userId) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
@@ -1158,7 +1149,11 @@ export async function getStudentPracticeForCurrentUser(userId) {
         totalAttempts: attemptList.length,
         bestScore:
           attemptList.length > 0
-            ? Math.max(...attemptList.map((attempt) => Number(attempt.percentage || 0)))
+            ? Math.max(
+                ...attemptList.map((attempt) =>
+                  Number(attempt.percentage || 0)
+                )
+              )
             : 0,
         latestScore:
           attemptList.length > 0 ? Number(attemptList[0].percentage || 0) : 0,
@@ -1180,7 +1175,7 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
 
   const { data: studentRows, error: studentError } = await supabase
     .from("students")
-    .select("id, enrolled_course, assigned_tutor_id")
+    .select("id, enrolled_course, assigned_tutor_id, is_restricted")
     .eq("profile_id", userId)
     .limit(1);
 
@@ -1191,14 +1186,23 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {
       data: null,
       error: {
         message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  if (student.is_restricted) {
+    return {
+      data: null,
+      error: {
+        message:
+          "Your access is currently restricted. Please contact admin before submitting weekly practice.",
       },
     };
   }
@@ -1251,7 +1255,9 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
     const selectedOptionId = practiceForm.answers[question.id];
     const options = question.quiz_options || [];
 
-    const selectedOption = options.find((option) => option.id === selectedOptionId);
+    const selectedOption = options.find(
+      (option) => option.id === selectedOptionId
+    );
     const correctOption = options.find((option) => option.is_correct);
 
     const questionPoints = Number(question.points || 1);
@@ -1283,7 +1289,9 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
       tutor_id: student.assigned_tutor_id,
       course: firstQuestion?.course || student.enrolled_course || "Data Analysis",
       tool: practiceForm.tool || firstQuestion?.tool || "Excel",
-      week_number: Number(practiceForm.week_number || firstQuestion?.week_number || 1),
+      week_number: Number(
+        practiceForm.week_number || firstQuestion?.week_number || 1
+      ),
       total_questions: questionList.length,
       total_points: totalPoints,
       score,
@@ -1301,10 +1309,7 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
     };
   }
 
-  const attempt =
-    Array.isArray(insertedAttempts) && insertedAttempts.length > 0
-      ? insertedAttempts[0]
-      : null;
+  const attempt = firstRow(insertedAttempts);
 
   if (!attempt) {
     return {
@@ -1364,7 +1369,7 @@ export async function getStudentAccessStatusForCurrentUser(userId) {
       restriction_reason,
       restricted_at,
       enrolled_course,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       )
@@ -1380,8 +1385,7 @@ export async function getStudentAccessStatusForCurrentUser(userId) {
     };
   }
 
-  const student =
-    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+  const student = firstRow(studentRows);
 
   if (!student) {
     return {

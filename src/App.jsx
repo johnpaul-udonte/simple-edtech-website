@@ -42,6 +42,8 @@ import AdminMaterials from "./pages/admin/AdminMaterials";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminReports from "./pages/admin/AdminReports";
 
+import StudentRestrictionGuard from "./components/StudentRestrictionGuard";
+
 function App() {
   return (
     <BrowserRouter>
@@ -65,11 +67,51 @@ function App() {
           }
         >
           <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student/assignments" element={<StudentAssignments />} />
-          <Route path="/student/schedule" element={<StudentSchedule />} />
-          <Route path="/student/practice" element={<StudentPractice />} />
-          <Route path="/student/materials" element={<StudentMaterials />} />
-          <Route path="/student/certificates" element={<StudentCertificates />} />
+
+          <Route
+            path="/student/assignments"
+            element={
+              <StudentRestrictionGuard>
+                <StudentAssignments />
+              </StudentRestrictionGuard>
+            }
+          />
+
+          <Route
+            path="/student/schedule"
+            element={
+              <StudentRestrictionGuard>
+                <StudentSchedule />
+              </StudentRestrictionGuard>
+            }
+          />
+
+          <Route
+            path="/student/practice"
+            element={
+              <StudentRestrictionGuard>
+                <StudentPractice />
+              </StudentRestrictionGuard>
+            }
+          />
+
+          <Route
+            path="/student/materials"
+            element={
+              <StudentRestrictionGuard>
+                <StudentMaterials />
+              </StudentRestrictionGuard>
+            }
+          />
+
+          <Route
+            path="/student/certificates"
+            element={
+              <StudentRestrictionGuard>
+                <StudentCertificates />
+              </StudentRestrictionGuard>
+            }
+          />
         </Route>
 
         <Route
