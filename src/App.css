@@ -2559,3 +2559,41 @@ iframe {
     width: 100%;
   }
 }
+
+/* PASSWORD REVEAL INPUT */
+.passwordRevealBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.passwordRevealBox input {
+  flex: 1;
+}
+
+.passwordRevealBtn {
+  border: 0;
+  border-radius: 12px;
+  background: #eaf2ff;
+  color: #0b4ea2;
+  padding: 12px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.passwordRevealBtn:hover {
+  background: #dcecff;
+}
+
+@media (max-width: 520px) {
+  .passwordRevealBox {
+    align-items: stretch;
+  }
+
+  .passwordRevealBtn {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}

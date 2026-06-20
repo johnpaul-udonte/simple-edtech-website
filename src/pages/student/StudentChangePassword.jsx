@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { changeMyStudentPassword } from "../../services/studentPasswordService";
+import PasswordInput from "../../components/PasswordInput";
 
 function StudentChangePassword() {
   const { profile } = useAuth();
@@ -82,38 +83,32 @@ function StudentChangePassword() {
         <h2>Update Login Password</h2>
 
         <form className="passwordForm" onSubmit={handleSubmit}>
-          <label className="passwordField">
-            Current Password
-            <input
-              type="password"
-              value={currentPassword}
-              autoComplete="current-password"
-              placeholder="Enter your current password"
-              onChange={(event) => setCurrentPassword(event.target.value)}
-            />
-          </label>
+          <PasswordInput
+            label="Current Password"
+            name="currentPassword"
+            value={currentPassword}
+            autoComplete="current-password"
+            placeholder="Enter your current password"
+            onChange={(event) => setCurrentPassword(event.target.value)}
+          />
 
-          <label className="passwordField">
-            New Password
-            <input
-              type="password"
-              value={newPassword}
-              autoComplete="new-password"
-              placeholder="Enter your new password"
-              onChange={(event) => setNewPassword(event.target.value)}
-            />
-          </label>
+          <PasswordInput
+            label="New Password"
+            name="newPassword"
+            value={newPassword}
+            autoComplete="new-password"
+            placeholder="Enter your new password"
+            onChange={(event) => setNewPassword(event.target.value)}
+          />
 
-          <label className="passwordField">
-            Confirm New Password
-            <input
-              type="password"
-              value={confirmPassword}
-              autoComplete="new-password"
-              placeholder="Re-enter your new password"
-              onChange={(event) => setConfirmPassword(event.target.value)}
-            />
-          </label>
+          <PasswordInput
+            label="Confirm New Password"
+            name="confirmPassword"
+            value={confirmPassword}
+            autoComplete="new-password"
+            placeholder="Re-enter your new password"
+            onChange={(event) => setConfirmPassword(event.target.value)}
+          />
 
           <p className="passwordHelp">
             Password must be at least 8 characters and should contain uppercase,
