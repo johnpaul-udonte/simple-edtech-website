@@ -11,9 +11,11 @@ import Courses from "./pages/public/Courses";
 import Pricing from "./pages/public/Pricing";
 import FAQ from "./pages/public/FAQ";
 import Contact from "./pages/public/Contact";
+import NotFound from "./pages/public/NotFound";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import Unauthorized from "./pages/auth/Unauthorized";
 
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentAssignments from "./pages/student/StudentAssignments";
@@ -57,6 +59,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
 
         <Route

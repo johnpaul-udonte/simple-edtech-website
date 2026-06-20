@@ -1589,3 +1589,56 @@ button {
   margin-top: 12px;
   text-decoration: none;
 }
+
+.statusPageCard {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.statusPageCard h1 {
+  color: #0b2f63;
+  font-size: 48px;
+  margin: 14px 0 12px;
+}
+
+.statusPageCard p {
+  color: #60738c;
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+.statusPageActions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
+.secondaryActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dbe7ff;
+  background: #eef4ff;
+  color: #0f5bd8;
+  padding: 13px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.routeLoadingPanel {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.routeLoadingPanel h2 {
+  color: #0b2f63;
+}
+
+.routeLoadingPanel p {
+  color: #60738c;
+}
