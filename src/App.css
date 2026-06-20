@@ -1338,3 +1338,18 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.statusPill.normal {
+  background: #eef4ff;
+  color: #0f5bd8;
+}
+
+.statusPill.high {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.urgent {
+  background: #fff1f3;
+  color: #b42318;
+}

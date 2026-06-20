@@ -14,73 +14,31 @@ export async function getCurrentTutorRecord(userId) {
     };
   }
 
-  const { data, error } = await supabase
+  const { data: tutorRows, error } = await supabase
     .from("tutors")
-    .select("id, specialisation, bio, is_active")
-    .eq("profile_id", userId)
-    .limit(1);
-
-  return {
-    data: firstRow(data),
-    error,
-  };
-}
-
-export async function getAssignedStudents(tutorId) {
-  if (!supabase) {
-    return {
-      data: [],
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  return await supabase
-    .from("students")
     .select(
       `
       id,
-      student_code,
-      enrolled_course,
-      total_paid_classes,
-      completed_classes,
-      missed_classes,
-      cancelled_classes,
-      rescheduled_classes,
-      payment_balance,
-      is_restricted,
+      profile_id,
+      specialisation,
+      bio,
+      is_active,
+      created_at,
       profiles (
         full_name,
         email,
+        role,
         status
       )
     `
     )
-    .eq("assigned_tutor_id", tutorId)
-    .order("created_at", { ascending: false });
-}
-
-export async function getTutorScheduleForCurrentUser(userId) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id, specialisation, bio, is_active")
     .eq("profile_id", userId)
     .limit(1);
 
-  if (tutorError) {
+  if (error) {
     return {
       data: null,
-      error: tutorError,
+      error,
     };
   }
 
@@ -95,87 +53,19 @@ export async function getTutorScheduleForCurrentUser(userId) {
     };
   }
 
-  const { data: bookings, error: bookingsError } = await supabase
-    .from("class_bookings")
-    .select(
-      `
-      id,
-      status,
-      reschedule_count,
-      approved_at,
-      notes,
-      created_at,
-      students (
-        id,
-        student_code,
-        enrolled_course,
-        profiles (
-          full_name,
-          email
-        )
-      ),
-      class_slots (
-        id,
-        slot_date,
-        start_time,
-        end_time
-      ),
-      profiles:admin_approved_by (
-        full_name,
-        email
-      )
-    `
-    )
-    .eq("tutor_id", tutor.id)
-    .order("created_at", { ascending: false });
-
-  if (bookingsError) {
-    return {
-      data: null,
-      error: bookingsError,
-    };
-  }
-
   return {
-    data: {
-      tutor,
-      bookings: bookings || [],
-    },
+    data: tutor,
     error: null,
   };
 }
 
 export async function getTutorStudentsForCurrentUser(userId) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id, specialisation, bio, is_active")
-    .eq("profile_id", userId)
-    .limit(1);
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
 
   if (tutorError) {
     return {
       data: null,
       error: tutorError,
-    };
-  }
-
-  const tutor = firstRow(tutorRows);
-
-  if (!tutor) {
-    return {
-      data: null,
-      error: {
-        message: "No tutor record was found for this logged-in user.",
-      },
     };
   }
 
@@ -211,24 +101,71 @@ export async function getTutorStudentsForCurrentUser(userId) {
     };
   }
 
+  const studentList = students || [];
+
+  return {
+    data: {
+      tutor,
+      students: studentList,
+      summary: {
+        totalStudents: studentList.length,
+        restrictedStudents: studentList.filter((student) => student.is_restricted)
+          .length,
+        activeStudents: studentList.filter(
+          (student) => student.profiles?.status === "active"
+        ).length,
+        totalCompletedClasses: studentList.reduce(
+          (sum, student) => sum + Number(student.completed_classes || 0),
+          0
+        ),
+      },
+    },
+    error: null,
+  };
+}
+
+export async function getAssignedStudents(userId) {
+  return getTutorStudentsForCurrentUser(userId);
+}
+
+export async function getTutorScheduleForCurrentUser(userId) {
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
   const { data: bookings, error: bookingsError } = await supabase
     .from("class_bookings")
     .select(
       `
       id,
-      student_id,
       status,
-      reschedule_count,
       notes,
       created_at,
+      students (
+        student_code,
+        profiles (
+          full_name,
+          email
+        )
+      ),
       class_slots (
+        id,
         slot_date,
         start_time,
-        end_time
+        end_time,
+        delivery_mode,
+        topic,
+        tool,
+        status
       )
     `
     )
-    .eq("tutor_id", tutor.id)
+    .eq("class_slots.tutor_id", tutor.id)
     .order("created_at", { ascending: false });
 
   if (bookingsError) {
@@ -241,7 +178,6 @@ export async function getTutorStudentsForCurrentUser(userId) {
   return {
     data: {
       tutor,
-      students: students || [],
       bookings: bookings || [],
     },
     error: null,
@@ -249,20 +185,7 @@ export async function getTutorStudentsForCurrentUser(userId) {
 }
 
 export async function getTutorAssignmentsForCurrentUser(userId) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id, specialisation, bio, is_active")
-    .eq("profile_id", userId)
-    .limit(1);
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
 
   if (tutorError) {
     return {
@@ -271,38 +194,20 @@ export async function getTutorAssignmentsForCurrentUser(userId) {
     };
   }
 
-  const tutor = firstRow(tutorRows);
-
-  if (!tutor) {
-    return {
-      data: null,
-      error: {
-        message: "No tutor record was found for this logged-in user.",
-      },
-    };
-  }
-
   const { data: assignments, error: assignmentsError } = await supabase
     .from("assignments")
     .select(
       `
       id,
+      tutor_id,
       title,
       description,
       tool,
       due_date,
       status,
       created_at,
-      tutors (
-        id,
-        profiles (
-          full_name,
-          email
-        )
-      ),
       assignment_submissions (
         id,
-        assignment_id,
         student_id,
         status,
         submitted_at,
@@ -310,9 +215,7 @@ export async function getTutorAssignmentsForCurrentUser(userId) {
         feedback,
         submission_text,
         submission_link,
-        updated_at,
         students (
-          id,
           student_code,
           profiles (
             full_name,
@@ -332,46 +235,38 @@ export async function getTutorAssignmentsForCurrentUser(userId) {
     };
   }
 
+  const assignmentList = assignments || [];
+
   return {
     data: {
       tutor,
-      assignments: assignments || [],
+      assignments: assignmentList,
+      summary: {
+        totalAssignments: assignmentList.length,
+        publishedAssignments: assignmentList.filter(
+          (assignment) => assignment.status === "published"
+        ).length,
+        draftAssignments: assignmentList.filter(
+          (assignment) => assignment.status === "draft"
+        ).length,
+        totalSubmissions: assignmentList.reduce(
+          (sum, assignment) =>
+            sum + Number(assignment.assignment_submissions?.length || 0),
+          0
+        ),
+      },
     },
     error: null,
   };
 }
 
 export async function createAssignmentForTutor(userId, assignmentForm) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id")
-    .eq("profile_id", userId)
-    .limit(1);
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
 
   if (tutorError) {
     return {
       data: null,
       error: tutorError,
-    };
-  }
-
-  const tutor = firstRow(tutorRows);
-
-  if (!tutor) {
-    return {
-      data: null,
-      error: {
-        message: "No tutor record was found for this logged-in user.",
-      },
     };
   }
 
@@ -382,8 +277,9 @@ export async function createAssignmentForTutor(userId, assignmentForm) {
       title: assignmentForm.title,
       description: assignmentForm.description,
       tool: assignmentForm.tool,
-      due_date: assignmentForm.due_date,
-      status: assignmentForm.status,
+      due_date: assignmentForm.due_date || null,
+      status: assignmentForm.status || "published",
+      created_at: new Date().toISOString(),
     })
     .select();
 
@@ -393,106 +289,11 @@ export async function createAssignmentForTutor(userId, assignmentForm) {
   };
 }
 
-export async function gradeAssignmentSubmission(userId, submissionId, gradeForm) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id")
-    .eq("profile_id", userId)
-    .limit(1);
-
-  if (tutorError) {
-    return {
-      data: null,
-      error: tutorError,
-    };
-  }
-
-  const tutor = firstRow(tutorRows);
-
-  if (!tutor) {
-    return {
-      data: null,
-      error: {
-        message: "No tutor record was found for this logged-in user.",
-      },
-    };
-  }
-
-  const { data: submissionRows, error: submissionError } = await supabase
-    .from("assignment_submissions")
-    .select(
-      `
-      id,
-      assignment_id,
-      assignments (
-        id,
-        tutor_id
-      )
-    `
-    )
-    .eq("id", submissionId)
-    .limit(1);
-
-  if (submissionError) {
-    return {
-      data: null,
-      error: submissionError,
-    };
-  }
-
-  const submission = firstRow(submissionRows);
-
-  if (!submission) {
-    return {
-      data: null,
-      error: {
-        message: "Submission could not be found.",
-      },
-    };
-  }
-
-  if (submission.assignments?.tutor_id !== tutor.id) {
-    return {
-      data: null,
-      error: {
-        message: "You cannot grade a submission for another tutor's assignment.",
-      },
-    };
-  }
-
-  const score = Number(gradeForm.score);
-
-  if (Number.isNaN(score) || score < 0 || score > 100) {
-    return {
-      data: null,
-      error: {
-        message: "Score must be a number between 0 and 100.",
-      },
-    };
-  }
-
-  if (!gradeForm.feedback.trim()) {
-    return {
-      data: null,
-      error: {
-        message: "Feedback is required before grading.",
-      },
-    };
-  }
-
+export async function gradeAssignmentSubmission(submissionId, gradeForm) {
   const { data: updatedRows, error: updateError } = await supabase
     .from("assignment_submissions")
     .update({
-      score,
+      score: gradeForm.score,
       feedback: gradeForm.feedback,
       status: "graded",
       updated_at: new Date().toISOString(),
@@ -507,36 +308,12 @@ export async function gradeAssignmentSubmission(userId, submissionId, gradeForm)
 }
 
 export async function getTutorMaterialsForCurrentUser(userId) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id, specialisation, bio, is_active")
-    .eq("profile_id", userId)
-    .limit(1);
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
 
   if (tutorError) {
     return {
       data: null,
       error: tutorError,
-    };
-  }
-
-  const tutor = firstRow(tutorRows);
-
-  if (!tutor) {
-    return {
-      data: null,
-      error: {
-        message: "No tutor record was found for this logged-in user.",
-      },
     };
   }
 
@@ -576,36 +353,12 @@ export async function getTutorMaterialsForCurrentUser(userId) {
 }
 
 export async function createMaterialForTutor(userId, materialForm) {
-  if (!supabase) {
-    return {
-      data: null,
-      error: {
-        message: "Supabase is not configured yet.",
-      },
-    };
-  }
-
-  const { data: tutorRows, error: tutorError } = await supabase
-    .from("tutors")
-    .select("id")
-    .eq("profile_id", userId)
-    .limit(1);
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
 
   if (tutorError) {
     return {
       data: null,
       error: tutorError,
-    };
-  }
-
-  const tutor = firstRow(tutorRows);
-
-  if (!tutor) {
-    return {
-      data: null,
-      error: {
-        message: "No tutor record was found for this logged-in user.",
-      },
     };
   }
 
@@ -618,8 +371,88 @@ export async function createMaterialForTutor(userId, materialForm) {
       tool: materialForm.tool,
       material_type: materialForm.material_type,
       material_url: materialForm.material_url,
-      visibility: materialForm.visibility,
-      status: materialForm.status,
+      visibility: materialForm.visibility || "students",
+      status: materialForm.status || "published",
+      updated_at: new Date().toISOString(),
+    })
+    .select();
+
+  return {
+    data: firstRow(insertedRows),
+    error: insertError,
+  };
+}
+
+export async function getTutorAnnouncementsForCurrentUser(userId) {
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const { data: announcements, error: announcementsError } = await supabase
+    .from("announcements")
+    .select(
+      `
+      id,
+      title,
+      body,
+      audience,
+      priority,
+      status,
+      expires_at,
+      created_at,
+      updated_at,
+      profiles:author_profile_id (
+        full_name,
+        email,
+        role
+      )
+    `
+    )
+    .eq("tutor_id", tutor.id)
+    .order("created_at", { ascending: false });
+
+  if (announcementsError) {
+    return {
+      data: null,
+      error: announcementsError,
+    };
+  }
+
+  return {
+    data: {
+      tutor,
+      announcements: announcements || [],
+    },
+    error: null,
+  };
+}
+
+export async function createAnnouncementForTutor(userId, announcementForm) {
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const { data: insertedRows, error: insertError } = await supabase
+    .from("announcements")
+    .insert({
+      title: announcementForm.title,
+      body: announcementForm.body,
+      audience: "assigned_students",
+      priority: announcementForm.priority,
+      status: announcementForm.status,
+      expires_at: announcementForm.expires_at || null,
+      author_profile_id: userId,
+      tutor_id: tutor.id,
       updated_at: new Date().toISOString(),
     })
     .select();

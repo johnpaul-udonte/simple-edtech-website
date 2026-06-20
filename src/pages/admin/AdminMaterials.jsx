@@ -247,3 +247,105 @@ function AdminMaterials() {
 }
 
 export default AdminMaterials;
+
+export async function getAnnouncementsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: announcements, error } = await supabase
+    .from("announcements")
+    .select(
+      `
+      id,
+      title,
+      body,
+      audience,
+      priority,
+      status,
+      expires_at,
+      created_at,
+      updated_at,
+      profiles:author_profile_id (
+        full_name,
+        email,
+        role
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  const allAnnouncements = announcements || [];
+
+  return {
+    data: {
+      announcements: allAnnouncements,
+      summary: {
+        totalAnnouncements: allAnnouncements.length,
+        publishedAnnouncements: allAnnouncements.filter(
+          (item) => item.status === "published"
+        ).length,
+        draftAnnouncements: allAnnouncements.filter(
+          (item) => item.status === "draft"
+        ).length,
+        highPriorityAnnouncements: allAnnouncements.filter(
+          (item) => item.priority === "high"
+        ).length,
+        urgentAnnouncements: allAnnouncements.filter(
+          (item) => item.priority === "urgent"
+        ).length,
+      },
+    },
+    error: null,
+  };
+}
+
+export async function createAnnouncementForAdmin(userId, announcementForm) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: insertedRows, error: insertError } = await supabase
+    .from("announcements")
+    .insert({
+      title: announcementForm.title,
+      body: announcementForm.body,
+      audience: announcementForm.audience,
+      priority: announcementForm.priority,
+      status: announcementForm.status,
+      expires_at: announcementForm.expires_at || null,
+      author_profile_id: userId,
+      tutor_id: null,
+      updated_at: new Date().toISOString(),
+    })
+    .select();
+
+  return {
+    data: Array.isArray(insertedRows) ? insertedRows[0] : null,
+    error: insertError,
+  };
+}
