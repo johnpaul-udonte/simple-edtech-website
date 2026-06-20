@@ -33,6 +33,7 @@ import TutorAnnouncements from "./pages/tutor/TutorAnnouncements";
 import TutorSchedule from "./pages/tutor/TutorSchedule";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminApplications from "./pages/admin/AdminApplications";
 import AdminStudents from "./pages/admin/AdminStudents";
 import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSchedules from "./pages/admin/AdminSchedules";
@@ -142,6 +143,7 @@ function App() {
           }
         >
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/applications" element={<AdminApplications />} />
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/tutors" element={<AdminTutors />} />
           <Route path="/admin/schedules" element={<AdminSchedules />} />

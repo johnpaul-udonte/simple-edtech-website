@@ -1969,3 +1969,159 @@ export async function getAdminControlReportsForAdmin() {
     error: null,
   };
 }
+
+export async function getStudentApplicationsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("student_applications")
+    .select(
+      `
+      id,
+      full_name,
+      email,
+      phone,
+      date_of_birth,
+      gender,
+      portrait_path,
+      preferred_course,
+      learning_mode,
+      preferred_class_days,
+      preferred_class_time,
+      current_skill_level,
+      education_level,
+      occupation,
+      has_laptop,
+      learning_goal,
+      residential_address,
+      emergency_contact_name,
+      emergency_contact_phone,
+      hear_about_us,
+      application_status,
+      approved_at,
+      approved_by,
+      auth_user_id,
+      student_id,
+      admin_notes,
+      created_at,
+      updated_at,
+      profiles:approved_by (
+        full_name,
+        email
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  const applications = data || [];
+
+  return {
+    data: {
+      applications,
+      summary: {
+        totalApplications: applications.length,
+        newApplications: applications.filter(
+          (item) => item.application_status === "new"
+        ).length,
+        approvedApplications: applications.filter(
+          (item) => item.application_status === "approved"
+        ).length,
+        rejectedApplications: applications.filter(
+          (item) => item.application_status === "rejected"
+        ).length,
+      },
+    },
+    error: null,
+  };
+}
+
+export async function approveStudentApplicationForAdmin(applicationId, adminNotes) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase.functions.invoke(
+    "approve-student-application",
+    {
+      body: {
+        applicationId,
+        adminNotes: adminNotes || "",
+      },
+    }
+  );
+
+  if (error) {
+    let detailedMessage = error.message || "Approval failed.";
+
+    try {
+      if (error.context) {
+        const errorBody = await error.context.json();
+
+        detailedMessage =
+          errorBody?.resendError?.message ||
+          errorBody?.resendError?.error ||
+          errorBody?.error ||
+          JSON.stringify(errorBody);
+      }
+    } catch {
+      detailedMessage = error.message || "Approval failed.";
+    }
+
+    return {
+      data: null,
+      error: {
+        message: detailedMessage,
+      },
+    };
+  }
+
+  return {
+    data,
+    error: null,
+  };
+}
+
+export async function rejectStudentApplicationForAdmin(applicationId, adminNotes) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("student_applications")
+    .update({
+      application_status: "rejected",
+      admin_notes: adminNotes || "Application rejected by admin.",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", applicationId)
+    .select();
+
+  return {
+    data: Array.isArray(data) && data.length > 0 ? data[0] : null,
+    error,
+  };
+}

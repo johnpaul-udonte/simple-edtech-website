@@ -2394,3 +2394,75 @@ iframe {
     width: 100%;
   }
 }
+
+/* ADMIN APPLICATION REVIEW */
+.applicationReviewPanel {
+  margin-bottom: 40px;
+}
+
+.applicationReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.applicationReviewGrid > div {
+  padding: 20px;
+  border-radius: 18px;
+  background: #f8fbff;
+  border: 1px solid #e3e9f4;
+}
+
+.applicationReviewGrid h3 {
+  margin: 0 0 14px;
+  color: #0b2f63;
+}
+
+.applicationReviewGrid p {
+  margin: 8px 0;
+  color: #475467;
+}
+
+.applicationReviewGrid strong {
+  color: #0b2f63;
+}
+
+.adminNotesBox {
+  display: grid;
+  gap: 8px;
+  margin: 22px 0;
+  color: #0b2f63;
+  font-weight: 800;
+}
+
+.adminNotesBox textarea {
+  width: 100%;
+  border: 1px solid #d5dce8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  color: #0b2f63;
+  background: white;
+  resize: vertical;
+}
+
+.statusPill.new {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.approved {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.statusPill.rejected {
+  background: #fff1f3;
+  color: #b42318;
+}
+
+@media (max-width: 900px) {
+  .applicationReviewGrid {
+    grid-template-columns: 1fr;
+  }
+}
