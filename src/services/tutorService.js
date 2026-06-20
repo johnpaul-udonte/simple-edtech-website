@@ -627,3 +627,67 @@ export async function createQuizQuestionForTutor(userId, quizForm) {
     error: null,
   };
 }
+
+export async function getTutorQuizAttemptsForCurrentUser(userId) {
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const { data: attempts, error: attemptsError } = await supabase
+    .from("quiz_attempts")
+    .select(
+      `
+      id,
+      student_id,
+      tutor_id,
+      course,
+      tool,
+      week_number,
+      total_questions,
+      total_points,
+      score,
+      percentage,
+      status,
+      submitted_at,
+      students (
+        student_code,
+        profiles (
+          full_name,
+          email
+        )
+      ),
+      quiz_answers (
+        id,
+        selected_option_text,
+        correct_option_text,
+        is_correct,
+        points_awarded,
+        quiz_questions (
+          question_text
+        )
+      )
+    `
+    )
+    .eq("tutor_id", tutor.id)
+    .order("submitted_at", { ascending: false });
+
+  if (attemptsError) {
+    return {
+      data: null,
+      error: attemptsError,
+    };
+  }
+
+  return {
+    data: {
+      tutor,
+      attempts: attempts || [],
+    },
+    error: null,
+  };
+}

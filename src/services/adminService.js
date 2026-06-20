@@ -1519,3 +1519,115 @@ export async function createAnnouncementForAdmin(userId, announcementForm) {
     error: insertError,
   };
 }
+
+export async function getQuizzesForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const [questionsResult, attemptsResult] = await Promise.all([
+    supabase
+      .from("quiz_questions")
+      .select(
+        `
+        id,
+        tutor_id,
+        created_by,
+        course,
+        tool,
+        week_number,
+        question_text,
+        difficulty,
+        points,
+        status,
+        created_at,
+        tutors (
+          profiles (
+            full_name,
+            email
+          )
+        )
+      `
+      )
+      .order("created_at", { ascending: false }),
+
+    supabase
+      .from("quiz_attempts")
+      .select(
+        `
+        id,
+        student_id,
+        tutor_id,
+        course,
+        tool,
+        week_number,
+        total_questions,
+        total_points,
+        score,
+        percentage,
+        status,
+        submitted_at,
+        students (
+          student_code,
+          profiles (
+            full_name,
+            email
+          )
+        ),
+        tutors (
+          profiles (
+            full_name,
+            email
+          )
+        )
+      `
+      )
+      .order("submitted_at", { ascending: false }),
+  ]);
+
+  const firstError = questionsResult.error || attemptsResult.error;
+
+  if (firstError) {
+    return {
+      data: null,
+      error: firstError,
+    };
+  }
+
+  const questions = questionsResult.data || [];
+  const attempts = attemptsResult.data || [];
+
+  return {
+    data: {
+      questions,
+      attempts,
+      summary: {
+        totalQuestions: questions.length,
+        publishedQuestions: questions.filter(
+          (question) => question.status === "published"
+        ).length,
+        draftQuestions: questions.filter((question) => question.status === "draft")
+          .length,
+        totalAttempts: attempts.length,
+        averageScore:
+          attempts.length > 0
+            ? Math.round(
+                attempts.reduce(
+                  (sum, attempt) => sum + Number(attempt.percentage || 0),
+                  0
+                ) / attempts.length
+              )
+            : 0,
+        passedAttempts: attempts.filter(
+          (attempt) => Number(attempt.percentage || 0) >= 70
+        ).length,
+      },
+    },
+    error: null,
+  };
+}

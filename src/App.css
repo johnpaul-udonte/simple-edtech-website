@@ -1446,3 +1446,60 @@ button {
   color: #067647;
   font-weight: 800;
 }
+
+.resultPanel {
+  text-align: center;
+}
+
+.resultPanel h3 {
+  font-size: 48px;
+  color: #0f5bd8;
+  margin: 8px 0 0;
+}
+
+.quizForm {
+  display: grid;
+  gap: 22px;
+}
+
+.studentOptionList {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.studentOptionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #dbe7ff;
+  border-radius: 14px;
+  background: #f8fbff;
+  color: #0b2f63;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.studentOptionItem input {
+  width: auto;
+}
+
+.quizSubmitBtn {
+  width: fit-content;
+}
+
+.statusPill.beginner {
+  background: #eef4ff;
+  color: #0f5bd8;
+}
+
+.statusPill.intermediate {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.statusPill.advanced {
+  background: #fff1f3;
+  color: #b42318;
+}

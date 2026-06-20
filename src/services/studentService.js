@@ -1010,3 +1010,335 @@ export async function getStudentAnnouncementsForCurrentUser(userId) {
     error: null,
   };
 }
+
+export async function getStudentPracticeForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      assigned_tutor_id,
+      profiles (
+        full_name,
+        email
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  let questionsQuery = supabase
+    .from("quiz_questions")
+    .select(
+      `
+      id,
+      tutor_id,
+      course,
+      tool,
+      week_number,
+      question_text,
+      question_type,
+      difficulty,
+      points,
+      status,
+      created_at,
+      quiz_options (
+        id,
+        option_text,
+        is_correct,
+        option_order
+      )
+    `
+    )
+    .eq("status", "published")
+    .order("week_number", { ascending: true });
+
+  if (student.assigned_tutor_id) {
+    questionsQuery = questionsQuery.eq("tutor_id", student.assigned_tutor_id);
+  }
+
+  const { data: questions, error: questionsError } = await questionsQuery;
+
+  if (questionsError) {
+    return {
+      data: null,
+      error: questionsError,
+    };
+  }
+
+  const { data: attempts, error: attemptsError } = await supabase
+    .from("quiz_attempts")
+    .select(
+      `
+      id,
+      student_id,
+      tutor_id,
+      course,
+      tool,
+      week_number,
+      total_questions,
+      total_points,
+      score,
+      percentage,
+      status,
+      submitted_at,
+      created_at,
+      quiz_answers (
+        id,
+        question_id,
+        selected_option_text,
+        correct_option_text,
+        is_correct,
+        points_awarded,
+        quiz_questions (
+          question_text,
+          tool,
+          week_number
+        )
+      )
+    `
+    )
+    .eq("student_id", student.id)
+    .order("submitted_at", { ascending: false });
+
+  if (attemptsError) {
+    return {
+      data: null,
+      error: attemptsError,
+    };
+  }
+
+  const questionList = questions || [];
+  const attemptList = attempts || [];
+
+  return {
+    data: {
+      student,
+      questions: questionList,
+      attempts: attemptList,
+      summary: {
+        totalQuestions: questionList.length,
+        totalAttempts: attemptList.length,
+        bestScore:
+          attemptList.length > 0
+            ? Math.max(...attemptList.map((attempt) => Number(attempt.percentage || 0)))
+            : 0,
+        latestScore:
+          attemptList.length > 0 ? Number(attemptList[0].percentage || 0) : 0,
+      },
+    },
+    error: null,
+  };
+}
+
+export async function submitStudentPracticeAttempt(userId, practiceForm) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select("id, enrolled_course, assigned_tutor_id")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const questionIds = practiceForm.question_ids || [];
+
+  if (questionIds.length === 0) {
+    return {
+      data: null,
+      error: {
+        message: "No quiz questions were selected.",
+      },
+    };
+  }
+
+  const { data: questions, error: questionsError } = await supabase
+    .from("quiz_questions")
+    .select(
+      `
+      id,
+      tutor_id,
+      course,
+      tool,
+      week_number,
+      question_text,
+      points,
+      quiz_options (
+        id,
+        option_text,
+        is_correct,
+        option_order
+      )
+    `
+    )
+    .in("id", questionIds);
+
+  if (questionsError) {
+    return {
+      data: null,
+      error: questionsError,
+    };
+  }
+
+  const questionList = questions || [];
+
+  let score = 0;
+  let totalPoints = 0;
+
+  const answerRows = questionList.map((question) => {
+    const selectedOptionId = practiceForm.answers[question.id];
+    const options = question.quiz_options || [];
+
+    const selectedOption = options.find((option) => option.id === selectedOptionId);
+    const correctOption = options.find((option) => option.is_correct);
+
+    const questionPoints = Number(question.points || 1);
+    const isCorrect = Boolean(selectedOption?.is_correct);
+    const pointsAwarded = isCorrect ? questionPoints : 0;
+
+    score += pointsAwarded;
+    totalPoints += questionPoints;
+
+    return {
+      question_id: question.id,
+      selected_option_id: selectedOption?.id || null,
+      selected_option_text: selectedOption?.option_text || "",
+      correct_option_text: correctOption?.option_text || "",
+      is_correct: isCorrect,
+      points_awarded: pointsAwarded,
+    };
+  });
+
+  const percentage =
+    totalPoints > 0 ? Math.round((Number(score) / Number(totalPoints)) * 100) : 0;
+
+  const firstQuestion = questionList[0];
+
+  const { data: insertedAttempts, error: attemptError } = await supabase
+    .from("quiz_attempts")
+    .insert({
+      student_id: student.id,
+      tutor_id: student.assigned_tutor_id,
+      course: firstQuestion?.course || student.enrolled_course || "Data Analysis",
+      tool: practiceForm.tool || firstQuestion?.tool || "Excel",
+      week_number: Number(practiceForm.week_number || firstQuestion?.week_number || 1),
+      total_questions: questionList.length,
+      total_points: totalPoints,
+      score,
+      percentage,
+      status: "submitted",
+      submitted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select();
+
+  if (attemptError) {
+    return {
+      data: null,
+      error: attemptError,
+    };
+  }
+
+  const attempt =
+    Array.isArray(insertedAttempts) && insertedAttempts.length > 0
+      ? insertedAttempts[0]
+      : null;
+
+  if (!attempt) {
+    return {
+      data: null,
+      error: {
+        message: "Quiz attempt was not saved.",
+      },
+    };
+  }
+
+  const answersToInsert = answerRows.map((answer) => ({
+    ...answer,
+    attempt_id: attempt.id,
+  }));
+
+  const { error: answersError } = await supabase
+    .from("quiz_answers")
+    .insert(answersToInsert);
+
+  if (answersError) {
+    return {
+      data: null,
+      error: answersError,
+    };
+  }
+
+  return {
+    data: {
+      attempt,
+      score,
+      totalPoints,
+      percentage,
+      totalQuestions: questionList.length,
+    },
+    error: null,
+  };
+}
