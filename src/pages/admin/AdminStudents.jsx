@@ -24,10 +24,14 @@ function AdminStudents() {
   const [updatingStudentId, setUpdatingStudentId] = useState("");
 
   async function loadStudents() {
+    setIsLoading(true);
+    setNotice("");
+    setActionError("");
+
     const { data, error } = await getStudentControlCenterForAdmin();
 
     if (error) {
-      setNotice(error.message);
+      setNotice(error.message || "Could not load student records.");
       setIsLoading(false);
       return;
     }
@@ -76,7 +80,7 @@ function AdminStudents() {
     });
 
     if (error) {
-      setActionError(error.message);
+      setActionError(error.message || "Could not update student access.");
       setUpdatingStudentId("");
       return;
     }
@@ -105,6 +109,10 @@ function AdminStudents() {
       <section className="dashboardPanel">
         <h2>Student control issue</h2>
         <p>{notice}</p>
+
+        <button type="button" className="tableActionBtn" onClick={loadStudents}>
+          Try Again
+        </button>
       </section>
     );
   }
@@ -113,19 +121,21 @@ function AdminStudents() {
   const summary = studentData?.summary || {};
 
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="adminStudentsPage">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Admin Portal</p>
           <h1>Student Control Centre</h1>
           <p>
-            Monitor student progress, payment balance, class balance, quiz
+            Monitor student progress, payment balance, class balance, drill
             performance, certificate readiness, and access restriction status.
           </p>
         </div>
 
-        <button>Export Students</button>
-      </div>
+        <button type="button" onClick={loadStudents}>
+          Refresh
+        </button>
+      </header>
 
       {successMessage && (
         <div className="successNotice">
@@ -139,170 +149,175 @@ function AdminStudents() {
         </div>
       )}
 
-      <div className="dashboardGrid">
+      <section className="adminStudentsSummaryGrid">
         <article className="dashboardCard">
           <p>Total Students</p>
           <h2>{summary.totalStudents || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Active Students</p>
+          <p>Active</p>
           <h2>{summary.activeStudents || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Restricted Students</p>
+          <p>Restricted</p>
           <h2>{summary.restrictedStudents || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Students With Balance</p>
+          <p>With Balance</p>
           <h2>{summary.studentsWithBalance || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Certificate Ready</p>
+          <p>Cert. Ready</p>
           <h2>{summary.certificateReadyStudents || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Outstanding Balance</p>
+          <p>Outstanding</p>
           <h2>{formatMoney(summary.totalOutstandingBalance || 0)}</h2>
         </article>
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Student Access & Progress Table</h2>
+      <section className="dashboardPanel adminStudentsTablePanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Student Access & Progress Table</h2>
+            <p>
+              Scroll sideways inside the table area to see all columns and
+              actions.
+            </p>
+          </div>
+        </div>
 
         {students.length === 0 ? (
           <p>No student record found.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Tutor</th>
-                <th>Course</th>
-                <th>Classes</th>
-                <th>Payment</th>
-                <th>Quiz</th>
-                <th>Certificate</th>
-                <th>Access</th>
-                <th>Action</th>
-              </tr>
-            </thead>
+          <div className="adminStudentsTableWrap">
+            <table className="adminStudentsTable">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Tutor</th>
+                  <th>Course</th>
+                  <th>Classes</th>
+                  <th>Payment</th>
+                  <th>Drills</th>
+                  <th>Certificate</th>
+                  <th>Access</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {students.map((student) => {
-                const isUpdating = updatingStudentId === student.id;
+              <tbody>
+                {students.map((student) => {
+                  const isUpdating = updatingStudentId === student.id;
+                  const paymentBalance = Number(student.paymentBalance || 0);
 
-                return (
-                  <tr key={student.id}>
-                    <td>
-                      <strong>
-                        {student.profiles?.full_name || "Unnamed Student"}
-                      </strong>
-                      <br />
-                      <small>{student.student_code || "-"}</small>
-                      <br />
-                      <small>{student.profiles?.email || "-"}</small>
-                    </td>
+                  return (
+                    <tr key={student.id}>
+                      <td className="studentCell">
+                        <strong>
+                          {student.profiles?.full_name || "Unnamed Student"}
+                        </strong>
+                        <small>{student.student_code || "-"}</small>
+                        <small>{student.profiles?.email || "-"}</small>
+                      </td>
 
-                    <td>
-                      {student.tutors?.profiles?.full_name ||
-                        "Tutor not assigned"}
-                    </td>
+                      <td>
+                        {student.tutors?.profiles?.full_name ||
+                          "Tutor not assigned"}
+                      </td>
 
-                    <td>{student.enrolled_course || "Data Analysis"}</td>
+                      <td>{student.enrolled_course || "Data Analysis"}</td>
 
-                    <td>
-                      <strong>
-                        {student.completedClasses}/{student.totalPaidClasses}
-                      </strong>
-                      <br />
-                      <small>Remaining: {student.remainingClasses}</small>
-                      <br />
-                      <small>
-                        Missed: {student.missed_classes || 0} | Cancelled:{" "}
-                        {student.cancelled_classes || 0}
-                      </small>
-                    </td>
+                      <td>
+                        <strong>
+                          {student.completedClasses || 0}/
+                          {student.totalPaidClasses || 0}
+                        </strong>
+                        <small>Remaining: {student.remainingClasses || 0}</small>
+                        <small>
+                          Missed: {student.missed_classes || 0} | Cancelled:{" "}
+                          {student.cancelled_classes || 0}
+                        </small>
+                      </td>
 
-                    <td>
-                      <strong>{formatMoney(student.paymentBalance)}</strong>
-                      <br />
-                      <span
-                        className={`statusPill ${
-                          student.paymentBalance > 0 ? "pending" : "approved"
-                        }`}
-                      >
-                        {student.paymentBalance > 0 ? "Balance Due" : "Cleared"}
-                      </span>
-                    </td>
+                      <td>
+                        <strong>{formatMoney(paymentBalance)}</strong>
+                        <br />
+                        <span
+                          className={`statusPill ${
+                            paymentBalance > 0 ? "pending" : "approved"
+                          }`}
+                        >
+                          {paymentBalance > 0 ? "Balance Due" : "Cleared"}
+                        </span>
+                      </td>
 
-                    <td>
-                      <strong>{student.averageQuizScore || 0}%</strong>
-                      <br />
-                      <small>Latest: {student.latestQuizScore || 0}%</small>
-                    </td>
+                      <td>
+                        <strong>{student.averageQuizScore || 0}%</strong>
+                        <small>Latest: {student.latestQuizScore || 0}%</small>
+                      </td>
 
-                    <td>
-                      <span
-                        className={`statusPill ${
-                          student.hasIssuedCertificate
-                            ? "issued"
+                      <td>
+                        <span
+                          className={`statusPill ${
+                            student.hasIssuedCertificate
+                              ? "issued"
+                              : student.needsClassAttention
+                              ? "approved"
+                              : "pending"
+                          }`}
+                        >
+                          {student.hasIssuedCertificate
+                            ? "Issued"
                             : student.needsClassAttention
-                            ? "approved"
-                            : "pending"
-                        }`}
-                      >
-                        {student.hasIssuedCertificate
-                          ? "Issued"
-                          : student.needsClassAttention
-                          ? "Ready"
-                          : "Not Ready"}
-                      </span>
-                    </td>
+                            ? "Ready"
+                            : "Not Ready"}
+                        </span>
+                      </td>
 
-                    <td>
-                      <span
-                        className={`statusPill ${
-                          student.is_restricted ? "urgent" : "approved"
-                        }`}
-                      >
-                        {student.is_restricted ? "Restricted" : "Allowed"}
-                      </span>
+                      <td>
+                        <span
+                          className={`statusPill ${
+                            student.is_restricted ? "urgent" : "approved"
+                          }`}
+                        >
+                          {student.is_restricted ? "Restricted" : "Allowed"}
+                        </span>
 
-                      {student.restriction_reason && (
-                        <>
-                          <br />
+                        {student.restriction_reason && (
                           <small>{student.restriction_reason}</small>
-                        </>
-                      )}
-                    </td>
+                        )}
+                      </td>
 
-                    <td>
-                      <button
-                        className={`tableActionBtn ${
-                          student.is_restricted ? "restoreBtn" : "restrictBtn"
-                        }`}
-                        onClick={() => handleRestriction(student)}
-                        disabled={isUpdating}
-                      >
-                        {isUpdating
-                          ? "Updating..."
-                          : student.is_restricted
-                          ? "Unrestrict"
-                          : "Restrict"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td>
+                        <button
+                          type="button"
+                          className={`tableActionBtn ${
+                            student.is_restricted ? "restoreBtn" : "restrictBtn"
+                          }`}
+                          onClick={() => handleRestriction(student)}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating
+                            ? "Updating..."
+                            : student.is_restricted
+                            ? "Unrestrict"
+                            : "Restrict"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
     </section>
   );
 }

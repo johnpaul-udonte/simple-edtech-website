@@ -43,6 +43,19 @@ function formatSchedule(request) {
   return request?.requested_time || "-";
 }
 
+function getStatusLabel(status) {
+  const labels = {
+    pending_tutor: "Waiting for Tutor",
+    tutor_approved: "Ready for Admin",
+    tutor_rejected: "Tutor Rejected",
+    admin_approved: "Admin Approved",
+    admin_rejected: "Admin Rejected",
+    superseded: "Superseded",
+  };
+
+  return labels[status] || status || "-";
+}
+
 function AdminSchedules() {
   const { profile } = useAuth();
 
@@ -57,6 +70,7 @@ function AdminSchedules() {
   async function loadRequests() {
     setIsLoading(true);
     setErrorMessage("");
+    setNotice("");
 
     const { data, error } = await getScheduleRequestsForAdmin();
 
@@ -77,9 +91,15 @@ function AdminSchedules() {
   const summary = useMemo(() => {
     return {
       total: requests.length,
-      pending: requests.filter((item) => item.status === "pending").length,
-      approved: requests.filter((item) => item.status === "approved").length,
-      rejected: requests.filter((item) => item.status === "rejected").length,
+      waitingTutor: requests.filter((item) => item.status === "pending_tutor")
+        .length,
+      readyForAdmin: requests.filter((item) => item.status === "tutor_approved")
+        .length,
+      fullyApproved: requests.filter((item) => item.status === "admin_approved")
+        .length,
+      rejected: requests.filter((item) =>
+        ["tutor_rejected", "admin_rejected"].includes(item.status)
+      ).length,
     };
   }, [requests]);
 
@@ -90,9 +110,16 @@ function AdminSchedules() {
     setErrorMessage("");
   }
 
+  function closeReview() {
+    setSelectedRequest(null);
+    setAdminNotes("");
+    setNotice("");
+    setErrorMessage("");
+  }
+
   async function handleApprove(request) {
     const confirmed = window.confirm(
-      `Approve schedule for ${request.student_name}?`
+      `Give final admin approval for ${request.student_name}'s schedule?`
     );
 
     if (!confirmed) return;
@@ -113,10 +140,11 @@ function AdminSchedules() {
       return;
     }
 
-    setNotice(`${request.student_name}'s schedule has been approved.`);
+    setNotice(`${request.student_name}'s schedule has received final admin approval.`);
     setProcessingId("");
     setSelectedRequest(null);
     setAdminNotes("");
+
     await loadRequests();
   }
 
@@ -143,22 +171,23 @@ function AdminSchedules() {
       return;
     }
 
-    setNotice(`${request.student_name}'s schedule request has been rejected.`);
+    setNotice(`${request.student_name}'s schedule request has been rejected by admin.`);
     setProcessingId("");
     setSelectedRequest(null);
     setAdminNotes("");
+
     await loadRequests();
   }
 
   return (
-    <>
+    <section className="adminSchedulePage">
       <header className="dashboardHeader">
         <div>
           <p className="eyebrow">Admin Schedule Approval</p>
           <h1>Student Schedule Requests</h1>
           <p>
-            Review student weekly schedule choices. Each student must select 2
-            different days, and each day can have a different 1-hour time.
+            Tutor must approve a student’s selected weekly schedule first. Admin
+            gives the final approval after tutor confirmation.
           </p>
         </div>
 
@@ -170,20 +199,25 @@ function AdminSchedules() {
       {notice && <div className="successNotice">{notice}</div>}
       {errorMessage && <div className="errorNotice">{errorMessage}</div>}
 
-      <section className="dashboardGrid">
+      <section className="scheduleSummaryGrid">
         <article className="dashboardCard">
           <p>Total Requests</p>
           <h2>{summary.total}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Pending</p>
-          <h2>{summary.pending}</h2>
+          <p>Waiting Tutor</p>
+          <h2>{summary.waitingTutor}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Approved</p>
-          <h2>{summary.approved}</h2>
+          <p>Ready for Admin</p>
+          <h2>{summary.readyForAdmin}</h2>
+        </article>
+
+        <article className="dashboardCard">
+          <p>Fully Approved</p>
+          <h2>{summary.fullyApproved}</h2>
         </article>
 
         <article className="dashboardCard">
@@ -193,79 +227,99 @@ function AdminSchedules() {
       </section>
 
       <section className="dashboardPanel">
-        <h2>Schedule Request List</h2>
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Schedule Request List</h2>
+            <p>
+              Only requests marked <strong>Ready for Admin</strong> can receive
+              final approval.
+            </p>
+          </div>
+        </div>
 
         {isLoading ? (
           <p>Loading schedule requests...</p>
         ) : requests.length === 0 ? (
-          <p>No schedule request has been submitted yet.</p>
+          <div className="emptyStateBox">
+            <h3>No schedule request yet</h3>
+            <p>No schedule request has been submitted by any student yet.</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Schedule</th>
-                <th>Mode</th>
-                <th>Status</th>
-                <th>Submitted</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {requests.map((request) => (
-                <tr key={request.id}>
-                  <td>
-                    <strong>{request.student_name || "-"}</strong>
-                    <br />
-                    <small>{request.student_email || "-"}</small>
-                  </td>
-                  <td>{formatSchedule(request)}</td>
-                  <td>{request.learning_mode}</td>
-                  <td>
-                    <span className={`statusPill ${request.status}`}>
-                      {request.status}
-                    </span>
-                  </td>
-                  <td>{formatDateTime(request.created_at)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="tableActionBtn"
-                      onClick={() => openReview(request)}
-                    >
-                      Review
-                    </button>
-                  </td>
+          <div className="tableScroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Schedule</th>
+                  <th>Mode</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {requests.map((request) => (
+                  <tr key={request.id}>
+                    <td>
+                      <strong>{request.student_name || "-"}</strong>
+                      <br />
+                      <small>{request.student_email || "-"}</small>
+                    </td>
+
+                    <td>{formatSchedule(request)}</td>
+
+                    <td>{request.learning_mode || "-"}</td>
+
+                    <td>
+                      <span className={`statusPill ${request.status}`}>
+                        {getStatusLabel(request.status)}
+                      </span>
+                    </td>
+
+                    <td>{formatDateTime(request.created_at)}</td>
+
+                    <td>
+                      <button
+                        type="button"
+                        className="tableActionBtn"
+                        onClick={() => openReview(request)}
+                      >
+                        Review
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
       {selectedRequest && (
-        <section className="dashboardPanel">
+        <section className="dashboardPanel scheduleReviewPanel">
           <div className="panelHeaderRow">
             <div>
-              <h2>Review Schedule Request</h2>
+              <p className="eyebrow">Final Admin Review</p>
+              <h2>{selectedRequest.student_name || "Student Schedule"}</h2>
               <p>
-                Approve or reject this student's selected weekly class schedule.
+                Review the student’s schedule and tutor decision before giving
+                final approval.
               </p>
             </div>
 
             <button
               type="button"
               className="tableActionBtn"
-              onClick={() => setSelectedRequest(null)}
+              onClick={closeReview}
             >
               Close
             </button>
           </div>
 
-          <div className="applicationReviewGrid">
-            <div>
-              <h3>Student</h3>
+          <div className="scheduleReviewGrid">
+            <article>
+              <h3>Student Details</h3>
               <p>
                 <strong>Name:</strong> {selectedRequest.student_name || "-"}
               </p>
@@ -273,11 +327,17 @@ function AdminSchedules() {
                 <strong>Email:</strong> {selectedRequest.student_email || "-"}
               </p>
               <p>
-                <strong>Status:</strong> {selectedRequest.status}
+                <strong>Mode:</strong> {selectedRequest.learning_mode || "-"}
               </p>
-            </div>
+              <p>
+                <strong>Status:</strong>{" "}
+                <span className={`statusPill ${selectedRequest.status}`}>
+                  {getStatusLabel(selectedRequest.status)}
+                </span>
+              </p>
+            </article>
 
-            <div>
+            <article>
               <h3>Requested Schedule</h3>
 
               {getScheduleSlots(selectedRequest).map((slot, index) => (
@@ -285,30 +345,75 @@ function AdminSchedules() {
                   <strong>Class {index + 1}:</strong> {slot.day} — {slot.time}
                 </p>
               ))}
+            </article>
 
-              <p>
-                <strong>Mode:</strong> {selectedRequest.learning_mode}
-              </p>
-            </div>
-
-            <div>
+            <article>
               <h3>Student Note</h3>
-              <p>{selectedRequest.request_notes || "-"}</p>
-            </div>
+              <p>{selectedRequest.request_notes || "No note provided."}</p>
+            </article>
 
-            <div>
-              <h3>Admin Decision</h3>
+            <article>
+              <h3>Tutor Decision</h3>
+              <p>
+                <strong>Tutor Status:</strong>{" "}
+                {selectedRequest.status === "tutor_approved"
+                  ? "Approved by tutor"
+                  : selectedRequest.status === "tutor_rejected"
+                  ? "Rejected by tutor"
+                  : selectedRequest.status === "pending_tutor"
+                  ? "Still waiting for tutor"
+                  : getStatusLabel(selectedRequest.status)}
+              </p>
+              <p>
+                <strong>Tutor Note:</strong>{" "}
+                {selectedRequest.tutor_notes || "No tutor note yet."}
+              </p>
+              <p>
+                <strong>Tutor Decision Date:</strong>{" "}
+                {formatDateTime(selectedRequest.tutor_decided_at)}
+              </p>
+            </article>
+
+            <article>
+              <h3>Admin Decision Note</h3>
+
               <label className="adminNotesBox">
                 Admin Notes
                 <textarea
                   rows="4"
                   value={adminNotes}
-                  placeholder="Add approval or rejection note..."
+                  placeholder="Add final approval or rejection note..."
                   onChange={(event) => setAdminNotes(event.target.value)}
                 />
               </label>
-            </div>
+            </article>
           </div>
+
+          {selectedRequest.status === "pending_tutor" && (
+            <div className="formNotice">
+              This request is still waiting for tutor approval. Admin cannot
+              approve it yet, but admin may reject it if necessary.
+            </div>
+          )}
+
+          {selectedRequest.status === "tutor_rejected" && (
+            <div className="errorNotice">
+              Tutor has rejected this request. Admin final approval is not
+              available for this request.
+            </div>
+          )}
+
+          {selectedRequest.status === "admin_approved" && (
+            <div className="successNotice">
+              This schedule has already received final admin approval.
+            </div>
+          )}
+
+          {selectedRequest.status === "admin_rejected" && (
+            <div className="errorNotice">
+              This schedule has already been rejected by admin.
+            </div>
+          )}
 
           <div className="tableActionGroup">
             <button
@@ -316,13 +421,13 @@ function AdminSchedules() {
               className="tableActionBtn restoreBtn"
               disabled={
                 processingId === selectedRequest.id ||
-                selectedRequest.status !== "pending"
+                selectedRequest.status !== "tutor_approved"
               }
               onClick={() => handleApprove(selectedRequest)}
             >
               {processingId === selectedRequest.id
                 ? "Processing..."
-                : "Approve Schedule"}
+                : "Give Final Approval"}
             </button>
 
             <button
@@ -330,16 +435,28 @@ function AdminSchedules() {
               className="tableActionBtn dangerBtn"
               disabled={
                 processingId === selectedRequest.id ||
-                selectedRequest.status !== "pending"
+                !["pending_tutor", "tutor_approved"].includes(
+                  selectedRequest.status
+                )
               }
               onClick={() => handleReject(selectedRequest)}
             >
-              Reject Schedule
+              Reject Request
             </button>
           </div>
         </section>
       )}
-    </>
+
+      <section className="dashboardPanel">
+        <h2>Approval Rules</h2>
+        <p>
+          Schedule requests must first be approved by the assigned tutor. After
+          tutor approval, admin gives the final approval. If admin approves it,
+          the schedule becomes fully approved and both the student and tutor are
+          notified.
+        </p>
+      </section>
+    </section>
   );
 }
 
