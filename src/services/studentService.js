@@ -893,3 +893,120 @@ export async function getStudentMaterialsForCurrentUser(userId) {
     error: null,
   };
 }
+
+export async function getStudentAnnouncementsForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error: studentError } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      assigned_tutor_id,
+      enrolled_course,
+      profiles (
+        full_name,
+        email
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (studentError) {
+    return {
+      data: null,
+      error: studentError,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data: announcements, error: announcementsError } = await supabase
+    .from("announcements")
+    .select(
+      `
+      id,
+      title,
+      body,
+      audience,
+      priority,
+      status,
+      tutor_id,
+      expires_at,
+      created_at,
+      profiles:author_profile_id (
+        full_name,
+        role
+      ),
+      tutors (
+        id,
+        profiles (
+          full_name,
+          email
+        )
+      )
+    `
+    )
+    .eq("status", "published")
+    .or(`expires_at.is.null,expires_at.gte.${today}`)
+    .order("created_at", { ascending: false });
+
+  if (announcementsError) {
+    return {
+      data: null,
+      error: announcementsError,
+    };
+  }
+
+  const visibleAnnouncements = (announcements || []).filter((announcement) => {
+    const isForAllStudents = announcement.audience === "all_students";
+    const isForEveryone = announcement.audience === "everyone";
+    const isFromAssignedTutor =
+      announcement.audience === "assigned_students" &&
+      announcement.tutor_id === student.assigned_tutor_id;
+
+    return isForAllStudents || isForEveryone || isFromAssignedTutor;
+  });
+
+  return {
+    data: {
+      student,
+      announcements: visibleAnnouncements,
+      urgentAnnouncements: visibleAnnouncements.filter(
+        (announcement) => announcement.priority === "urgent"
+      ),
+      highPriorityAnnouncements: visibleAnnouncements.filter(
+        (announcement) => announcement.priority === "high"
+      ),
+    },
+    error: null,
+  };
+}

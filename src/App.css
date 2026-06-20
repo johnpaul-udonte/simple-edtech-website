@@ -1353,3 +1353,56 @@ button {
   background: #fff1f3;
   color: #b42318;
 }
+
+.panelHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.panelHeaderRow h2 {
+  margin-bottom: 6px;
+}
+
+.panelHeaderRow p {
+  margin: 0;
+  color: #60738c;
+}
+
+.announcementStack {
+  display: grid;
+  gap: 16px;
+}
+
+.announcementCard {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid #e3e9f4;
+  background: #ffffff;
+}
+
+.announcementCard h3 {
+  margin: 12px 0 8px;
+  color: #0b2f63;
+}
+
+.announcementCard p {
+  margin: 0 0 12px;
+  color: #475467;
+}
+
+.announcementCard small {
+  color: #667085;
+}
+
+.announcementCard.urgent {
+  border-color: #fecdd3;
+  background: #fff1f3;
+}
+
+.announcementCard.high {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}

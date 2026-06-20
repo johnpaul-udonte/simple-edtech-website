@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getCurrentStudentRecord } from "../../services/studentService";
 
+import StudentAnnouncementPanel from "../../components/StudentAnnouncementPanel";
+
+
 function StudentDashboard() {
   const { profile, session } = useAuth();
 
@@ -94,7 +97,7 @@ function StudentDashboard() {
 
         <button>Choose Weekly Schedule</button>
       </div>
-
+       <StudentAnnouncementPanel />
       <div className="dashboardGrid">
         {studentCards.map((card) => (
           <article className="dashboardCard" key={card.label}>
