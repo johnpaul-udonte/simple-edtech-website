@@ -1862,3 +1862,115 @@ button {
     font-size: clamp(34px, 12vw, 46px);
   }
 }
+
+/* STUDENT APPLICATION FORM */
+.studentApplicationCard {
+  max-width: 980px;
+}
+
+.studentApplicationCard h2 {
+  text-align: center;
+}
+
+.studentApplicationCard > p {
+  text-align: center;
+}
+
+.studentApplicationForm {
+  margin-top: 28px;
+  display: grid;
+  gap: 26px;
+}
+
+.formSectionTitle {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: #f4f8ff;
+  border: 1px solid #e5eefb;
+}
+
+.formSectionTitle h3 {
+  margin: 0 0 6px;
+  color: #082b61;
+  font-size: 22px;
+}
+
+.formSectionTitle p {
+  margin: 0;
+  color: #60738c;
+}
+
+.studentApplicationForm label {
+  margin-bottom: 0;
+}
+
+.studentApplicationForm textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #d8e4f5;
+  border-radius: 14px;
+  font: inherit;
+  resize: vertical;
+}
+
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid #d8e4f5;
+  background: #ffffff;
+  color: #082b61;
+  font-weight: 700;
+}
+
+.checkboxItem input {
+  width: auto;
+}
+
+.portraitPreviewBox {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #eef4ff;
+  border: 1px solid #dbe7ff;
+}
+
+.portraitPreviewBox img {
+  width: 82px;
+  height: 82px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 3px solid white;
+}
+
+.portraitPreviewBox strong {
+  display: block;
+  color: #082b61;
+  margin-bottom: 4px;
+}
+
+.portraitPreviewBox p {
+  margin: 0;
+  color: #60738c;
+}
+
+@media (max-width: 760px) {
+  .checkboxGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .portraitPreviewBox {
+    align-items: flex-start;
+  }
+}
