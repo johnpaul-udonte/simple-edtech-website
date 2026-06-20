@@ -17,6 +17,7 @@ function Navbar() {
       </Link>
 
       <div className="navLinks">
+        <NavLink to="/">Home</NavLink>
         <NavLink to="/courses">Courses</NavLink>
         <NavLink to="/pricing">Pricing</NavLink>
         <NavLink to="/faq">FAQ</NavLink>
@@ -24,8 +25,12 @@ function Navbar() {
       </div>
 
       <div className="navActions">
-        <Link to="/login" className="loginBtn">Login</Link>
-        <Link to="/register" className="primaryNavBtn">Register</Link>
+        <Link to="/login" className="loginBtn">
+          Login
+        </Link>
+        <Link to="/register" className="primaryNavBtn">
+          Register
+        </Link>
       </div>
     </nav>
   );
