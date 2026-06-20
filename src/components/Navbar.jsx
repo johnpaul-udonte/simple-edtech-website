@@ -12,7 +12,7 @@ function Navbar() {
 
         <div>
           <h1>Jlux Academy</h1>
-          <p>Private Data Coaching Portal</p>
+          <p>EdTech Training Platform</p>
         </div>
       </Link>
 

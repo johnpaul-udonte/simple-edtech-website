@@ -1,7 +1,73 @@
 import { supabase } from "../lib/supabaseClient";
+import {
+  getPortalUrl,
+  sendBulkStudentNotificationEmails,
+} from "./emailNotificationService";
 
 function firstRow(rows) {
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
+async function getStudentsForTutorEmail(tutorId) {
+  const { data, error } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      is_restricted,
+      profiles:profiles!students_profile_id_fkey (
+        full_name,
+        email,
+        status
+      )
+    `
+    )
+    .eq("assigned_tutor_id", tutorId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      data: [],
+      error,
+    };
+  }
+
+  return {
+    data: (data || []).filter((student) => student.profiles?.email),
+    error: null,
+  };
+}
+
+async function notifyAssignedStudents(tutorId, payloadBuilder) {
+  try {
+    const { data: students, error } = await getStudentsForTutorEmail(tutorId);
+
+    if (error) {
+      return {
+        successCount: 0,
+        failedCount: 0,
+        error,
+      };
+    }
+
+    if (!students.length) {
+      return {
+        successCount: 0,
+        failedCount: 0,
+        error: null,
+      };
+    }
+
+    return await sendBulkStudentNotificationEmails(students, payloadBuilder);
+  } catch (error) {
+    return {
+      successCount: 0,
+      failedCount: 0,
+      error,
+    };
+  }
 }
 
 export async function getCurrentTutorRecord(userId) {
@@ -84,7 +150,7 @@ export async function getTutorStudentsForCurrentUser(userId) {
       payment_balance,
       is_restricted,
       created_at,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email,
         status
@@ -148,7 +214,7 @@ export async function getTutorScheduleForCurrentUser(userId) {
       created_at,
       students (
         student_code,
-        profiles (
+        profiles:profiles!students_profile_id_fkey (
           full_name,
           email
         )
@@ -217,7 +283,7 @@ export async function getTutorAssignmentsForCurrentUser(userId) {
         submission_link,
         students (
           student_code,
-          profiles (
+          profiles:profiles!students_profile_id_fkey (
             full_name,
             email
           )
@@ -283,9 +349,39 @@ export async function createAssignmentForTutor(userId, assignmentForm) {
     })
     .select();
 
+  const assignment = firstRow(insertedRows);
+
+  if (insertError || !assignment) {
+    return {
+      data: assignment,
+      error: insertError,
+    };
+  }
+
+  let emailResult = null;
+
+  if (assignment.status === "published") {
+    emailResult = await notifyAssignedStudents(tutor.id, (student) => ({
+      to: student.profiles?.email,
+      studentName: student.profiles?.full_name,
+      notificationType: "assignment",
+      title: assignment.title,
+      message: `A new ${assignment.tool || ""} assignment has been posted for you by ${
+        tutor.profiles?.full_name || "your tutor"
+      }. Please log in to your student portal to review and submit it.${
+        assignment.due_date ? ` Due date: ${assignment.due_date}.` : ""
+      }`,
+      actionLabel: "View Assignment",
+      actionUrl: getPortalUrl("/student/assignments"),
+    }));
+  }
+
   return {
-    data: firstRow(insertedRows),
-    error: insertError,
+    data: {
+      ...assignment,
+      emailResult,
+    },
+    error: null,
   };
 }
 
@@ -377,9 +473,41 @@ export async function createMaterialForTutor(userId, materialForm) {
     })
     .select();
 
+  const material = firstRow(insertedRows);
+
+  if (insertError || !material) {
+    return {
+      data: material,
+      error: insertError,
+    };
+  }
+
+  let emailResult = null;
+
+  const shouldNotifyStudents =
+    material.status === "published" &&
+    ["students", "all", "everyone"].includes(material.visibility || "students");
+
+  if (shouldNotifyStudents) {
+    emailResult = await notifyAssignedStudents(tutor.id, (student) => ({
+      to: student.profiles?.email,
+      studentName: student.profiles?.full_name,
+      notificationType: "material",
+      title: material.title,
+      message: `A new ${material.tool || ""} learning material has been uploaded for you by ${
+        tutor.profiles?.full_name || "your tutor"
+      }. Please log in to your student portal to access it.`,
+      actionLabel: "View Material",
+      actionUrl: getPortalUrl("/student/materials"),
+    }));
+  }
+
   return {
-    data: firstRow(insertedRows),
-    error: insertError,
+    data: {
+      ...material,
+      emailResult,
+    },
+    error: null,
   };
 }
 
@@ -457,9 +585,35 @@ export async function createAnnouncementForTutor(userId, announcementForm) {
     })
     .select();
 
+  const announcement = firstRow(insertedRows);
+
+  if (insertError || !announcement) {
+    return {
+      data: announcement,
+      error: insertError,
+    };
+  }
+
+  let emailResult = null;
+
+  if (announcement.status === "published") {
+    emailResult = await notifyAssignedStudents(tutor.id, (student) => ({
+      to: student.profiles?.email,
+      studentName: student.profiles?.full_name,
+      notificationType: "announcement",
+      title: announcement.title,
+      message: announcement.body,
+      actionLabel: "Open Student Portal",
+      actionUrl: getPortalUrl("/student/dashboard"),
+    }));
+  }
+
   return {
-    data: firstRow(insertedRows),
-    error: insertError,
+    data: {
+      ...announcement,
+      emailResult,
+    },
+    error: null,
   };
 }
 
@@ -656,7 +810,7 @@ export async function getTutorQuizAttemptsForCurrentUser(userId) {
       submitted_at,
       students (
         student_code,
-        profiles (
+        profiles:profiles!students_profile_id_fkey (
           full_name,
           email
         )
