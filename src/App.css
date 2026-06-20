@@ -1642,3 +1642,223 @@ button {
 .routeLoadingPanel p {
   color: #60738c;
 }
+
+/* HERO TEXT VISIBILITY FIX */
+.hero,
+.heroSection,
+.homeHero,
+.publicHero,
+.landingHero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before,
+.hero::after,
+.heroSection::before,
+.heroSection::after,
+.homeHero::before,
+.homeHero::after,
+.publicHero::before,
+.publicHero::after,
+.landingHero::before,
+.landingHero::after {
+  z-index: 0 !important;
+  pointer-events: none;
+}
+
+.heroContent,
+.heroText,
+.heroCopy,
+.heroActions,
+.heroTags,
+.heroBadge,
+.heroVisual,
+.heroCard,
+.heroDashboard,
+.heroDashboardCard,
+.portalPreview,
+.dashboardPreview {
+  position: relative;
+  z-index: 3 !important;
+}
+
+.heroText h1,
+.heroText p,
+.heroText a,
+.heroCopy h1,
+.heroCopy p,
+.heroCopy a,
+.heroActions a,
+.heroTags span {
+  position: relative;
+  z-index: 4 !important;
+}
+
+/* Reduce the white diagonal overlay so it does not cover hero text */
+.heroShape,
+.heroDiagonal,
+.heroBlob,
+.whiteShape,
+.diagonalShape {
+  z-index: 1 !important;
+  pointer-events: none;
+}
+
+/* HOME HERO OVERLAY FIX */
+.homeHero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.homeHero .hero {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+}
+
+.homeHero::before,
+.homeHero::after,
+.homeHero .hero::before,
+.homeHero .hero::after {
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+.homeHero .heroText {
+  position: relative;
+  z-index: 10 !important;
+  max-width: 720px;
+}
+
+.homeHero .heroText .eyebrow,
+.homeHero .heroText h1,
+.homeHero .heroText h2,
+.homeHero .heroText p,
+.homeHero .heroDescription,
+.homeHero .heroActions,
+.homeHero .trustRow {
+  position: relative;
+  z-index: 11 !important;
+}
+
+.homeHero .heroCard {
+  position: relative;
+  z-index: 9 !important;
+}
+
+/* Make sure hero buttons stay clickable */
+.homeHero .primaryBtn,
+.homeHero .secondaryBtn {
+  position: relative;
+  z-index: 12 !important;
+}
+
+/* Reduce the white diagonal shape if it is still too aggressive */
+.homeHero::before,
+.homeHero::after {
+  opacity: 0.95;
+}
+
+/* FINAL HOME HERO FIX */
+.homeHero {
+  min-height: 90vh;
+  position: relative;
+  overflow: hidden;
+  padding: 20px 6% 80px;
+  background:
+    radial-gradient(circle at top right, rgba(71, 145, 255, 0.18), transparent 35%),
+    linear-gradient(135deg, #062a63 0%, #0b4ea2 68%, #ffffff 68%, #ffffff 100%) !important;
+}
+
+.homeHero .hero {
+  max-width: 1180px;
+  margin: 90px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(380px, 0.8fr);
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.homeHero .heroText {
+  max-width: 620px;
+  position: relative;
+  z-index: 5;
+}
+
+.homeHero .heroText h2 {
+  color: #ffffff !important;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.03;
+  letter-spacing: -0.045em;
+  max-width: 620px;
+}
+
+.homeHero .heroDescription {
+  color: #dbeafe !important;
+  max-width: 560px;
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.homeHero .heroActions,
+.homeHero .trustRow {
+  position: relative;
+  z-index: 6;
+}
+
+.homeHero .heroCard {
+  position: relative;
+  z-index: 4;
+  max-width: 520px;
+  justify-self: end;
+}
+
+.homeHero .secondaryBtn {
+  color: #ffffff !important;
+}
+
+.homeHero .trustRow span {
+  color: #ffffff !important;
+}
+
+/* Tablet fix */
+@media (max-width: 960px) {
+  .homeHero {
+    background: linear-gradient(180deg, #062a63 0%, #0b4ea2 100%) !important;
+  }
+
+  .homeHero .hero {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .homeHero .heroText,
+  .homeHero .heroText h2,
+  .homeHero .heroDescription {
+    max-width: 100%;
+  }
+
+  .homeHero .heroCard {
+    justify-self: stretch;
+    max-width: 100%;
+  }
+}
+
+/* Phone fix */
+@media (max-width: 640px) {
+  .homeHero {
+    padding: 20px 4% 60px;
+  }
+
+  .homeHero .hero {
+    margin-top: 55px;
+  }
+
+  .homeHero .heroText h2 {
+    font-size: clamp(34px, 12vw, 46px);
+  }
+}
