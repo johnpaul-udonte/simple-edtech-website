@@ -462,3 +462,168 @@ export async function createAnnouncementForTutor(userId, announcementForm) {
     error: insertError,
   };
 }
+
+export async function getTutorQuizzesForCurrentUser(userId) {
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const { data: questions, error: questionsError } = await supabase
+    .from("quiz_questions")
+    .select(
+      `
+      id,
+      tutor_id,
+      created_by,
+      course,
+      tool,
+      week_number,
+      question_text,
+      question_type,
+      difficulty,
+      points,
+      status,
+      created_at,
+      updated_at,
+      quiz_options (
+        id,
+        option_text,
+        is_correct,
+        option_order
+      )
+    `
+    )
+    .eq("tutor_id", tutor.id)
+    .order("created_at", { ascending: false });
+
+  if (questionsError) {
+    return {
+      data: null,
+      error: questionsError,
+    };
+  }
+
+  const questionList = questions || [];
+
+  return {
+    data: {
+      tutor,
+      questions: questionList,
+      summary: {
+        totalQuestions: questionList.length,
+        publishedQuestions: questionList.filter(
+          (question) => question.status === "published"
+        ).length,
+        draftQuestions: questionList.filter(
+          (question) => question.status === "draft"
+        ).length,
+        excelQuestions: questionList.filter(
+          (question) => question.tool === "Excel"
+        ).length,
+        powerBiQuestions: questionList.filter(
+          (question) => question.tool === "Power BI"
+        ).length,
+        sqlQuestions: questionList.filter((question) => question.tool === "SQL")
+          .length,
+        pythonQuestions: questionList.filter(
+          (question) => question.tool === "Python"
+        ).length,
+      },
+    },
+    error: null,
+  };
+}
+
+export async function createQuizQuestionForTutor(userId, quizForm) {
+  const { data: tutor, error: tutorError } = await getCurrentTutorRecord(userId);
+
+  if (tutorError) {
+    return {
+      data: null,
+      error: tutorError,
+    };
+  }
+
+  const { data: insertedQuestions, error: questionError } = await supabase
+    .from("quiz_questions")
+    .insert({
+      tutor_id: tutor.id,
+      created_by: userId,
+      course: quizForm.course,
+      tool: quizForm.tool,
+      week_number: Number(quizForm.week_number || 1),
+      question_text: quizForm.question_text,
+      question_type: "multiple_choice",
+      difficulty: quizForm.difficulty,
+      points: Number(quizForm.points || 1),
+      status: quizForm.status,
+      updated_at: new Date().toISOString(),
+    })
+    .select();
+
+  if (questionError) {
+    return {
+      data: null,
+      error: questionError,
+    };
+  }
+
+  const question = firstRow(insertedQuestions);
+
+  if (!question) {
+    return {
+      data: null,
+      error: {
+        message: "Question was not created.",
+      },
+    };
+  }
+
+  const optionsToInsert = [
+    {
+      question_id: question.id,
+      option_text: quizForm.option_a,
+      is_correct: quizForm.correct_option === "A",
+      option_order: 1,
+    },
+    {
+      question_id: question.id,
+      option_text: quizForm.option_b,
+      is_correct: quizForm.correct_option === "B",
+      option_order: 2,
+    },
+    {
+      question_id: question.id,
+      option_text: quizForm.option_c,
+      is_correct: quizForm.correct_option === "C",
+      option_order: 3,
+    },
+    {
+      question_id: question.id,
+      option_text: quizForm.option_d,
+      is_correct: quizForm.correct_option === "D",
+      option_order: 4,
+    },
+  ];
+
+  const { error: optionsError } = await supabase
+    .from("quiz_options")
+    .insert(optionsToInsert);
+
+  if (optionsError) {
+    return {
+      data: null,
+      error: optionsError,
+    };
+  }
+
+  return {
+    data: question,
+    error: null,
+  };
+}

@@ -1406,3 +1406,43 @@ button {
   border-color: #fed7aa;
   background: #fff7ed;
 }
+
+.quizQuestionStack {
+  display: grid;
+  gap: 18px;
+}
+
+.quizQuestionCard {
+  padding: 24px;
+  border-radius: 22px;
+  border: 1px solid #e3e9f4;
+  background: #ffffff;
+}
+
+.quizQuestionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.quizQuestionCard h3 {
+  margin: 12px 0;
+  color: #0b2f63;
+  font-size: 22px;
+}
+
+.quizOptionList {
+  margin: 18px 0 0;
+  padding-left: 22px;
+  color: #475467;
+}
+
+.quizOptionList li {
+  margin-bottom: 8px;
+}
+
+.correctOption {
+  color: #067647;
+  font-weight: 800;
+}
