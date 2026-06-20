@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getCurrentStudentRecord } from "../../services/studentService";
 
 import StudentAnnouncementPanel from "../../components/StudentAnnouncementPanel";
-
+import StudentRestrictionBanner from "../../components/StudentRestrictionBanner";
 
 function StudentDashboard() {
   const { profile, session } = useAuth();
@@ -98,6 +98,7 @@ function StudentDashboard() {
         <button>Choose Weekly Schedule</button>
       </div>
        <StudentAnnouncementPanel />
+       <StudentRestrictionBanner />
       <div className="dashboardGrid">
         {studentCards.map((card) => (
           <article className="dashboardCard" key={card.label}>

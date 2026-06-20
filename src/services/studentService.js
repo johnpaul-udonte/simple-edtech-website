@@ -1342,3 +1342,58 @@ export async function submitStudentPracticeAttempt(userId, practiceForm) {
     error: null,
   };
 }
+
+export async function getStudentAccessStatusForCurrentUser(userId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data: studentRows, error } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      payment_balance,
+      is_restricted,
+      restriction_reason,
+      restricted_at,
+      enrolled_course,
+      profiles (
+        full_name,
+        email
+      )
+    `
+    )
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  const student =
+    Array.isArray(studentRows) && studentRows.length > 0 ? studentRows[0] : null;
+
+  if (!student) {
+    return {
+      data: null,
+      error: {
+        message: "No student record was found for this logged-in user.",
+      },
+    };
+  }
+
+  return {
+    data: student,
+    error: null,
+  };
+}

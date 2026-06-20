@@ -1503,3 +1503,46 @@ button {
   background: #fff1f3;
   color: #b42318;
 }
+
+.restrictionBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 24px;
+  border-radius: 18px;
+  margin-bottom: 22px;
+}
+
+.restrictionBanner strong {
+  color: #0b2f63;
+}
+
+.restrictionBanner p {
+  margin: 8px 0 0;
+  color: #475467;
+}
+
+.restrictionBanner.warning {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+}
+
+.restrictionBanner.restricted {
+  border: 1px solid #fecdd3;
+  background: #fff1f3;
+}
+
+.restrictBtn {
+  background: #b42318;
+}
+
+.restoreBtn {
+  background: #067647;
+}
+
+@media (max-width: 800px) {
+  .restrictionBanner {
+    flex-direction: column;
+  }
+}

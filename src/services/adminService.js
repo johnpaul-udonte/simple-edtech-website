@@ -116,7 +116,7 @@ export async function getRecentStudentsForAdmin() {
       completed_classes,
       payment_balance,
       is_restricted,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email,
         status
@@ -157,7 +157,7 @@ export async function getAllStudentsForAdmin() {
       payment_balance,
       is_restricted,
       created_at,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email,
         status
@@ -231,7 +231,7 @@ export async function getPaymentsForAdmin() {
         enrolled_course,
         payment_balance,
         is_restricted,
-        profiles (
+        profiles:profiles!students_profile_id_fkey (
           full_name,
           email,
           status
@@ -253,7 +253,7 @@ export async function getPaymentsForAdmin() {
         students (
           id,
           student_code,
-          profiles (
+          profiles:profiles!students_profile_id_fkey (
             full_name,
             email
           )
@@ -366,7 +366,7 @@ export async function getSchedulesForAdmin() {
         students (
           id,
           student_code,
-          profiles (
+          profiles:profiles!students_profile_id_fkey (
             full_name,
             email
           )
@@ -686,7 +686,7 @@ export async function getAssignmentsForAdmin() {
           id,
           student_code,
           enrolled_course,
-          profiles (
+          profiles:profiles!students_profile_id_fkey (
             full_name,
             email
           )
@@ -741,7 +741,7 @@ export async function getReportsForAdmin() {
         payment_balance,
         is_restricted,
         created_at,
-        profiles (
+        profiles:profiles!students_profile_id_fkey (
           full_name,
           email,
           status
@@ -800,7 +800,7 @@ export async function getReportsForAdmin() {
         students (
           id,
           student_code,
-          profiles (
+          profiles:profiles!students_profile_id_fkey (
             full_name,
             email
           )
@@ -838,7 +838,7 @@ export async function getReportsForAdmin() {
           submitted_at,
           students (
             student_code,
-            profiles (
+            profiles:profiles!students_profile_id_fkey (
               full_name,
               email
             )
@@ -1074,7 +1074,7 @@ export async function getCertificatesForAdmin() {
         payment_balance,
         is_restricted,
         created_at,
-        profiles (
+        profiles:profiles!students_profile_id_fkey (
           full_name,
           email,
           status
@@ -1096,6 +1096,7 @@ export async function getCertificatesForAdmin() {
         id,
         student_id,
         title,
+        certificate_title,
         course,
         status,
         issued_at,
@@ -1200,7 +1201,7 @@ export async function issueCertificateForStudent(studentId, adminUserId) {
       enrolled_course,
       total_paid_classes,
       completed_classes,
-      profiles (
+      profiles:profiles!students_profile_id_fkey (
         full_name,
         email
       )
@@ -1270,11 +1271,14 @@ export async function issueCertificateForStudent(studentId, adminUserId) {
     };
   }
 
+  const certificateTitle = `${student.enrolled_course} Certificate of Completion`;
+
   const { data: insertedRows, error: insertError } = await supabase
     .from("certificates")
     .insert({
       student_id: student.id,
-      title: `${student.enrolled_course} Certificate of Completion`,
+      title: certificateTitle,
+      certificate_title: certificateTitle,
       course: student.enrolled_course,
       status: "issued",
       issued_at: new Date().toISOString(),
@@ -1515,7 +1519,10 @@ export async function createAnnouncementForAdmin(userId, announcementForm) {
     .select();
 
   return {
-    data: Array.isArray(insertedRows) && insertedRows.length > 0 ? insertedRows[0] : null,
+    data:
+      Array.isArray(insertedRows) && insertedRows.length > 0
+        ? insertedRows[0]
+        : null,
     error: insertError,
   };
 }
@@ -1574,7 +1581,7 @@ export async function getQuizzesForAdmin() {
         submitted_at,
         students (
           student_code,
-          profiles (
+          profiles:profiles!students_profile_id_fkey (
             full_name,
             email
           )
@@ -1627,6 +1634,337 @@ export async function getQuizzesForAdmin() {
           (attempt) => Number(attempt.percentage || 0) >= 70
         ).length,
       },
+    },
+    error: null,
+  };
+}
+
+export async function getStudentControlCenterForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const [studentsResult, attemptsResult, certificatesResult] = await Promise.all([
+    supabase
+      .from("students")
+      .select(
+        `
+        id,
+        profile_id,
+        student_code,
+        enrolled_course,
+        assigned_tutor_id,
+        total_paid_classes,
+        completed_classes,
+        missed_classes,
+        cancelled_classes,
+        rescheduled_classes,
+        payment_balance,
+        is_restricted,
+        restriction_reason,
+        restricted_at,
+        unrestricted_at,
+        created_at,
+        updated_at,
+        profiles:profiles!students_profile_id_fkey (
+          full_name,
+          email,
+          status
+        ),
+        tutors (
+          id,
+          profiles (
+            full_name,
+            email
+          )
+        )
+      `
+      )
+      .order("created_at", { ascending: false }),
+
+    supabase
+      .from("quiz_attempts")
+      .select(
+        `
+        id,
+        student_id,
+        percentage,
+        score,
+        total_points,
+        submitted_at
+      `
+      )
+      .order("submitted_at", { ascending: false }),
+
+    supabase
+      .from("certificates")
+      .select(
+        `
+        id,
+        student_id,
+        status,
+        issued_at,
+        course
+      `
+      ),
+  ]);
+
+  const firstError =
+    studentsResult.error || attemptsResult.error || certificatesResult.error;
+
+  if (firstError) {
+    return {
+      data: null,
+      error: firstError,
+    };
+  }
+
+  const students = studentsResult.data || [];
+  const attempts = attemptsResult.data || [];
+  const certificates = certificatesResult.data || [];
+
+  const studentsWithControlData = students.map((student) => {
+    const studentAttempts = attempts.filter(
+      (attempt) => attempt.student_id === student.id
+    );
+
+    const studentCertificates = certificates.filter(
+      (certificate) => certificate.student_id === student.id
+    );
+
+    const totalPaidClasses = Number(student.total_paid_classes || 0);
+    const completedClasses = Number(student.completed_classes || 0);
+    const remainingClasses = Math.max(totalPaidClasses - completedClasses, 0);
+    const paymentBalance = Number(student.payment_balance || 0);
+
+    const averageQuizScore =
+      studentAttempts.length > 0
+        ? Math.round(
+            studentAttempts.reduce(
+              (sum, attempt) => sum + Number(attempt.percentage || 0),
+              0
+            ) / studentAttempts.length
+          )
+        : 0;
+
+    const latestQuizScore =
+      studentAttempts.length > 0
+        ? Number(studentAttempts[0].percentage || 0)
+        : 0;
+
+    const hasIssuedCertificate = studentCertificates.some(
+      (certificate) => certificate.status === "issued"
+    );
+
+    return {
+      ...student,
+      totalPaidClasses,
+      completedClasses,
+      remainingClasses,
+      paymentBalance,
+      quizAttempts: studentAttempts,
+      certificates: studentCertificates,
+      averageQuizScore,
+      latestQuizScore,
+      hasIssuedCertificate,
+      needsPaymentAttention: paymentBalance > 0,
+      needsClassAttention: remainingClasses <= 0 && !hasIssuedCertificate,
+    };
+  });
+
+  return {
+    data: {
+      students: studentsWithControlData,
+      summary: {
+        totalStudents: studentsWithControlData.length,
+        activeStudents: studentsWithControlData.filter(
+          (student) => student.profiles?.status === "active"
+        ).length,
+        restrictedStudents: studentsWithControlData.filter(
+          (student) => student.is_restricted
+        ).length,
+        studentsWithBalance: studentsWithControlData.filter(
+          (student) => student.paymentBalance > 0
+        ).length,
+        certificateReadyStudents: studentsWithControlData.filter(
+          (student) => student.needsClassAttention
+        ).length,
+        totalOutstandingBalance: studentsWithControlData.reduce(
+          (sum, student) => sum + Number(student.paymentBalance || 0),
+          0
+        ),
+      },
+    },
+    error: null,
+  };
+}
+
+export async function updateStudentRestrictionForAdmin(
+  studentId,
+  restrictionData
+) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const now = new Date().toISOString();
+
+  const updatePayload = restrictionData.isRestricted
+    ? {
+        is_restricted: true,
+        restriction_reason:
+          restrictionData.reason || "Access restricted by admin.",
+        restricted_at: now,
+        restricted_by: restrictionData.adminUserId,
+        unrestricted_at: null,
+        unrestricted_by: null,
+        updated_at: now,
+      }
+    : {
+        is_restricted: false,
+        restriction_reason: null,
+        unrestricted_at: now,
+        unrestricted_by: restrictionData.adminUserId,
+        updated_at: now,
+      };
+
+  const { data: updatedRows, error } = await supabase
+    .from("students")
+    .update(updatePayload)
+    .eq("id", studentId)
+    .select();
+
+  return {
+    data:
+      Array.isArray(updatedRows) && updatedRows.length > 0
+        ? updatedRows[0]
+        : null,
+    error,
+  };
+}
+
+export async function getAdminControlReportsForAdmin() {
+  const { data, error } = await getStudentControlCenterForAdmin();
+
+  if (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  const students = data?.students || [];
+
+  const courseReports = {};
+
+  students.forEach((student) => {
+    const course = student.enrolled_course || "Data Analysis";
+
+    if (!courseReports[course]) {
+      courseReports[course] = {
+        course,
+        totalStudents: 0,
+        restrictedStudents: 0,
+        studentsWithBalance: 0,
+        completedClasses: 0,
+        totalPaidClasses: 0,
+        outstandingBalance: 0,
+        averageQuizScore: 0,
+        quizScoreTotal: 0,
+        quizScoreCount: 0,
+      };
+    }
+
+    courseReports[course].totalStudents += 1;
+    courseReports[course].completedClasses += Number(
+      student.completedClasses || 0
+    );
+    courseReports[course].totalPaidClasses += Number(
+      student.totalPaidClasses || 0
+    );
+    courseReports[course].outstandingBalance += Number(
+      student.paymentBalance || 0
+    );
+
+    if (student.is_restricted) {
+      courseReports[course].restrictedStudents += 1;
+    }
+
+    if (Number(student.paymentBalance || 0) > 0) {
+      courseReports[course].studentsWithBalance += 1;
+    }
+
+    if (Number(student.averageQuizScore || 0) > 0) {
+      courseReports[course].quizScoreTotal += Number(student.averageQuizScore);
+      courseReports[course].quizScoreCount += 1;
+    }
+  });
+
+  const tutorReports = {};
+
+  students.forEach((student) => {
+    const tutorName =
+      student.tutors?.profiles?.full_name || "Tutor not assigned";
+
+    if (!tutorReports[tutorName]) {
+      tutorReports[tutorName] = {
+        tutorName,
+        email: student.tutors?.profiles?.email || "-",
+        totalStudents: 0,
+        restrictedStudents: 0,
+        studentsWithBalance: 0,
+        completedClasses: 0,
+        outstandingBalance: 0,
+      };
+    }
+
+    tutorReports[tutorName].totalStudents += 1;
+    tutorReports[tutorName].completedClasses += Number(
+      student.completedClasses || 0
+    );
+    tutorReports[tutorName].outstandingBalance += Number(
+      student.paymentBalance || 0
+    );
+
+    if (student.is_restricted) {
+      tutorReports[tutorName].restrictedStudents += 1;
+    }
+
+    if (Number(student.paymentBalance || 0) > 0) {
+      tutorReports[tutorName].studentsWithBalance += 1;
+    }
+  });
+
+  const finalCourseReports = Object.values(courseReports).map((report) => ({
+    ...report,
+    averageQuizScore:
+      report.quizScoreCount > 0
+        ? Math.round(report.quizScoreTotal / report.quizScoreCount)
+        : 0,
+  }));
+
+  return {
+    data: {
+      summary: data.summary,
+      students,
+      courseReports: finalCourseReports,
+      tutorReports: Object.values(tutorReports),
+      attentionStudents: students.filter(
+        (student) =>
+          student.is_restricted ||
+          student.paymentBalance > 0 ||
+          student.needsClassAttention
+      ),
     },
     error: null,
   };
