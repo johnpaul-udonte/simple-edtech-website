@@ -2466,3 +2466,96 @@ iframe {
     grid-template-columns: 1fr;
   }
 }
+
+/* STUDENT NOTIFICATION PANEL */
+.notificationList {
+  display: grid;
+  gap: 16px;
+}
+
+.notificationCard {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid #e3e9f4;
+  background: #ffffff;
+}
+
+.notificationCard.unread {
+  border-color: #0b4ea2;
+  background: #f4f8ff;
+}
+
+.notificationCard h3 {
+  margin: 4px 0 8px;
+  color: #0b2f63;
+}
+
+.notificationCard p {
+  margin: 0 0 8px;
+  color: #475467;
+}
+
+.notificationCard small {
+  color: #75859a;
+}
+
+@media (max-width: 760px) {
+  .notificationCard {
+    flex-direction: column;
+  }
+}
+
+/* STUDENT CHANGE PASSWORD */
+.passwordForm {
+  display: grid;
+  gap: 18px;
+  max-width: 680px;
+}
+
+.passwordField {
+  display: grid;
+  gap: 8px;
+  color: #0b2f63;
+  font-weight: 800;
+}
+
+.passwordField input {
+  width: 100%;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+  color: #0b2f63;
+  background: #ffffff;
+}
+
+.passwordHelp {
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.passwordForm button {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  background: #0b4ea2;
+  color: #ffffff;
+  padding: 14px 24px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.passwordForm button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .passwordForm button {
+    width: 100%;
+  }
+}

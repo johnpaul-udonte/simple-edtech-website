@@ -47,6 +47,11 @@ import AdminReports from "./pages/admin/AdminReports";
 
 import StudentRestrictionGuard from "./components/StudentRestrictionGuard";
 
+import StudentNotifications from "./pages/student/StudentNotifications";
+import AdminLoginCredentials from "./pages/admin/AdminLoginCredentials";
+
+import StudentChangePassword from "./pages/student/StudentChangePassword";
+
 function App() {
   return (
     <BrowserRouter>
@@ -108,12 +113,27 @@ function App() {
               </StudentRestrictionGuard>
             }
           />
-
+          <Route
+            path="/student/change-password"
+            element={
+              <StudentRestrictionGuard>
+                <StudentChangePassword />
+              </StudentRestrictionGuard>
+            }
+          />
           <Route
             path="/student/certificates"
             element={
               <StudentRestrictionGuard>
                 <StudentCertificates />
+              </StudentRestrictionGuard>
+            }
+          />
+          <Route
+            path="/student/notifications"
+            element={
+              <StudentRestrictionGuard>
+                <StudentNotifications />
               </StudentRestrictionGuard>
             }
           />
@@ -154,6 +174,8 @@ function App() {
           <Route path="/admin/materials" element={<AdminMaterials />} />
           <Route path="/admin/announcements" element={<AdminAnnouncements />} />
           <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/admin/login-credentials" element={<AdminLoginCredentials />}
+/>
         </Route>
       </Routes>
     </BrowserRouter>

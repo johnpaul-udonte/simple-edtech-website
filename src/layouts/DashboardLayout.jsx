@@ -8,11 +8,13 @@ function DashboardLayout({ role }) {
   const roleLinks = {
     Student: [
       { label: "Dashboard", path: "/student/dashboard" },
+      { label: "Notifications", path: "/student/notifications" },
       { label: "Assignments", path: "/student/assignments" },
       { label: "Schedule", path: "/student/schedule" },
       { label: "Weekly Practice", path: "/student/practice" },
       { label: "Materials", path: "/student/materials" },
       { label: "Certificates", path: "/student/certificates" },
+      { label: "Change Password", path: "/student/change-password" },
     ],
 
     Tutor: [
@@ -28,6 +30,7 @@ function DashboardLayout({ role }) {
     Admin: [
       { label: "Dashboard", path: "/admin/dashboard" },
       { label: "Applications", path: "/admin/applications" },
+      { label: "Login Credentials", path: "/admin/login-credentials" },
       { label: "Students", path: "/admin/students" },
       { label: "Tutors", path: "/admin/tutors" },
       { label: "Schedules", path: "/admin/schedules" },

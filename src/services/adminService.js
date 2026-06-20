@@ -2125,3 +2125,38 @@ export async function rejectStudentApplicationForAdmin(applicationId, adminNotes
     error,
   };
 }
+
+export async function getStudentLoginCredentialsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("student_login_credentials")
+    .select(
+      `
+      id,
+      profile_id,
+      student_id,
+      application_id,
+      student_name,
+      email,
+      temporary_password,
+      login_url,
+      password_status,
+      generated_at,
+      updated_at
+    `
+    )
+    .order("generated_at", { ascending: false });
+
+  return {
+    data: data || [],
+    error,
+  };
+}
