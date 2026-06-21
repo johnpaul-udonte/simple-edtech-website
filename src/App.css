@@ -10471,3 +10471,242 @@ iframe {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* =========================================
+   FINAL ADMIN STUDENTS CONTROL CENTRE
+========================================= */
+
+.adminStudentsPage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.adminStudentsSummaryGrid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin-bottom: 22px !important;
+}
+
+.adminStudentsSummaryGrid .dashboardCard {
+  min-height: 116px !important;
+  padding: 16px 12px !important;
+  border-radius: 20px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+.adminStudentsSummaryGrid .dashboardCard p {
+  width: 100% !important;
+  margin-bottom: 6px !important;
+  color: #5f718b !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+}
+
+.adminStudentsSummaryGrid .dashboardCard h2 {
+  width: 100% !important;
+  color: #0b4ea2 !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.04em !important;
+  overflow-wrap: anywhere !important;
+}
+
+.adminStudentsMoneyCard h2 {
+  font-size: 20px !important;
+  white-space: nowrap !important;
+}
+
+.adminStudentsFilterBar {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #f1f6ff;
+  border: 1px solid #dbe8fb;
+}
+
+.adminStudentsFilterBar button {
+  min-height: 48px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #0b4ea2;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.adminStudentsFilterBar button.active {
+  background: #0b4ea2;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.16);
+}
+
+.adminStudentsTablePanel {
+  padding: 26px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+}
+
+.adminStudentsTablePanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.adminStudentsTablePanel .panelHeaderRow h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminStudentsTablePanel .panelHeaderRow p {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.adminStudentsTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid #dfeaf8;
+  background: #ffffff;
+}
+
+.adminStudentsTableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.adminStudentsTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.adminStudentsTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+.adminStudentsTable {
+  width: 100%;
+  min-width: 1280px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.adminStudentsTable th,
+.adminStudentsTable td {
+  padding: 14px 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.adminStudentsTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.adminStudentsTable strong {
+  display: block;
+  color: #082b61;
+  font-size: 13.5px;
+}
+
+.adminStudentsTable small {
+  display: block;
+  margin-top: 4px;
+  color: #5f718b;
+  font-size: 11.5px;
+}
+
+.adminStudentsTable .statusPill {
+  margin-top: 6px;
+}
+
+.adminStudentsTable th:nth-child(1),
+.adminStudentsTable td:nth-child(1) {
+  width: 230px;
+}
+
+.adminStudentsTable th:nth-child(2),
+.adminStudentsTable td:nth-child(2) {
+  width: 190px;
+}
+
+.adminStudentsTable th:nth-child(3),
+.adminStudentsTable td:nth-child(3) {
+  width: 170px;
+}
+
+.adminStudentsTable th:nth-child(4),
+.adminStudentsTable td:nth-child(4) {
+  width: 170px;
+}
+
+.adminStudentsTable th:nth-child(5),
+.adminStudentsTable td:nth-child(5) {
+  width: 170px;
+}
+
+.adminStudentsTable th:nth-child(6),
+.adminStudentsTable td:nth-child(6) {
+  width: 120px;
+}
+
+.adminStudentsTable th:nth-child(7),
+.adminStudentsTable td:nth-child(7) {
+  width: 140px;
+}
+
+.adminStudentsTable th:nth-child(8),
+.adminStudentsTable td:nth-child(8) {
+  width: 170px;
+}
+
+.adminStudentsTable th:nth-child(9),
+.adminStudentsTable td:nth-child(9) {
+  width: 120px;
+}
+
+.restrictBtn {
+  background: #b42318 !important;
+}
+
+@media (max-width: 1250px) {
+  .adminStudentsSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .adminStudentsFilterBar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .adminStudentsSummaryGrid,
+  .adminStudentsFilterBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .adminStudentsSummaryGrid,
+  .adminStudentsFilterBar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .adminStudentsMoneyCard h2 {
+    white-space: normal !important;
+  }
+}

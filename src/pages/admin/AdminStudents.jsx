@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   getStudentControlCenterForAdmin,
@@ -13,10 +13,31 @@ function formatMoney(value) {
   }).format(Number(value || 0));
 }
 
+function getAccessClass(isRestricted) {
+  return isRestricted ? "urgent" : "issued";
+}
+
+function getPaymentClass(balance) {
+  return Number(balance || 0) > 0 ? "pending" : "issued";
+}
+
+function getCertificateClass(student) {
+  if (student.hasIssuedCertificate) return "issued";
+  if (student.needsClassAttention) return "approved";
+  return "pending";
+}
+
+function getCertificateLabel(student) {
+  if (student.hasIssuedCertificate) return "Issued";
+  if (student.needsClassAttention) return "Ready";
+  return "Not Ready";
+}
+
 function AdminStudents() {
   const { session } = useAuth();
 
   const [studentData, setStudentData] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -44,6 +65,38 @@ function AdminStudents() {
     loadStudents();
   }, []);
 
+  const students = useMemo(() => {
+    return studentData?.students || [];
+  }, [studentData]);
+
+  const summary = studentData?.summary || {};
+
+  const filteredStudents = useMemo(() => {
+    if (activeFilter === "all") return students;
+
+    if (activeFilter === "active") {
+      return students.filter((student) => !student.is_restricted);
+    }
+
+    if (activeFilter === "restricted") {
+      return students.filter((student) => student.is_restricted);
+    }
+
+    if (activeFilter === "balance") {
+      return students.filter((student) => Number(student.paymentBalance || 0) > 0);
+    }
+
+    if (activeFilter === "certificate") {
+      return students.filter((student) => student.needsClassAttention);
+    }
+
+    if (activeFilter === "noTutor") {
+      return students.filter((student) => !student.tutors?.profiles?.full_name);
+    }
+
+    return students;
+  }, [students, activeFilter]);
+
   async function handleRestriction(student) {
     setSuccessMessage("");
     setActionError("");
@@ -62,7 +115,7 @@ function AdminStudents() {
     if (!student.is_restricted) {
       reason = window.prompt(
         "Enter restriction reason:",
-        student.paymentBalance > 0
+        Number(student.paymentBalance || 0) > 0
           ? "Payment balance pending. Access restricted by admin."
           : "Access restricted by admin."
       );
@@ -117,9 +170,6 @@ function AdminStudents() {
     );
   }
 
-  const students = studentData?.students || [];
-  const summary = studentData?.summary || {};
-
   return (
     <section className="adminStudentsPage">
       <header className="dashboardHeader compactDashboardHeader">
@@ -127,8 +177,9 @@ function AdminStudents() {
           <p className="eyebrow">Admin Portal</p>
           <h1>Student Control Centre</h1>
           <p>
-            Monitor student progress, payment balance, class balance, drill
-            performance, certificate readiness, and access restriction status.
+            Monitor student progress, tutor assignment, payment balance, class
+            balance, drill performance, certificate readiness, and access
+            restriction status.
           </p>
         </div>
 
@@ -171,14 +222,64 @@ function AdminStudents() {
         </article>
 
         <article className="dashboardCard">
-          <p>Cert. Ready</p>
+          <p>Certificate Ready</p>
           <h2>{summary.certificateReadyStudents || 0}</h2>
         </article>
 
-        <article className="dashboardCard">
+        <article className="dashboardCard adminStudentsMoneyCard">
           <p>Outstanding</p>
           <h2>{formatMoney(summary.totalOutstandingBalance || 0)}</h2>
         </article>
+      </section>
+
+      <section className="adminStudentsFilterBar">
+        <button
+          type="button"
+          className={activeFilter === "all" ? "active" : ""}
+          onClick={() => setActiveFilter("all")}
+        >
+          All Students
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "active" ? "active" : ""}
+          onClick={() => setActiveFilter("active")}
+        >
+          Active
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "restricted" ? "active" : ""}
+          onClick={() => setActiveFilter("restricted")}
+        >
+          Restricted
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "balance" ? "active" : ""}
+          onClick={() => setActiveFilter("balance")}
+        >
+          With Balance
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "certificate" ? "active" : ""}
+          onClick={() => setActiveFilter("certificate")}
+        >
+          Certificate Ready
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "noTutor" ? "active" : ""}
+          onClick={() => setActiveFilter("noTutor")}
+        >
+          No Tutor
+        </button>
       </section>
 
       <section className="dashboardPanel adminStudentsTablePanel">
@@ -186,14 +287,17 @@ function AdminStudents() {
           <div>
             <h2>Student Access & Progress Table</h2>
             <p>
-              Scroll sideways inside the table area to see all columns and
-              actions.
+              Review students, assigned tutors, class progress, payment exposure,
+              drill performance, certificate readiness, and access status.
             </p>
           </div>
         </div>
 
-        {students.length === 0 ? (
-          <p>No student record found.</p>
+        {filteredStudents.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No student found</h3>
+            <p>No student matches the selected filter.</p>
+          </div>
         ) : (
           <div className="adminStudentsTableWrap">
             <table className="adminStudentsTable">
@@ -212,7 +316,7 @@ function AdminStudents() {
               </thead>
 
               <tbody>
-                {students.map((student) => {
+                {filteredStudents.map((student) => {
                   const isUpdating = updatingStudentId === student.id;
                   const paymentBalance = Number(student.paymentBalance || 0);
 
@@ -227,8 +331,10 @@ function AdminStudents() {
                       </td>
 
                       <td>
-                        {student.tutors?.profiles?.full_name ||
-                          "Tutor not assigned"}
+                        <strong>
+                          {student.tutors?.profiles?.full_name ||
+                            "Tutor not assigned"}
+                        </strong>
                       </td>
 
                       <td>{student.enrolled_course || "Data Analysis"}</td>
@@ -247,12 +353,7 @@ function AdminStudents() {
 
                       <td>
                         <strong>{formatMoney(paymentBalance)}</strong>
-                        <br />
-                        <span
-                          className={`statusPill ${
-                            paymentBalance > 0 ? "pending" : "approved"
-                          }`}
-                        >
+                        <span className={`statusPill ${getPaymentClass(paymentBalance)}`}>
                           {paymentBalance > 0 ? "Balance Due" : "Cleared"}
                         </span>
                       </td>
@@ -263,28 +364,16 @@ function AdminStudents() {
                       </td>
 
                       <td>
-                        <span
-                          className={`statusPill ${
-                            student.hasIssuedCertificate
-                              ? "issued"
-                              : student.needsClassAttention
-                              ? "approved"
-                              : "pending"
-                          }`}
-                        >
-                          {student.hasIssuedCertificate
-                            ? "Issued"
-                            : student.needsClassAttention
-                            ? "Ready"
-                            : "Not Ready"}
+                        <span className={`statusPill ${getCertificateClass(student)}`}>
+                          {getCertificateLabel(student)}
                         </span>
                       </td>
 
                       <td>
                         <span
-                          className={`statusPill ${
-                            student.is_restricted ? "urgent" : "approved"
-                          }`}
+                          className={`statusPill ${getAccessClass(
+                            student.is_restricted
+                          )}`}
                         >
                           {student.is_restricted ? "Restricted" : "Allowed"}
                         </span>
