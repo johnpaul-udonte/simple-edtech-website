@@ -6217,3 +6217,171 @@ iframe {
     font-size: 26px !important;
   }
 }
+
+/* =========================================
+   STUDENT CERTIFICATES PAGE
+========================================= */
+
+.studentCertificatesPage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.studentCertificatesPage .dashboardHeader button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+.studentCertificateSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.studentCertificateSummaryGrid .dashboardCard {
+  min-height: 108px !important;
+  padding: 18px 14px !important;
+  border-radius: 20px !important;
+}
+
+.studentCertificateSummaryGrid .dashboardCard p {
+  font-size: 13px !important;
+  margin-bottom: 6px !important;
+}
+
+.studentCertificateSummaryGrid .dashboardCard h2 {
+  font-size: 24px !important;
+  line-height: 1.12 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.certificateEligibilityPanel {
+  padding: 24px !important;
+}
+
+.certificateStatusBox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.certificateStatusBox h3 {
+  margin: 0 0 10px;
+  color: #082b61;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.certificateStatusBox p {
+  margin: 0 0 16px;
+  color: #5f718b;
+  line-height: 1.6;
+}
+
+.certificateProgress {
+  max-width: 620px;
+}
+
+.certificateStack {
+  display: grid;
+  gap: 16px;
+}
+
+.certificateCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #e4edf9;
+  box-shadow: 0 12px 28px rgba(8, 43, 97, 0.06);
+}
+
+.certificateRibbon {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #082b61, #0b4ea2);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.certificateCardBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 22px;
+}
+
+.certificateCard h3 {
+  margin: 0 0 12px;
+  color: #082b61;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.certificateMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.certificateMetaGrid span {
+  padding: 12px;
+  border-radius: 16px;
+  background: #f8fbff;
+  border: 1px solid #e4edf9;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.certificateMetaGrid strong {
+  display: block;
+  margin-top: 5px;
+  color: #0b4ea2;
+  font-size: 14px;
+  text-transform: none;
+  line-height: 1.3;
+}
+
+.certificateNote {
+  margin: 14px 0 0 !important;
+  color: #5f718b;
+}
+
+.certificateActionBox {
+  min-width: 150px;
+  display: grid;
+  gap: 12px;
+  justify-items: end;
+}
+
+.certificateLink {
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .studentCertificateSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .certificateStatusBox,
+  .certificateCardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .certificateActionBox {
+    justify-items: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .studentCertificateSummaryGrid,
+  .certificateMetaGrid {
+    grid-template-columns: 1fr;
+  }
+}

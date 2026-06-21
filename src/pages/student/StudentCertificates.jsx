@@ -1,38 +1,94 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabaseClient";
 import { getStudentCertificatesForCurrentUser } from "../../services/studentService";
+
+function formatDateTime(value) {
+  if (!value) return "Not issued yet";
+
+  return new Date(value).toLocaleString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function StudentCertificates() {
   const { session, profile } = useAuth();
 
   const [certificateData, setCertificateData] = useState(null);
+  const [signedUrls, setSignedUrls] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
-  useEffect(() => {
-    async function loadCertificates() {
-      if (!session?.user?.id) {
-        setNotice("No active student session found.");
-        setIsLoading(false);
-        return;
-      }
+  async function loadCertificates() {
+    setIsLoading(true);
+    setNotice("");
 
-      const { data, error } = await getStudentCertificatesForCurrentUser(
-        session.user.id
-      );
-
-      if (error) {
-        setNotice(error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setCertificateData(data);
+    if (!session?.user?.id) {
+      setNotice("No active student session found.");
       setIsLoading(false);
+      return;
     }
 
+    const { data, error } = await getStudentCertificatesForCurrentUser(
+      session.user.id
+    );
+
+    if (error) {
+      setNotice(error.message || "Could not load certificate records.");
+      setIsLoading(false);
+      return;
+    }
+
+    setCertificateData(data);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
     loadCertificates();
-  }, [session]);
+  }, [session?.user?.id]);
+
+  const certificates = certificateData?.certificates || [];
+  const progress = certificateData?.progress || {};
+  const student = certificateData?.student || {};
+
+  useEffect(() => {
+    async function loadCertificateLinks() {
+      if (!supabase || certificates.length === 0) {
+        setSignedUrls({});
+        return;
+      }
+
+      const urlMap = {};
+
+      for (const certificate of certificates) {
+        const filePath =
+          certificate.certificate_file_path || certificate.certificate_url;
+
+        if (!filePath) continue;
+
+        if (String(filePath).startsWith("http")) {
+          urlMap[certificate.id] = filePath;
+          continue;
+        }
+
+        const { data, error } = await supabase.storage
+          .from("student-certificates")
+          .createSignedUrl(filePath, 60 * 60);
+
+        if (!error && data?.signedUrl) {
+          urlMap[certificate.id] = data.signedUrl;
+        }
+      }
+
+      setSignedUrls(urlMap);
+    }
+
+    loadCertificateLinks();
+  }, [certificates.length]);
 
   if (isLoading) {
     return (
@@ -48,13 +104,13 @@ function StudentCertificates() {
       <section className="dashboardPanel">
         <h2>Certificate issue</h2>
         <p>{notice}</p>
+
+        <button type="button" className="tableActionBtn" onClick={loadCertificates}>
+          Try Again
+        </button>
       </section>
     );
   }
-
-  const certificates = certificateData?.certificates || [];
-  const progress = certificateData?.progress || {};
-  const student = certificateData?.student || {};
 
   const issuedCertificates = certificates.filter(
     (certificate) => certificate.status === "issued"
@@ -64,22 +120,42 @@ function StudentCertificates() {
     (certificate) => certificate.status === "pending_approval"
   );
 
+  const firstDownloadableCertificate = issuedCertificates.find(
+    (certificate) =>
+      signedUrls[certificate.id] ||
+      certificate.certificate_url ||
+      certificate.certificate_file_path
+  );
+
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="studentCertificatesPage">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Student Portal</p>
           <h1>My Certificates</h1>
           <p>
-            Welcome, {profile?.full_name || "Student"}. View your learning
-            completion status and issued Jlux Academy certificates.
+            Welcome, {profile?.full_name || "Student"}. View and download your
+            issued Jlux Academy certificates.
           </p>
         </div>
 
-        <button>Download Certificate</button>
-      </div>
+        {firstDownloadableCertificate ? (
+          <a
+            href={signedUrls[firstDownloadableCertificate.id]}
+            target="_blank"
+            rel="noreferrer"
+            className="headerSecondaryBtn"
+          >
+            Download Certificate
+          </a>
+        ) : (
+          <button type="button" disabled>
+            No Certificate Yet
+          </button>
+        )}
+      </header>
 
-      <div className="dashboardGrid">
+      <section className="studentCertificateSummaryGrid">
         <article className="dashboardCard">
           <p>Student Code</p>
           <h2>{student.student_code || "N/A"}</h2>
@@ -91,41 +167,41 @@ function StudentCertificates() {
         </article>
 
         <article className="dashboardCard">
-          <p>Completed Classes</p>
+          <p>Completed</p>
           <h2>{progress.completedClasses || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Total Paid Classes</p>
+          <p>Paid Classes</p>
           <h2>{progress.totalPaidClasses || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Remaining Classes</p>
+          <p>Remaining</p>
           <h2>{progress.remainingClasses || 0}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Completion Rate</p>
+          <p>Completion</p>
           <h2>{progress.completionRate || 0}%</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Issued Certificates</p>
+          <p>Issued Certs</p>
           <h2>{issuedCertificates.length}</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Pending Certificates</p>
+          <p>Pending Certs</p>
           <h2>{pendingCertificates.length}</h2>
         </article>
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Certificate Eligibility</h2>
-
+      <section className="dashboardPanel certificateEligibilityPanel">
         <div className="certificateStatusBox">
           <div>
+            <p className="eyebrow">Certificate Eligibility</p>
+
             <h3>
               {progress.isEligible
                 ? "You are eligible for certification"
@@ -133,9 +209,10 @@ function StudentCertificates() {
             </h3>
 
             <p>
-              You have completed {progress.completedClasses || 0} out of{" "}
-              {progress.totalPaidClasses || 0} paid classes. You need{" "}
-              {progress.remainingClasses || 0} more class
+              You have completed <strong>{progress.completedClasses || 0}</strong>{" "}
+              out of <strong>{progress.totalPaidClasses || 0}</strong> paid
+              classes. You need{" "}
+              <strong>{progress.remainingClasses || 0}</strong> more class
               {progress.remainingClasses === 1 ? "" : "es"} to complete your
               learning requirement.
             </p>
@@ -156,16 +233,26 @@ function StudentCertificates() {
             {progress.isEligible ? "Eligible" : "In Progress"}
           </span>
         </div>
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>My Certificate Records</h2>
+      <section className="dashboardPanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>My Certificate Records</h2>
+            <p>
+              Download any certificate uploaded and issued by Jlux Academy admin.
+            </p>
+          </div>
+        </div>
 
         {certificates.length === 0 ? (
-          <p>
-            No certificate has been issued yet. Once you complete all required
-            classes and admin issues your certificate, it will appear here.
-          </p>
+          <div className="emptyStateBox">
+            <h3>No certificate yet</h3>
+            <p>
+              No certificate has been issued yet. Once admin uploads your
+              certificate, it will appear here for download.
+            </p>
+          </div>
         ) : (
           <div className="certificateStack">
             {certificates.map((certificate) => {
@@ -174,60 +261,72 @@ function StudentCertificates() {
                 certificate.title ||
                 "Certificate of Completion";
 
+              const downloadUrl = signedUrls[certificate.id];
+
               return (
                 <article className="certificateCard" key={certificate.id}>
-                  <div>
-                    <p className="eyebrow">Jlux Academy Certificate</p>
-                    <h3>{certificateTitle}</h3>
-                    <p>
-                      Course: <strong>{certificate.course || "-"}</strong>
-                    </p>
+                  <div className="certificateRibbon">Jlux Academy</div>
 
-                    <p>
-                      Status:{" "}
+                  <div className="certificateCardBody">
+                    <div>
+                      <p className="eyebrow">Certificate</p>
+                      <h3>{certificateTitle}</h3>
+
+                      <div className="certificateMetaGrid">
+                        <span>
+                          Course
+                          <strong>{certificate.course || "-"}</strong>
+                        </span>
+
+                        <span>
+                          Status
+                          <strong>{certificate.status || "-"}</strong>
+                        </span>
+
+                        <span>
+                          Issued
+                          <strong>{formatDateTime(certificate.issued_at)}</strong>
+                        </span>
+                      </div>
+
+                      {certificate.notes && (
+                        <p className="certificateNote">{certificate.notes}</p>
+                      )}
+                    </div>
+
+                    <div className="certificateActionBox">
                       <span className={`statusPill ${certificate.status}`}>
                         {certificate.status}
                       </span>
-                    </p>
 
-                    <p>
-                      Issued At:{" "}
-                      {certificate.issued_at
-                        ? new Date(certificate.issued_at).toLocaleString()
-                        : "Not issued yet"}
-                    </p>
-
-                    {certificate.notes && <p>{certificate.notes}</p>}
+                      {downloadUrl ? (
+                        <a
+                          className="tableActionBtn certificateLink"
+                          href={downloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Download
+                        </a>
+                      ) : (
+                        <span className="mutedText">No file attached</span>
+                      )}
+                    </div>
                   </div>
-
-                  {certificate.certificate_url ? (
-                    <a
-                      className="tableActionBtn certificateLink"
-                      href={certificate.certificate_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open Certificate
-                    </a>
-                  ) : (
-                    <span className="mutedText">
-                      Download link will be added later
-                    </span>
-                  )}
                 </article>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
+      <section className="dashboardPanel">
         <h2>Certificate Rule</h2>
         <p>
-          Your certificate becomes available after you complete all paid classes
-          and admin issues your certificate from the Jlux Academy admin portal.
+          Your certificate becomes available after admin uploads and issues it
+          from the Jlux Academy admin portal.
         </p>
-      </div>
+      </section>
     </section>
   );
 }

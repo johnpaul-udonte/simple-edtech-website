@@ -784,6 +784,7 @@ export async function getStudentCertificatesForCurrentUser(userId) {
       status,
       issued_at,
       certificate_url,
+      certificate_file_path,
       notes,
       created_at,
       updated_at
