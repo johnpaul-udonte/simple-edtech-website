@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   createAssignmentForTutor,
@@ -6,11 +6,55 @@ import {
   gradeAssignmentSubmission,
 } from "../../services/tutorService";
 
+function formatDate(value) {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleDateString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    published: "Published",
+    draft: "Draft",
+    closed: "Closed",
+    submitted: "Submitted",
+    graded: "Graded",
+  };
+
+  return labels[status] || status || "-";
+}
+
+function getStatusClass(status) {
+  if (["published", "graded"].includes(status)) return "issued";
+  if (["draft", "submitted"].includes(status)) return "pending";
+  if (status === "closed") return "urgent";
+  return "pending";
+}
+
 function TutorAssignments() {
   const { session, profile } = useAuth();
 
   const [assignmentData, setAssignmentData] = useState(null);
   const [gradingForms, setGradingForms] = useState({});
+  const [activeAssignmentFilter, setActiveAssignmentFilter] = useState("all");
+  const [activeSubmissionFilter, setActiveSubmissionFilter] = useState("all");
+  const [showCreateForm, setShowCreateForm] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -27,6 +71,10 @@ function TutorAssignments() {
   });
 
   async function loadTutorAssignments() {
+    setIsLoading(true);
+    setNotice("");
+    setActionError("");
+
     if (!session?.user?.id) {
       setNotice("No active tutor session found.");
       setIsLoading(false);
@@ -38,7 +86,7 @@ function TutorAssignments() {
     );
 
     if (error) {
-      setNotice(error.message);
+      setNotice(error.message || "Could not load tutor assignments.");
       setIsLoading(false);
       return;
     }
@@ -49,7 +97,56 @@ function TutorAssignments() {
 
   useEffect(() => {
     loadTutorAssignments();
-  }, [session]);
+  }, [session?.user?.id]);
+
+  const assignments = useMemo(() => {
+    return assignmentData?.assignments || [];
+  }, [assignmentData]);
+
+  const allSubmissions = useMemo(() => {
+    return assignments.flatMap((assignment) =>
+      (assignment.assignment_submissions || []).map((submission) => ({
+        ...submission,
+        assignment_title: assignment.title,
+        assignment_tool: assignment.tool,
+      }))
+    );
+  }, [assignments]);
+
+  const summary = useMemo(() => {
+    return {
+      totalAssignments: assignments.length,
+      published: assignments.filter(
+        (assignment) => assignment.status === "published"
+      ).length,
+      drafts: assignments.filter((assignment) => assignment.status === "draft")
+        .length,
+      closed: assignments.filter((assignment) => assignment.status === "closed")
+        .length,
+      totalSubmissions: allSubmissions.length,
+      pendingGrading: allSubmissions.filter(
+        (submission) => submission.status === "submitted"
+      ).length,
+      graded: allSubmissions.filter((submission) => submission.status === "graded")
+        .length,
+    };
+  }, [assignments, allSubmissions]);
+
+  const filteredAssignments = useMemo(() => {
+    if (activeAssignmentFilter === "all") return assignments;
+
+    return assignments.filter(
+      (assignment) => assignment.status === activeAssignmentFilter
+    );
+  }, [assignments, activeAssignmentFilter]);
+
+  const filteredSubmissions = useMemo(() => {
+    if (activeSubmissionFilter === "all") return allSubmissions;
+
+    return allSubmissions.filter(
+      (submission) => submission.status === activeSubmissionFilter
+    );
+  }, [allSubmissions, activeSubmissionFilter]);
 
   function handleFormChange(event) {
     const { name, value } = event.target;
@@ -98,7 +195,7 @@ function TutorAssignments() {
     const { error } = await createAssignmentForTutor(userId, assignmentForm);
 
     if (error) {
-      setActionError(error.message);
+      setActionError(error.message || "Could not create assignment.");
       setIsCreating(false);
       return;
     }
@@ -134,13 +231,19 @@ function TutorAssignments() {
     const score = form.score ?? submission.score ?? "";
     const feedback = form.feedback ?? submission.feedback ?? "";
 
+    if (score !== "" && (Number(score) < 0 || Number(score) > 100)) {
+      setActionError("Score must be between 0 and 100.");
+      setGradingId("");
+      return;
+    }
+
     const { error } = await gradeAssignmentSubmission(userId, submission.id, {
       score,
       feedback,
     });
 
     if (error) {
-      setActionError(error.message);
+      setActionError(error.message || "Could not save grade.");
       setGradingId("");
       return;
     }
@@ -169,50 +272,28 @@ function TutorAssignments() {
     );
   }
 
-  const assignments = assignmentData?.assignments || [];
-
-  const publishedAssignments = assignments.filter(
-    (assignment) => assignment.status === "published"
-  );
-
-  const draftAssignments = assignments.filter(
-    (assignment) => assignment.status === "draft"
-  );
-
-  const closedAssignments = assignments.filter(
-    (assignment) => assignment.status === "closed"
-  );
-
-  const allSubmissions = assignments.flatMap((assignment) =>
-    (assignment.assignment_submissions || []).map((submission) => ({
-      ...submission,
-      assignment_title: assignment.title,
-      assignment_tool: assignment.tool,
-    }))
-  );
-
-  const pendingSubmissions = allSubmissions.filter(
-    (submission) => submission.status === "submitted"
-  );
-
-  const gradedSubmissions = allSubmissions.filter(
-    (submission) => submission.status === "graded"
-  );
-
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="tutorAssignmentsPage">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Tutor Portal</p>
           <h1>Assignments</h1>
           <p>
-            Welcome, {profile?.full_name || "Tutor"}. Create assignments, view
-            submitted work, grade students, and give feedback.
+            Welcome, {profile?.full_name || "Tutor"}. Create assignments, review
+            submitted work, grade students, and give clear feedback.
           </p>
         </div>
 
-        <button>Create Assignment</button>
-      </div>
+        <div className="headerActionGroup">
+          <button type="button" onClick={() => setShowCreateForm((value) => !value)}>
+            {showCreateForm ? "Hide Form" : "Create Assignment"}
+          </button>
+
+          <button type="button" className="headerSecondaryBtn" onClick={loadTutorAssignments}>
+            Refresh
+          </button>
+        </div>
+      </header>
 
       {successMessage && (
         <div className="successNotice">
@@ -226,193 +307,285 @@ function TutorAssignments() {
         </div>
       )}
 
-      <div className="dashboardGrid">
+      <section className="tutorAssignmentsSummaryGrid">
         <article className="dashboardCard">
           <p>Total Assignments</p>
-          <h2>{assignments.length}</h2>
+          <h2>{summary.totalAssignments}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Published</p>
-          <h2>{publishedAssignments.length}</h2>
+          <h2>{summary.published}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Drafts</p>
-          <h2>{draftAssignments.length}</h2>
+          <h2>{summary.drafts}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Closed</p>
-          <h2>{closedAssignments.length}</h2>
+          <h2>{summary.closed}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Total Submissions</p>
-          <h2>{allSubmissions.length}</h2>
+          <h2>{summary.totalSubmissions}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Pending Grading</p>
-          <h2>{pendingSubmissions.length}</h2>
+          <h2>{summary.pendingGrading}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Graded</p>
-          <h2>{gradedSubmissions.length}</h2>
+          <h2>{summary.graded}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Specialisation</p>
           <h2>{assignmentData?.tutor?.specialisation || "Not set"}</h2>
         </article>
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Create New Assignment</h2>
-
-        <form className="portalForm" onSubmit={handleCreateAssignment}>
-          <div className="formGrid">
-            <label>
-              Assignment Title
-              <input
-                type="text"
-                name="title"
-                value={assignmentForm.title}
-                onChange={handleFormChange}
-                placeholder="Example: Excel Sales Analysis Assignment"
-              />
-            </label>
-
-            <label>
-              Tool
-              <select
-                name="tool"
-                value={assignmentForm.tool}
-                onChange={handleFormChange}
-              >
-                <option value="Excel">Excel</option>
-                <option value="Power BI">Power BI</option>
-                <option value="SQL">SQL</option>
-                <option value="Python">Python</option>
-                <option value="General">General</option>
-              </select>
-            </label>
-
-            <label>
-              Due Date
-              <input
-                type="date"
-                name="due_date"
-                value={assignmentForm.due_date}
-                onChange={handleFormChange}
-              />
-            </label>
-
-            <label>
-              Status
-              <select
-                name="status"
-                value={assignmentForm.status}
-                onChange={handleFormChange}
-              >
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
-            </label>
+      {showCreateForm && (
+        <section className="dashboardPanel tutorAssignmentCreatePanel">
+          <div className="panelHeaderRow">
+            <div>
+              <h2>Create New Assignment</h2>
+              <p>
+                Add a task for your assigned students. Published assignments can
+                be seen by students immediately.
+              </p>
+            </div>
           </div>
 
-          <label>
-            Description / Instruction
-            <textarea
-              name="description"
-              value={assignmentForm.description}
-              onChange={handleFormChange}
-              rows="5"
-              placeholder="Explain what the student should do and submit."
-            />
-          </label>
+          <form className="portalForm tutorAssignmentForm" onSubmit={handleCreateAssignment}>
+            <div className="formGrid">
+              <label>
+                Assignment Title
+                <input
+                  type="text"
+                  name="title"
+                  value={assignmentForm.title}
+                  onChange={handleFormChange}
+                  placeholder="Example: Excel Sales Analysis Assignment"
+                />
+              </label>
 
-          <button className="tableActionBtn" type="submit" disabled={isCreating}>
-            {isCreating ? "Creating..." : "Create Assignment"}
-          </button>
-        </form>
-      </div>
+              <label>
+                Tool
+                <select
+                  name="tool"
+                  value={assignmentForm.tool}
+                  onChange={handleFormChange}
+                >
+                  <option value="Excel">Excel</option>
+                  <option value="Power BI">Power BI</option>
+                  <option value="SQL">SQL</option>
+                  <option value="Python">Python</option>
+                  <option value="General">General</option>
+                </select>
+              </label>
 
-      <div className="dashboardPanel">
-        <h2>Assignment List</h2>
+              <label>
+                Due Date
+                <input
+                  type="date"
+                  name="due_date"
+                  value={assignmentForm.due_date}
+                  onChange={handleFormChange}
+                />
+              </label>
 
-        {assignments.length === 0 ? (
-          <p>No assignments have been created yet.</p>
+              <label>
+                Status
+                <select
+                  name="status"
+                  value={assignmentForm.status}
+                  onChange={handleFormChange}
+                >
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              Description / Instruction
+              <textarea
+                name="description"
+                value={assignmentForm.description}
+                onChange={handleFormChange}
+                rows="5"
+                placeholder="Explain what the student should do and submit."
+              />
+            </label>
+
+            <button className="tableActionBtn" type="submit" disabled={isCreating}>
+              {isCreating ? "Creating..." : "Create Assignment"}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <section className="tutorAssignmentFilterBar">
+        <button
+          type="button"
+          className={activeAssignmentFilter === "all" ? "active" : ""}
+          onClick={() => setActiveAssignmentFilter("all")}
+        >
+          All Assignments
+        </button>
+
+        <button
+          type="button"
+          className={activeAssignmentFilter === "published" ? "active" : ""}
+          onClick={() => setActiveAssignmentFilter("published")}
+        >
+          Published
+        </button>
+
+        <button
+          type="button"
+          className={activeAssignmentFilter === "draft" ? "active" : ""}
+          onClick={() => setActiveAssignmentFilter("draft")}
+        >
+          Drafts
+        </button>
+
+        <button
+          type="button"
+          className={activeAssignmentFilter === "closed" ? "active" : ""}
+          onClick={() => setActiveAssignmentFilter("closed")}
+        >
+          Closed
+        </button>
+      </section>
+
+      <section className="dashboardPanel tutorAssignmentTablePanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Assignment List</h2>
+            <p>
+              Monitor assignment status, due dates, submissions, pending grading,
+              and graded work.
+            </p>
+          </div>
+        </div>
+
+        {filteredAssignments.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No assignment found</h3>
+            <p>No assignment matches this filter yet.</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Assignment</th>
-                <th>Tool</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th>Submissions</th>
-                <th>Pending</th>
-                <th>Graded</th>
-              </tr>
-            </thead>
+          <div className="tutorAssignmentTableWrap">
+            <table className="tutorAssignmentTable">
+              <thead>
+                <tr>
+                  <th>Assignment</th>
+                  <th>Tool</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Submissions</th>
+                  <th>Pending</th>
+                  <th>Graded</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {assignments.map((assignment) => {
-                const submissions = assignment.assignment_submissions || [];
-                const pending = submissions.filter(
-                  (submission) => submission.status === "submitted"
-                );
-                const graded = submissions.filter(
-                  (submission) => submission.status === "graded"
-                );
+              <tbody>
+                {filteredAssignments.map((assignment) => {
+                  const submissions = assignment.assignment_submissions || [];
+                  const pending = submissions.filter(
+                    (submission) => submission.status === "submitted"
+                  );
+                  const graded = submissions.filter(
+                    (submission) => submission.status === "graded"
+                  );
 
-                return (
-                  <tr key={assignment.id}>
-                    <td>
-                      <strong>{assignment.title}</strong>
-                      <br />
-                      <small>{assignment.description || "No description"}</small>
-                    </td>
+                  return (
+                    <tr key={assignment.id}>
+                      <td>
+                        <strong>{assignment.title}</strong>
+                        <small>{assignment.description || "No description"}</small>
+                      </td>
 
-                    <td>{assignment.tool || "General"}</td>
+                      <td>{assignment.tool || "General"}</td>
 
-                    <td>{assignment.due_date || "-"}</td>
+                      <td>{formatDate(assignment.due_date)}</td>
 
-                    <td>
-                      <span className={`statusPill ${assignment.status}`}>
-                        {assignment.status}
-                      </span>
-                    </td>
+                      <td>
+                        <span className={`statusPill ${getStatusClass(assignment.status)}`}>
+                          {getStatusLabel(assignment.status)}
+                        </span>
+                      </td>
 
-                    <td>{submissions.length}</td>
-
-                    <td>{pending.length}</td>
-
-                    <td>{graded.length}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td>{submissions.length}</td>
+                      <td>{pending.length}</td>
+                      <td>{graded.length}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Grade Submissions</h2>
+      <section className="tutorSubmissionFilterBar">
+        <button
+          type="button"
+          className={activeSubmissionFilter === "all" ? "active" : ""}
+          onClick={() => setActiveSubmissionFilter("all")}
+        >
+          All Submissions
+        </button>
 
-        {allSubmissions.length === 0 ? (
-          <p>No student submissions yet.</p>
+        <button
+          type="button"
+          className={activeSubmissionFilter === "submitted" ? "active" : ""}
+          onClick={() => setActiveSubmissionFilter("submitted")}
+        >
+          Pending Grading
+        </button>
+
+        <button
+          type="button"
+          className={activeSubmissionFilter === "graded" ? "active" : ""}
+          onClick={() => setActiveSubmissionFilter("graded")}
+        >
+          Graded
+        </button>
+      </section>
+
+      <section className="dashboardPanel tutorSubmissionPanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Grade Submissions</h2>
+            <p>
+              Review student work, open submitted links, enter scores, and send
+              feedback.
+            </p>
+          </div>
+        </div>
+
+        {filteredSubmissions.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No submission found</h3>
+            <p>No student submission matches this filter yet.</p>
+          </div>
         ) : (
-          <div className="assignmentStack">
-            {allSubmissions.map((submission) => {
+          <div className="tutorSubmissionStack">
+            {filteredSubmissions.map((submission) => {
               const isGrading = gradingId === submission.id;
 
               return (
-                <article className="assignmentBox" key={submission.id}>
-                  <div className="assignmentTop">
+                <article className="tutorSubmissionBox" key={submission.id}>
+                  <div className="tutorSubmissionTop">
                     <div>
+                      <p className="eyebrow">{submission.assignment_tool || "General"}</p>
                       <h3>{submission.assignment_title}</h3>
                       <p>
                         {submission.students?.profiles?.full_name || "Student"}{" "}
@@ -420,23 +593,26 @@ function TutorAssignments() {
                       </p>
                     </div>
 
-                    <span className={`statusPill ${submission.status}`}>
-                      {submission.status}
+                    <span className={`statusPill ${getStatusClass(submission.status)}`}>
+                      {getStatusLabel(submission.status)}
                     </span>
                   </div>
 
-                  <div className="assignmentMeta">
-                    <span>Tool: {submission.assignment_tool || "General"}</span>
+                  <div className="tutorSubmissionMetaGrid">
                     <span>
-                      Submitted:{" "}
-                      {submission.submitted_at
-                        ? new Date(submission.submitted_at).toLocaleString()
-                        : "-"}
+                      <strong>Submitted:</strong>{" "}
+                      {formatDateTime(submission.submitted_at)}
                     </span>
-                    <span>Score: {submission.score ?? "Not graded"}</span>
+                    <span>
+                      <strong>Score:</strong>{" "}
+                      {submission.score ?? "Not graded"}
+                    </span>
+                    <span>
+                      <strong>Status:</strong> {getStatusLabel(submission.status)}
+                    </span>
                   </div>
 
-                  <div className="submissionSummary">
+                  <div className="tutorSubmissionContent">
                     <h4>Student Work</h4>
 
                     <p>
@@ -444,7 +620,7 @@ function TutorAssignments() {
                       {submission.submission_text || "No note submitted."}
                     </p>
 
-                    {submission.submission_link && (
+                    {submission.submission_link ? (
                       <p>
                         <strong>Link:</strong>{" "}
                         <a
@@ -455,6 +631,10 @@ function TutorAssignments() {
                           Open submitted work
                         </a>
                       </p>
+                    ) : (
+                      <p>
+                        <strong>Link:</strong> No submission link provided.
+                      </p>
                     )}
 
                     <p>
@@ -464,7 +644,7 @@ function TutorAssignments() {
                   </div>
 
                   <form
-                    className="portalForm submissionForm"
+                    className="portalForm tutorSubmissionForm"
                     onSubmit={(event) => {
                       event.preventDefault();
                       handleGradeSubmission(submission);
@@ -495,11 +675,7 @@ function TutorAssignments() {
 
                       <label>
                         Status
-                        <input
-                          type="text"
-                          value="graded"
-                          readOnly
-                        />
+                        <input type="text" value="graded" readOnly />
                       </label>
                     </div>
 
@@ -536,7 +712,7 @@ function TutorAssignments() {
             })}
           </div>
         )}
-      </div>
+      </section>
     </section>
   );
 }
