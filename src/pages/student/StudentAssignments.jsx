@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   getStudentAssignmentsForCurrentUser,
@@ -27,6 +27,32 @@ function formatDateTime(value) {
   });
 }
 
+function getAssignmentStatusLabel(status) {
+  const labels = {
+    published: "Published",
+    draft: "Draft",
+    closed: "Closed",
+  };
+
+  return labels[status] || status || "-";
+}
+
+function getSubmissionStatusLabel(status) {
+  const labels = {
+    submitted: "Submitted",
+    graded: "Graded",
+  };
+
+  return labels[status] || status || "Not Submitted";
+}
+
+function getStatusClass(status) {
+  if (["published", "graded"].includes(status)) return "issued";
+  if (["submitted", "draft"].includes(status)) return "pending";
+  if (status === "closed") return "urgent";
+  return "pending";
+}
+
 function StudentAssignments() {
   const { session, profile } = useAuth();
 
@@ -35,6 +61,7 @@ function StudentAssignments() {
     student: null,
   });
   const [submissionForms, setSubmissionForms] = useState({});
+  const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -74,7 +101,70 @@ function StudentAssignments() {
     loadStudentAssignments();
   }, [session?.user?.id]);
 
+  const assignments = useMemo(() => {
+    return assignmentData?.assignments || [];
+  }, [assignmentData]);
+
+  const summary = useMemo(() => {
+    const submittedAssignments = assignments.filter(
+      (assignment) => assignment.student_submission
+    );
+
+    const gradedAssignments = assignments.filter(
+      (assignment) => assignment.student_submission?.status === "graded"
+    );
+
+    const pendingAssignments = assignments.filter(
+      (assignment) =>
+        assignment.status !== "closed" && !assignment.student_submission
+    );
+
+    return {
+      total: assignments.length,
+      published: assignments.filter(
+        (assignment) => assignment.status === "published"
+      ).length,
+      submitted: submittedAssignments.length,
+      pending: pendingAssignments.length,
+      graded: gradedAssignments.length,
+      closed: assignments.filter((assignment) => assignment.status === "closed")
+        .length,
+    };
+  }, [assignments]);
+
+  const filteredAssignments = useMemo(() => {
+    if (activeFilter === "all") return assignments;
+
+    if (activeFilter === "pending") {
+      return assignments.filter(
+        (assignment) =>
+          assignment.status !== "closed" && !assignment.student_submission
+      );
+    }
+
+    if (activeFilter === "submitted") {
+      return assignments.filter(
+        (assignment) => assignment.student_submission?.status === "submitted"
+      );
+    }
+
+    if (activeFilter === "graded") {
+      return assignments.filter(
+        (assignment) => assignment.student_submission?.status === "graded"
+      );
+    }
+
+    if (activeFilter === "closed") {
+      return assignments.filter((assignment) => assignment.status === "closed");
+    }
+
+    return assignments;
+  }, [assignments, activeFilter]);
+
   function handleSubmissionChange(assignmentId, field, value) {
+    setSuccessMessage("");
+    setActionError("");
+
     setSubmissionForms((current) => ({
       ...current,
       [assignmentId]: {
@@ -135,14 +225,14 @@ function StudentAssignments() {
 
   if (notice) {
     return (
-      <>
-        <header className="dashboardHeader">
+      <section className="studentAssignmentPage">
+        <header className="dashboardHeader compactDashboardHeader">
           <div>
             <p className="eyebrow">Student Assignments</p>
             <h1>My Assignments</h1>
             <p>
-              Something stopped your assignments from loading. Use refresh, and
-              if it continues, we will check the assignment service file.
+              Something stopped your assignments from loading. Refresh the page
+              and try again.
             </p>
           </div>
 
@@ -155,38 +245,19 @@ function StudentAssignments() {
           <h2>Assignment Issue</h2>
           <p>{notice}</p>
         </section>
-      </>
+      </section>
     );
   }
 
-  const assignments = assignmentData?.assignments || [];
-
-  const publishedAssignments = assignments.filter(
-    (assignment) => assignment.status === "published"
-  );
-
-  const closedAssignments = assignments.filter(
-    (assignment) => assignment.status === "closed"
-  );
-
-  const submittedAssignments = assignments.filter(
-    (assignment) => assignment.student_submission
-  );
-
-  const pendingAssignments = assignments.filter(
-    (assignment) =>
-      assignment.status !== "closed" && !assignment.student_submission
-  );
-
   return (
     <section className="studentAssignmentPage">
-      <header className="dashboardHeader">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Student Assignments</p>
           <h1>My Assignments</h1>
           <p>
-            Welcome, {profile?.full_name || "Student"}. View your assignments,
-            submit your work, and track tutor feedback.
+            Welcome, {profile?.full_name || "Student"}. View assignments, submit
+            your work, and track tutor scores and feedback.
           </p>
         </div>
 
@@ -207,105 +278,189 @@ function StudentAssignments() {
         </div>
       )}
 
-      <section className="assignmentSummaryGrid">
+      <section className="studentAssignmentSummaryGrid">
         <article className="dashboardCard">
           <p>Total</p>
-          <h2>{assignments.length}</h2>
+          <h2>{summary.total}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Published</p>
-          <h2>{publishedAssignments.length}</h2>
+          <h2>{summary.published}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Submitted</p>
-          <h2>{submittedAssignments.length}</h2>
+          <h2>{summary.submitted}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Pending</p>
-          <h2>{pendingAssignments.length}</h2>
+          <h2>{summary.pending}</h2>
+        </article>
+
+        <article className="dashboardCard">
+          <p>Graded</p>
+          <h2>{summary.graded}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Closed</p>
-          <h2>{closedAssignments.length}</h2>
+          <h2>{summary.closed}</h2>
         </article>
 
-        <article className="dashboardCard">
+        <article className="dashboardCard studentAssignmentInfoCard">
           <p>Student Code</p>
           <h2>{assignmentData?.student?.student_code || "N/A"}</h2>
         </article>
 
-        <article className="dashboardCard wideAssignmentCard">
+        <article className="dashboardCard studentAssignmentInfoCard">
           <p>Course</p>
           <h2>{assignmentData?.student?.enrolled_course || "Data Analysis"}</h2>
         </article>
       </section>
 
-      <section className="dashboardPanel">
+      <section className="studentAssignmentFilterBar">
+        <button
+          type="button"
+          className={activeFilter === "all" ? "active" : ""}
+          onClick={() => setActiveFilter("all")}
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "pending" ? "active" : ""}
+          onClick={() => setActiveFilter("pending")}
+        >
+          Pending
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "submitted" ? "active" : ""}
+          onClick={() => setActiveFilter("submitted")}
+        >
+          Submitted
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "graded" ? "active" : ""}
+          onClick={() => setActiveFilter("graded")}
+        >
+          Graded
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "closed" ? "active" : ""}
+          onClick={() => setActiveFilter("closed")}
+        >
+          Closed
+        </button>
+      </section>
+
+      <section className="dashboardPanel studentAssignmentMainPanel">
         <div className="panelHeaderRow">
           <div>
             <h2>Assignment List</h2>
-            <p>Submit your work using a note, project link, or both.</p>
+            <p>
+              Submit your work using a note, project link, or both. Your tutor
+              will review, score, and provide feedback.
+            </p>
           </div>
         </div>
 
-        {assignments.length === 0 ? (
+        {filteredAssignments.length === 0 ? (
           <div className="emptyStateBox">
-            <h3>No assignment yet</h3>
+            <h3>No assignment found</h3>
             <p>
-              No assignment has been published for you yet. Once your tutor or
-              admin publishes one, it will appear here.
+              No assignment matches this filter yet. Published assignments will
+              appear here once assigned to you.
             </p>
           </div>
         ) : (
-          <div className="assignmentStack">
-            {assignments.map((assignment) => {
+          <div className="studentAssignmentStack">
+            {filteredAssignments.map((assignment) => {
               const submission = assignment.student_submission;
               const isClosed = assignment.status === "closed";
               const isSubmitting = submittingId === assignment.id;
 
               return (
-                <article className="assignmentBox" key={assignment.id}>
-                  <div className="assignmentTop">
+                <article className="studentAssignmentBox" key={assignment.id}>
+                  <div className="studentAssignmentTop">
                     <div>
+                      <p className="eyebrow">{assignment.tool || "General"}</p>
                       <h3>{assignment.title}</h3>
                       <p>{assignment.description || "No description provided."}</p>
                     </div>
 
-                    <span className={`statusPill ${assignment.status}`}>
-                      {assignment.status}
+                    <span
+                      className={`statusPill ${getStatusClass(
+                        assignment.status
+                      )}`}
+                    >
+                      {getAssignmentStatusLabel(assignment.status)}
                     </span>
                   </div>
 
-                  <div className="assignmentMeta">
-                    <span>Tool: {assignment.tool || "General"}</span>
-                    <span>Due: {formatDate(assignment.due_date)}</span>
+                  <div className="studentAssignmentMetaGrid">
                     <span>
-                      Tutor:{" "}
+                      <strong>Tool:</strong> {assignment.tool || "General"}
+                    </span>
+
+                    <span>
+                      <strong>Due:</strong> {formatDate(assignment.due_date)}
+                    </span>
+
+                    <span>
+                      <strong>Tutor:</strong>{" "}
                       {assignment.tutors?.profiles?.full_name ||
                         assignment.tutor_name ||
                         "Tutor not assigned"}
                     </span>
+
+                    <span>
+                      <strong>Submission:</strong>{" "}
+                      {submission
+                        ? getSubmissionStatusLabel(submission.status)
+                        : "Not Submitted"}
+                    </span>
                   </div>
 
                   {submission ? (
-                    <div className="submissionSummary">
+                    <div className="studentSubmissionSummary">
                       <h4>Your Submission</h4>
 
-                      <p>
-                        <strong>Status:</strong>{" "}
-                        <span className={`statusPill ${submission.status}`}>
-                          {submission.status}
-                        </span>
-                      </p>
+                      <div className="studentSubmissionGrid">
+                        <p>
+                          <strong>Status:</strong>{" "}
+                          <span
+                            className={`statusPill ${getStatusClass(
+                              submission.status
+                            )}`}
+                          >
+                            {getSubmissionStatusLabel(submission.status)}
+                          </span>
+                        </p>
 
-                      <p>
-                        <strong>Submitted:</strong>{" "}
-                        {formatDateTime(submission.submitted_at)}
-                      </p>
+                        <p>
+                          <strong>Submitted:</strong>{" "}
+                          {formatDateTime(submission.submitted_at)}
+                        </p>
+
+                        <p>
+                          <strong>Score:</strong>{" "}
+                          {submission.score ?? "Not graded yet"}
+                        </p>
+
+                        <p>
+                          <strong>Feedback:</strong>{" "}
+                          {submission.feedback || "No feedback yet"}
+                        </p>
+                      </div>
 
                       {submission.submission_text && (
                         <p>
@@ -325,24 +480,17 @@ function StudentAssignments() {
                           </a>
                         </p>
                       )}
-
-                      <p>
-                        <strong>Score:</strong>{" "}
-                        {submission.score ?? "Not graded yet"}
-                      </p>
-
-                      <p>
-                        <strong>Feedback:</strong>{" "}
-                        {submission.feedback || "No feedback yet"}
-                      </p>
                     </div>
                   ) : (
-                    <p className="mutedText">You have not submitted this yet.</p>
+                    <div className="studentSubmissionEmpty">
+                      <strong>Not submitted yet</strong>
+                      <p>Use the form below to submit your work.</p>
+                    </div>
                   )}
 
                   {!isClosed ? (
                     <form
-                      className="portalForm submissionForm"
+                      className="portalForm studentSubmissionForm"
                       onSubmit={(event) => {
                         event.preventDefault();
                         handleSubmitAssignment(assignment);
@@ -397,9 +545,9 @@ function StudentAssignments() {
                       </button>
                     </form>
                   ) : (
-                    <p className="mutedText">
+                    <div className="studentSubmissionClosed">
                       This assignment is closed and can no longer be submitted.
-                    </p>
+                    </div>
                   )}
                 </article>
               );
