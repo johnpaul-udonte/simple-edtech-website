@@ -189,17 +189,23 @@ export async function getTutorStudentsForCurrentUser(userId) {
     data: {
       tutor,
       students: studentList,
+      bookings: [],
       summary: {
         totalStudents: studentList.length,
-        restrictedStudents: studentList.filter((student) => student.is_restricted)
-          .length,
-        activeStudents: studentList.filter(
-          (student) => student.profiles?.status === "active"
+        restrictedStudents: studentList.filter(
+          (student) => student.is_restricted
         ).length,
+        activeStudents: studentList.filter((student) => !student.is_restricted)
+          .length,
         totalCompletedClasses: studentList.reduce(
           (sum, student) => sum + Number(student.completed_classes || 0),
           0
         ),
+        totalOutstandingBalance: studentList.reduce(
+          (sum, student) => sum + Number(student.payment_balance || 0),
+          0
+        ),
+        totalBookings: 0,
       },
     },
     error: null,

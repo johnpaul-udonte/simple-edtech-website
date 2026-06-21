@@ -6824,3 +6824,528 @@ iframe {
     padding: 18px;
   }
 }
+
+/* =========================================
+   TUTOR STUDENTS PAGE
+========================================= */
+
+.tutorStudentsPage .dashboardHeader {
+  margin-bottom: 18px !important;
+}
+
+.tutorStudentsSummaryGrid {
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 20px !important;
+}
+
+.tutorStudentsSummaryGrid .dashboardCard {
+  min-height: 96px !important;
+  padding: 14px 10px !important;
+  border-radius: 18px !important;
+}
+
+.tutorStudentsSummaryGrid .dashboardCard p {
+  font-size: 12px !important;
+  margin-bottom: 5px !important;
+  line-height: 1.2 !important;
+}
+
+.tutorStudentsSummaryGrid .dashboardCard h2 {
+  font-size: 22px !important;
+  line-height: 1.12 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.tutorStudentsMainPanel {
+  padding: 22px !important;
+  overflow: hidden !important;
+}
+
+.tutorStudentsFullTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid #e4edf9;
+  background: #ffffff;
+}
+
+.tutorStudentsFullTable {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: collapse;
+}
+
+.tutorStudentsFullTable th,
+.tutorStudentsFullTable td {
+  padding: 12px 11px !important;
+  font-size: 12.5px !important;
+  line-height: 1.35 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tutorStudentsFullTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.tutorStudentsFullTable strong {
+  display: block;
+  color: #082b61;
+  font-size: 13px;
+}
+
+.tutorStudentsFullTable small {
+  display: block;
+  margin-top: 4px;
+  color: #5f718b;
+  font-size: 11.5px;
+}
+
+.studentProgressCell {
+  min-width: 130px;
+}
+
+.miniProgressTrack {
+  height: 8px;
+  margin: 6px 0;
+  border-radius: 999px;
+  background: #eaf1fb;
+  overflow: hidden;
+}
+
+.miniProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: #0b4ea2;
+}
+
+.latestBookingCell {
+  display: grid;
+  gap: 4px;
+}
+
+.tutorStudentsRulePanel {
+  margin-top: 20px !important;
+}
+
+@media (max-width: 1250px) {
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================
+   FIX TUTOR STUDENTS SPECIALISATION CARD
+========================================= */
+
+.tutorStudentsSummaryGrid {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+}
+
+/* First six cards stay normal */
+.tutorStudentsSummaryGrid .dashboardCard:not(:last-child) {
+  grid-column: span 1 !important;
+}
+
+/* Specialisation card becomes wider */
+.tutorStudentsSummaryGrid .dashboardCard:last-child {
+  grid-column: span 2 !important;
+  text-align: left !important;
+  align-content: center !important;
+  padding: 16px 18px !important;
+}
+
+/* Specialisation label */
+.tutorStudentsSummaryGrid .dashboardCard:last-child p {
+  font-size: 11.5px !important;
+  letter-spacing: 0.04em !important;
+  margin-bottom: 8px !important;
+}
+
+/* Specialisation value */
+.tutorStudentsSummaryGrid .dashboardCard:last-child h2 {
+  font-size: 20px !important;
+  line-height: 1.18 !important;
+  letter-spacing: -0.02em !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+  text-align: left !important;
+}
+
+/* Better table horizontal scroll spacing */
+.tutorStudentsFullTable {
+  min-width: 1120px !important;
+}
+
+@media (max-width: 1250px) {
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .tutorStudentsSummaryGrid .dashboardCard:last-child {
+    grid-column: span 3 !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tutorStudentsSummaryGrid .dashboardCard:last-child {
+    grid-column: span 1 !important;
+  }
+}
+
+/* =========================================
+   FINAL PROFESSIONAL FIX - TUTOR STUDENTS PAGE
+   Prevent overlap, improve card spacing, table layout
+========================================= */
+
+.tutorStudentsPage {
+  width: 100% !important;
+}
+
+/* Header spacing */
+.tutorStudentsPage .dashboardHeader {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+.tutorStudentsPage .dashboardHeader h1 {
+  font-size: clamp(44px, 5vw, 68px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.06em !important;
+}
+
+.tutorStudentsPage .dashboardHeader p {
+  max-width: 760px !important;
+  font-size: 17px !important;
+  line-height: 1.5 !important;
+}
+
+/* Summary cards - no squeezing */
+.tutorStudentsSummaryGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 26px !important;
+  align-items: stretch !important;
+}
+
+/* All cards */
+.tutorStudentsSummaryGrid .dashboardCard {
+  min-height: 125px !important;
+  padding: 18px 16px !important;
+  border-radius: 22px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+/* Card labels */
+.tutorStudentsSummaryGrid .dashboardCard p {
+  max-width: 100% !important;
+  margin-bottom: 8px !important;
+  color: #5f718b !important;
+  font-size: 12.5px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* Card values */
+.tutorStudentsSummaryGrid .dashboardCard h2 {
+  max-width: 100% !important;
+  color: #0b4ea2 !important;
+  font-size: 28px !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.04em !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Outstanding balance should not squeeze */
+.tutorStudentsSummaryGrid .dashboardCard:nth-child(5) h2 {
+  font-size: 25px !important;
+  white-space: nowrap !important;
+}
+
+/* Specialisation card becomes a proper wide card */
+.tutorStudentsSummaryGrid .dashboardCard:last-child {
+  grid-column: span 2 !important;
+  align-content: center !important;
+  justify-items: start !important;
+  text-align: left !important;
+  padding: 22px 24px !important;
+  background: linear-gradient(135deg, #ffffff, #f8fbff) !important;
+}
+
+.tutorStudentsSummaryGrid .dashboardCard:last-child p {
+  text-align: left !important;
+  font-size: 12px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 10px !important;
+}
+
+.tutorStudentsSummaryGrid .dashboardCard:last-child h2 {
+  text-align: left !important;
+  font-size: 24px !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.03em !important;
+  white-space: normal !important;
+}
+
+/* Assigned students panel */
+.tutorStudentsMainPanel {
+  padding: 28px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+}
+
+.tutorStudentsMainPanel .panelHeaderRow {
+  text-align: center !important;
+  justify-content: center !important;
+  margin-bottom: 22px !important;
+}
+
+.tutorStudentsMainPanel .panelHeaderRow h2 {
+  font-size: 34px !important;
+  line-height: 1.1 !important;
+  margin-bottom: 8px !important;
+}
+
+.tutorStudentsMainPanel .panelHeaderRow p {
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  font-size: 15.5px !important;
+  line-height: 1.5 !important;
+}
+
+/* Table wrapper */
+.tutorStudentsFullTableWrap {
+  width: 100% !important;
+  overflow-x: auto !important;
+  border-radius: 20px !important;
+  border: 1px solid #dfeaf8 !important;
+  background: #ffffff !important;
+}
+
+/* Better scrollbar */
+.tutorStudentsFullTableWrap::-webkit-scrollbar {
+  height: 10px !important;
+}
+
+.tutorStudentsFullTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff !important;
+  border-radius: 999px !important;
+}
+
+.tutorStudentsFullTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2 !important;
+  border-radius: 999px !important;
+}
+
+/* Table should have enough space */
+.tutorStudentsFullTable {
+  width: 100% !important;
+  min-width: 1180px !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+}
+
+/* Column widths */
+.tutorStudentsFullTable th:nth-child(1),
+.tutorStudentsFullTable td:nth-child(1) {
+  width: 190px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(2),
+.tutorStudentsFullTable td:nth-child(2) {
+  width: 210px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(3),
+.tutorStudentsFullTable td:nth-child(3) {
+  width: 140px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(4),
+.tutorStudentsFullTable td:nth-child(4) {
+  width: 180px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(5),
+.tutorStudentsFullTable td:nth-child(5) {
+  width: 120px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(6),
+.tutorStudentsFullTable td:nth-child(6) {
+  width: 150px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(7),
+.tutorStudentsFullTable td:nth-child(7) {
+  width: 120px !important;
+}
+
+.tutorStudentsFullTable th:nth-child(8),
+.tutorStudentsFullTable td:nth-child(8) {
+  width: 170px !important;
+}
+
+/* Table cells */
+.tutorStudentsFullTable th {
+  padding: 14px 14px !important;
+  background: #f1f6ff !important;
+  color: #082b61 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+
+.tutorStudentsFullTable td {
+  padding: 14px 14px !important;
+  color: #1f2a44 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb !important;
+  vertical-align: middle !important;
+  overflow-wrap: anywhere !important;
+}
+
+.tutorStudentsFullTable td strong {
+  display: block !important;
+  color: #082b61 !important;
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
+}
+
+.tutorStudentsFullTable td small {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #5f718b !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+/* Progress cell */
+.studentProgressCell {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.studentProgressCell strong {
+  margin-bottom: 5px !important;
+}
+
+.miniProgressTrack {
+  width: 100% !important;
+  height: 9px !important;
+  margin: 7px 0 !important;
+  border-radius: 999px !important;
+  background: #eaf1fb !important;
+  overflow: hidden !important;
+}
+
+.miniProgressFill {
+  height: 100% !important;
+  border-radius: inherit !important;
+  background: #0b4ea2 !important;
+}
+
+/* Status pills */
+.tutorStudentsFullTable .statusPill {
+  display: inline-flex !important;
+  width: fit-content !important;
+  padding: 7px 11px !important;
+  border-radius: 999px !important;
+  font-size: 11.5px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* Monitoring rules */
+.tutorStudentsRulePanel {
+  margin-top: 24px !important;
+  padding: 28px !important;
+  border-radius: 28px !important;
+  text-align: center !important;
+}
+
+.tutorStudentsRulePanel h2 {
+  font-size: 32px !important;
+  margin-bottom: 10px !important;
+}
+
+.tutorStudentsRulePanel p {
+  max-width: 820px !important;
+  margin: 0 auto !important;
+  line-height: 1.6 !important;
+}
+
+/* Medium screens */
+@media (max-width: 1250px) {
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .tutorStudentsSummaryGrid .dashboardCard:last-child {
+    grid-column: span 3 !important;
+  }
+}
+
+/* Smaller screens */
+@media (max-width: 850px) {
+  .tutorStudentsPage .dashboardHeader {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .tutorStudentsSummaryGrid .dashboardCard:last-child {
+    grid-column: span 2 !important;
+  }
+
+  .tutorStudentsMainPanel {
+    padding: 20px !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 560px) {
+  .tutorStudentsSummaryGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tutorStudentsSummaryGrid .dashboardCard:last-child {
+    grid-column: span 1 !important;
+  }
+
+  .tutorStudentsSummaryGrid .dashboardCard:nth-child(5) h2 {
+    white-space: normal !important;
+  }
+}

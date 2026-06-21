@@ -1,6 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getTutorStudentsForCurrentUser } from "../../services/tutorService";
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleDateString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getProgress(student) {
+  const total = Number(student.total_paid_classes || 0);
+  const completed = Number(student.completed_classes || 0);
+
+  if (total <= 0) return 0;
+
+  return Math.min(Math.round((completed / total) * 100), 100);
+}
 
 function TutorStudents() {
   const { session, profile } = useAuth();
@@ -9,30 +36,57 @@ function TutorStudents() {
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
-  useEffect(() => {
-    async function loadTutorStudents() {
-      if (!session?.user?.id) {
-        setNotice("No active tutor session found.");
-        setIsLoading(false);
-        return;
-      }
+  async function loadTutorStudents() {
+    setIsLoading(true);
+    setNotice("");
 
-      const { data, error } = await getTutorStudentsForCurrentUser(
-        session.user.id
-      );
-
-      if (error) {
-        setNotice(error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setStudentData(data);
+    if (!session?.user?.id) {
+      setNotice("No active tutor session found.");
       setIsLoading(false);
+      return;
     }
 
+    const { data, error } = await getTutorStudentsForCurrentUser(
+      session.user.id
+    );
+
+    if (error) {
+      setNotice(error.message || "Could not load assigned students.");
+      setIsLoading(false);
+      return;
+    }
+
+    setStudentData(data);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
     loadTutorStudents();
-  }, [session]);
+  }, [session?.user?.id]);
+
+  const students = studentData?.students || [];
+  const bookings = studentData?.bookings || [];
+  const summary = studentData?.summary || {};
+
+  const sortedStudents = useMemo(() => {
+    return [...students].sort((a, b) => {
+      if (a.is_restricted === b.is_restricted) {
+        return (a.profiles?.full_name || "").localeCompare(
+          b.profiles?.full_name || ""
+        );
+      }
+
+      return a.is_restricted ? 1 : -1;
+    });
+  }, [students]);
+
+  function getStudentBookings(studentId) {
+    return bookings.filter((booking) => booking.student_id === studentId);
+  }
+
+  function getLatestBooking(studentId) {
+    return getStudentBookings(studentId)[0] || null;
+  }
 
   if (isLoading) {
     return (
@@ -48,201 +102,205 @@ function TutorStudents() {
       <section className="dashboardPanel">
         <h2>Tutor students issue</h2>
         <p>{notice}</p>
+
+        <button type="button" className="tableActionBtn" onClick={loadTutorStudents}>
+          Try Again
+        </button>
       </section>
     );
   }
 
-  const students = studentData?.students || [];
-  const bookings = studentData?.bookings || [];
-
-  const activeStudents = students.filter((student) => !student.is_restricted);
-  const restrictedStudents = students.filter((student) => student.is_restricted);
-
-  const totalCompletedClasses = students.reduce(
-    (sum, student) => sum + Number(student.completed_classes || 0),
-    0
-  );
-
-  const totalOutstandingBalance = students.reduce(
-    (sum, student) => sum + Number(student.payment_balance || 0),
-    0
-  );
-
-  function getStudentBookings(studentId) {
-    return bookings.filter((booking) => booking.student_id === studentId);
-  }
-
-  function getLatestBooking(studentId) {
-    return getStudentBookings(studentId)[0] || null;
-  }
-
-  function getProgress(student) {
-    const total = Number(student.total_paid_classes || 0);
-    const completed = Number(student.completed_classes || 0);
-
-    if (total <= 0) {
-      return 0;
-    }
-
-    return Math.round((completed / total) * 100);
-  }
+  const tutorCards = [
+    {
+      label: "Assigned Students",
+      value: summary.totalStudents || students.length,
+    },
+    {
+      label: "Active Students",
+      value: summary.activeStudents || 0,
+    },
+    {
+      label: "Restricted",
+      value: summary.restrictedStudents || 0,
+    },
+    {
+      label: "Completed Classes",
+      value: summary.totalCompletedClasses || 0,
+    },
+    {
+      label: "Outstanding Balance",
+      value: formatMoney(summary.totalOutstandingBalance || 0),
+    },
+    {
+      label: "Total Bookings",
+      value: summary.totalBookings || bookings.length,
+    },
+    {
+      label: "Specialisation",
+      value: studentData?.tutor?.specialisation || "Not set",
+    },
+  ];
 
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="tutorStudentsPage">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Tutor Portal</p>
           <h1>My Students</h1>
           <p>
-            Welcome, {profile?.full_name || "Tutor"}. View your assigned
-            students, progress, class balance, access status, and latest class
+            Welcome, {profile?.full_name || "Tutor"}. Monitor assigned students,
+            class progress, payment balance, access status, and latest class
             activity.
           </p>
         </div>
 
-        <button>Message Students</button>
-      </div>
+        <button type="button" onClick={loadTutorStudents}>
+          Refresh
+        </button>
+      </header>
 
-      <div className="dashboardGrid">
-        <article className="dashboardCard">
-          <p>Assigned Students</p>
-          <h2>{students.length}</h2>
-        </article>
+      <section className="dashboardGrid tutorStudentsSummaryGrid">
+        {tutorCards.map((card) => (
+          <article className="dashboardCard" key={card.label}>
+            <p>{card.label}</p>
+            <h2>{card.value}</h2>
+          </article>
+        ))}
+      </section>
 
-        <article className="dashboardCard">
-          <p>Active Students</p>
-          <h2>{activeStudents.length}</h2>
-        </article>
-
-        <article className="dashboardCard">
-          <p>Restricted Students</p>
-          <h2>{restrictedStudents.length}</h2>
-        </article>
-
-        <article className="dashboardCard">
-          <p>Completed Classes</p>
-          <h2>{totalCompletedClasses}</h2>
-        </article>
-
-        <article className="dashboardCard">
-          <p>Outstanding Balance</p>
-          <h2>₦{totalOutstandingBalance.toLocaleString()}</h2>
-        </article>
-
-        <article className="dashboardCard">
-          <p>Total Bookings</p>
-          <h2>{bookings.length}</h2>
-        </article>
-
-        <article className="dashboardCard">
-          <p>Specialisation</p>
-          <h2>{studentData?.tutor?.specialisation || "Not set"}</h2>
-        </article>
-      </div>
-
-      <div className="dashboardPanel">
-        <h2>Assigned Students</h2>
+      <section className="dashboardPanel tutorStudentsMainPanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Assigned Students</h2>
+            <p>
+              Use this table to quickly check progress, balance, restrictions,
+              and recent class activity.
+            </p>
+          </div>
+        </div>
 
         {students.length === 0 ? (
-          <p>No students have been assigned to you yet.</p>
+          <div className="emptyStateBox">
+            <h3>No assigned student yet</h3>
+            <p>
+              Once admin assigns students to you, they will appear here with
+              their course and progress details.
+            </p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Email</th>
-                <th>Course</th>
-                <th>Progress</th>
-                <th>Classes</th>
-                <th>Balance</th>
-                <th>Access</th>
-                <th>Latest Class</th>
-              </tr>
-            </thead>
+          <div className="tutorStudentsFullTableWrap">
+            <table className="tutorStudentsFullTable">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                  <th>Progress</th>
+                  <th>Classes</th>
+                  <th>Balance</th>
+                  <th>Access</th>
+                  <th>Latest Class</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {students.map((student) => {
-                const total = Number(student.total_paid_classes || 0);
-                const completed = Number(student.completed_classes || 0);
-                const remaining = Math.max(total - completed, 0);
-                const progress = getProgress(student);
-                const latestBooking = getLatestBooking(student.id);
+              <tbody>
+                {sortedStudents.map((student) => {
+                  const total = Number(student.total_paid_classes || 0);
+                  const completed = Number(student.completed_classes || 0);
+                  const remaining = Math.max(total - completed, 0);
+                  const progress = getProgress(student);
+                  const latestBooking = getLatestBooking(student.id);
 
-                return (
-                  <tr key={student.id}>
-                    <td>
-                      {student.profiles?.full_name || "Unnamed Student"}
-                      <br />
-                      <small>{student.student_code || "-"}</small>
-                    </td>
+                  return (
+                    <tr key={student.id}>
+                      <td>
+                        <strong>
+                          {student.profiles?.full_name || "Unnamed Student"}
+                        </strong>
+                        <small>{student.student_code || "-"}</small>
+                      </td>
 
-                    <td>{student.profiles?.email || "-"}</td>
+                      <td>{student.profiles?.email || "-"}</td>
 
-                    <td>{student.enrolled_course || "Data Analysis"}</td>
+                      <td>{student.enrolled_course || "Data Analysis"}</td>
 
-                    <td>
-                      <strong>{progress}%</strong>
-                      <div className="progressTrack">
-                        <div
-                          className="progressFill"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </td>
+                      <td>
+                        <div className="studentProgressCell">
+                          <strong>{progress}%</strong>
 
-                    <td>
-                      {completed} / {total}
-                      <br />
-                      <small>{remaining} remaining</small>
-                    </td>
+                          <div className="miniProgressTrack">
+                            <div
+                              className="miniProgressFill"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
 
-                    <td>
-                      ₦{Number(student.payment_balance || 0).toLocaleString()}
-                    </td>
-
-                    <td>
-                      <span
-                        className={`statusPill ${
-                          student.is_restricted ? "cancelled" : "approved"
-                        }`}
-                      >
-                        {student.is_restricted ? "Restricted" : "Active"}
-                      </span>
-                    </td>
-
-                    <td>
-                      {latestBooking ? (
-                        <>
-                          <span className={`statusPill ${latestBooking.status}`}>
-                            {latestBooking.status}
-                          </span>
-                          <br />
                           <small>
-                            {latestBooking.class_slots?.slot_date || "-"} |{" "}
-                            {latestBooking.class_slots?.start_time || "-"} -{" "}
-                            {latestBooking.class_slots?.end_time || "-"}
+                            {completed} of {total} classes
                           </small>
-                        </>
-                      ) : (
-                        <span className="mutedText">No booking yet</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+                        </div>
+                      </td>
 
-      <div className="dashboardPanel">
+                      <td>
+                        <strong>{remaining}</strong>
+                        <small>classes left</small>
+                      </td>
+
+                      <td>
+                        <strong>{formatMoney(student.payment_balance || 0)}</strong>
+                      </td>
+
+                      <td>
+                        <span
+                          className={`statusPill ${
+                            student.is_restricted ? "urgent" : "approved"
+                          }`}
+                        >
+                          {student.is_restricted ? "Restricted" : "Active"}
+                        </span>
+                      </td>
+
+                      <td>
+                        {latestBooking ? (
+                          <div className="latestBookingCell">
+                            <span className={`statusPill ${latestBooking.status}`}>
+                              {latestBooking.status}
+                            </span>
+
+                            <small>
+                              {formatDate(latestBooking.class_slots?.slot_date)}
+                            </small>
+
+                            <small>
+                              {latestBooking.class_slots?.start_time || "-"} -{" "}
+                              {latestBooking.class_slots?.end_time || "-"}
+                            </small>
+
+                            {latestBooking.class_slots?.topic && (
+                              <small>{latestBooking.class_slots.topic}</small>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="mutedText">No booking yet</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="dashboardPanel tutorStudentsRulePanel">
         <h2>Student Monitoring Rules</h2>
         <p>
-          Students with payment or admin restrictions will show as{" "}
-          <strong>Restricted</strong>. Class progress is calculated from completed
-          classes divided by total paid classes.
+          Students marked as <strong>Restricted</strong> may have payment or
+          admin access restrictions. Progress is calculated as completed classes
+          divided by total paid classes.
         </p>
-      </div>
+      </section>
     </section>
   );
 }
