@@ -7609,3 +7609,585 @@ iframe {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   ADMIN SCHEDULE APPROVAL PAGE
+========================================= */
+
+.adminSchedulePage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.adminScheduleSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.adminScheduleSummaryGrid .dashboardCard {
+  min-height: 108px !important;
+  padding: 18px 14px !important;
+  border-radius: 20px !important;
+}
+
+.adminScheduleSummaryGrid .dashboardCard p {
+  font-size: 12.5px !important;
+  margin-bottom: 6px !important;
+  line-height: 1.2 !important;
+}
+
+.adminScheduleSummaryGrid .dashboardCard h2 {
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+}
+
+.adminScheduleFilterBar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #f1f6ff;
+  border: 1px solid #dbe8fb;
+}
+
+.adminScheduleFilterBar button {
+  min-height: 48px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #0b4ea2;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.adminScheduleFilterBar button.active {
+  background: #0b4ea2;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.16);
+}
+
+.adminScheduleTablePanel {
+  padding: 24px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+}
+
+.adminScheduleTablePanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.adminScheduleTablePanel .panelHeaderRow h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminScheduleTablePanel .panelHeaderRow p {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.adminScheduleTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid #dfeaf8;
+  background: #ffffff;
+}
+
+.adminScheduleTableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.adminScheduleTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.adminScheduleTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+.adminScheduleTable {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.adminScheduleTable th,
+.adminScheduleTable td {
+  padding: 14px 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.adminScheduleTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.adminScheduleTable th:nth-child(1),
+.adminScheduleTable td:nth-child(1) {
+  width: 180px;
+}
+
+.adminScheduleTable th:nth-child(2),
+.adminScheduleTable td:nth-child(2) {
+  width: 280px;
+}
+
+.adminScheduleTable th:nth-child(3),
+.adminScheduleTable td:nth-child(3) {
+  width: 100px;
+}
+
+.adminScheduleTable th:nth-child(4),
+.adminScheduleTable td:nth-child(4) {
+  width: 200px;
+}
+
+.adminScheduleTable th:nth-child(5),
+.adminScheduleTable td:nth-child(5) {
+  width: 150px;
+}
+
+.adminScheduleTable th:nth-child(6),
+.adminScheduleTable td:nth-child(6) {
+  width: 170px;
+}
+
+.adminScheduleTable th:nth-child(7),
+.adminScheduleTable td:nth-child(7) {
+  width: 110px;
+}
+
+.adminScheduleTable strong {
+  display: block;
+  color: #082b61;
+  font-size: 13.5px;
+}
+
+.adminScheduleTable small {
+  display: block;
+  margin-top: 4px;
+  color: #5f718b;
+  font-size: 11.5px;
+}
+
+.adminScheduleReviewPanel {
+  margin-top: 22px !important;
+  padding: 26px !important;
+  border-radius: 28px !important;
+}
+
+.adminScheduleReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.adminScheduleReviewGrid article {
+  padding: 18px;
+  border-radius: 20px;
+  background: #f8fbff;
+  border: 1px solid #e4edf9;
+}
+
+.adminScheduleReviewGrid h3 {
+  margin: 0 0 10px;
+  color: #082b61;
+  font-size: 18px;
+}
+
+.adminScheduleReviewGrid p {
+  margin: 7px 0;
+  color: #475467;
+  line-height: 1.5;
+}
+
+.adminDecisionNoteCard {
+  grid-column: span 2;
+}
+
+.adminScheduleReviewGrid textarea {
+  width: 100%;
+  min-height: 120px;
+  margin-top: 8px;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #082b61;
+  font-size: 14px;
+  font-weight: 700;
+  resize: vertical;
+}
+
+.adminScheduleActionGroup {
+  margin-top: 18px;
+  justify-content: center;
+}
+
+.adminScheduleRulesPanel {
+  margin-top: 22px !important;
+  padding: 28px !important;
+  border-radius: 28px !important;
+  text-align: center;
+}
+
+.adminScheduleRulesPanel h2 {
+  font-size: 30px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminScheduleRulesPanel p {
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 1050px) {
+  .adminScheduleSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .adminScheduleFilterBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adminScheduleReviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminDecisionNoteCard {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 620px) {
+  .adminScheduleSummaryGrid,
+  .adminScheduleFilterBar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   STUDENT SCHEDULE PAGE
+========================================= */
+
+.studentSchedulePage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.studentScheduleSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.studentScheduleSummaryGrid .dashboardCard {
+  min-height: 108px !important;
+  padding: 18px 14px !important;
+  border-radius: 20px !important;
+}
+
+.studentScheduleSummaryGrid .dashboardCard p {
+  font-size: 12.5px !important;
+  margin-bottom: 6px !important;
+}
+
+.studentScheduleSummaryGrid .dashboardCard h2 {
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+}
+
+.studentScheduleStatusPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+  gap: 20px;
+  align-items: center;
+  padding: 24px !important;
+  border-radius: 28px !important;
+  margin-bottom: 20px !important;
+  background: linear-gradient(135deg, #ffffff, #f8fbff) !important;
+}
+
+.studentScheduleStatusPanel h2 {
+  color: #082b61;
+  font-size: 34px;
+  margin-bottom: 8px;
+}
+
+.studentScheduleStatusPanel p {
+  color: #5f718b;
+  margin: 0;
+}
+
+.scheduleApprovalSteps {
+  display: grid;
+  gap: 10px;
+}
+
+.scheduleApprovalSteps span {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f1f6ff;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 900;
+  border: 1px solid #dbe8fb;
+}
+
+.scheduleApprovalSteps span.active {
+  background: #ecfdf3;
+  color: #067647;
+  border-color: #abefc6;
+}
+
+.approvedSchedulePanel,
+.pendingSchedulePanel {
+  padding: 22px !important;
+  border-radius: 26px !important;
+  margin-bottom: 20px !important;
+}
+
+.approvedSchedulePanel {
+  background: #ecfdf3 !important;
+  border: 1px solid #abefc6 !important;
+}
+
+.pendingSchedulePanel {
+  background: #fff7ed !important;
+  border: 1px solid #fed7aa !important;
+}
+
+.approvedSchedulePanel h2,
+.pendingSchedulePanel h2 {
+  font-size: 28px !important;
+  color: #082b61 !important;
+  line-height: 1.2 !important;
+}
+
+.studentScheduleFormPanel {
+  padding: 26px !important;
+  border-radius: 28px !important;
+  margin-bottom: 22px !important;
+}
+
+.studentScheduleFormPanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.studentScheduleFormPanel .panelHeaderRow h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.studentScheduleFormPanel .panelHeaderRow p {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.scheduleRequestForm {
+  display: grid;
+  gap: 16px;
+}
+
+.scheduleSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.scheduleSlotCard {
+  padding: 20px;
+  border-radius: 22px;
+  background: #f8fbff;
+  border: 1px solid #e4edf9;
+}
+
+.scheduleSlotCard h3 {
+  margin: 0 0 14px;
+  color: #082b61;
+  font-size: 20px;
+}
+
+.scheduleFormLabel {
+  display: grid;
+  gap: 8px;
+  color: #082b61;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.scheduleFormLabel select,
+.scheduleFormLabel textarea {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #ffffff;
+  color: #082b61;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.scheduleFormLabel textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.scheduleFormLabel select:disabled,
+.scheduleFormLabel textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.scheduleRequestForm button[type="submit"] {
+  width: fit-content;
+  min-width: 240px;
+  height: 52px;
+  border: none;
+  border-radius: 15px;
+  background: #0b4ea2;
+  color: #ffffff;
+  padding: 0 24px;
+  margin: 4px auto 0;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(11, 78, 162, 0.18);
+}
+
+.scheduleRequestForm button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.studentScheduleTablePanel {
+  padding: 24px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+}
+
+.studentScheduleTablePanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.studentScheduleTablePanel .panelHeaderRow h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.studentScheduleTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid #dfeaf8;
+  background: #ffffff;
+}
+
+.studentScheduleTableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.studentScheduleTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.studentScheduleTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+.studentScheduleTable {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.studentScheduleTable th,
+.studentScheduleTable td {
+  padding: 14px 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.studentScheduleTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.studentScheduleTable th:nth-child(1),
+.studentScheduleTable td:nth-child(1) {
+  width: 300px;
+}
+
+.studentScheduleTable th:nth-child(2),
+.studentScheduleTable td:nth-child(2) {
+  width: 110px;
+}
+
+.studentScheduleTable th:nth-child(3),
+.studentScheduleTable td:nth-child(3) {
+  width: 150px;
+}
+
+.studentScheduleTable th:nth-child(4),
+.studentScheduleTable td:nth-child(4) {
+  width: 170px;
+}
+
+.studentScheduleTable th:nth-child(5),
+.studentScheduleTable td:nth-child(5),
+.studentScheduleTable th:nth-child(6),
+.studentScheduleTable td:nth-child(6) {
+  width: 190px;
+}
+
+@media (max-width: 1050px) {
+  .studentScheduleSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .studentScheduleStatusPanel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .studentScheduleSummaryGrid,
+  .scheduleSlotGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleRequestForm button[type="submit"] {
+    width: 100%;
+  }
+}

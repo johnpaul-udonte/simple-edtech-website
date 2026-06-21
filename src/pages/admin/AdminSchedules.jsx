@@ -48,12 +48,29 @@ function getStatusLabel(status) {
     pending_tutor: "Waiting for Tutor",
     tutor_approved: "Ready for Admin",
     tutor_rejected: "Tutor Rejected",
-    admin_approved: "Admin Approved",
+    admin_approved: "Fully Approved",
     admin_rejected: "Admin Rejected",
     superseded: "Superseded",
   };
 
   return labels[status] || status || "-";
+}
+
+function getStatusClass(status) {
+  if (status === "pending_tutor") return "pending";
+  if (status === "tutor_approved") return "approved";
+  if (status === "admin_approved") return "issued";
+  if (["tutor_rejected", "admin_rejected"].includes(status)) return "urgent";
+  return "pending";
+}
+
+function getTutorDecisionText(request) {
+  if (request.status === "tutor_approved") return "Approved by Tutor";
+  if (request.status === "tutor_rejected") return "Rejected by Tutor";
+  if (request.status === "pending_tutor") return "Waiting for Tutor";
+  if (request.status === "admin_approved") return "Tutor Approved";
+  if (request.status === "admin_rejected") return "Admin Rejected";
+  return getStatusLabel(request.status);
 }
 
 function AdminSchedules() {
@@ -62,6 +79,7 @@ function AdminSchedules() {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [notice, setNotice] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -103,6 +121,18 @@ function AdminSchedules() {
     };
   }, [requests]);
 
+  const filteredRequests = useMemo(() => {
+    if (activeFilter === "all") return requests;
+
+    if (activeFilter === "rejected") {
+      return requests.filter((request) =>
+        ["tutor_rejected", "admin_rejected"].includes(request.status)
+      );
+    }
+
+    return requests.filter((request) => request.status === activeFilter);
+  }, [requests, activeFilter]);
+
   function openReview(request) {
     setSelectedRequest(request);
     setAdminNotes(request.admin_notes || "");
@@ -140,7 +170,10 @@ function AdminSchedules() {
       return;
     }
 
-    setNotice(`${request.student_name}'s schedule has received final admin approval.`);
+    setNotice(
+      `${request.student_name}'s schedule has received final admin approval.`
+    );
+
     setProcessingId("");
     setSelectedRequest(null);
     setAdminNotes("");
@@ -171,7 +204,10 @@ function AdminSchedules() {
       return;
     }
 
-    setNotice(`${request.student_name}'s schedule request has been rejected by admin.`);
+    setNotice(
+      `${request.student_name}'s schedule request has been rejected by admin.`
+    );
+
     setProcessingId("");
     setSelectedRequest(null);
     setAdminNotes("");
@@ -181,13 +217,13 @@ function AdminSchedules() {
 
   return (
     <section className="adminSchedulePage">
-      <header className="dashboardHeader">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Admin Schedule Approval</p>
           <h1>Student Schedule Requests</h1>
           <p>
             Tutor must approve a student’s selected weekly schedule first. Admin
-            gives the final approval after tutor confirmation.
+            gives final approval after tutor confirmation.
           </p>
         </div>
 
@@ -196,10 +232,19 @@ function AdminSchedules() {
         </button>
       </header>
 
-      {notice && <div className="successNotice">{notice}</div>}
-      {errorMessage && <div className="errorNotice">{errorMessage}</div>}
+      {notice && (
+        <div className="successNotice">
+          <strong>Success:</strong> {notice}
+        </div>
+      )}
 
-      <section className="scheduleSummaryGrid">
+      {errorMessage && (
+        <div className="errorNotice">
+          <strong>Error:</strong> {errorMessage}
+        </div>
+      )}
+
+      <section className="adminScheduleSummaryGrid">
         <article className="dashboardCard">
           <p>Total Requests</p>
           <h2>{summary.total}</h2>
@@ -226,7 +271,49 @@ function AdminSchedules() {
         </article>
       </section>
 
-      <section className="dashboardPanel">
+      <section className="adminScheduleFilterBar">
+        <button
+          type="button"
+          className={activeFilter === "all" ? "active" : ""}
+          onClick={() => setActiveFilter("all")}
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "pending_tutor" ? "active" : ""}
+          onClick={() => setActiveFilter("pending_tutor")}
+        >
+          Waiting Tutor
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "tutor_approved" ? "active" : ""}
+          onClick={() => setActiveFilter("tutor_approved")}
+        >
+          Ready for Admin
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "admin_approved" ? "active" : ""}
+          onClick={() => setActiveFilter("admin_approved")}
+        >
+          Approved
+        </button>
+
+        <button
+          type="button"
+          className={activeFilter === "rejected" ? "active" : ""}
+          onClick={() => setActiveFilter("rejected")}
+        >
+          Rejected
+        </button>
+      </section>
+
+      <section className="dashboardPanel adminScheduleTablePanel">
         <div className="panelHeaderRow">
           <div>
             <h2>Schedule Request List</h2>
@@ -239,19 +326,23 @@ function AdminSchedules() {
 
         {isLoading ? (
           <p>Loading schedule requests...</p>
-        ) : requests.length === 0 ? (
+        ) : filteredRequests.length === 0 ? (
           <div className="emptyStateBox">
-            <h3>No schedule request yet</h3>
-            <p>No schedule request has been submitted by any student yet.</p>
+            <h3>No schedule request found</h3>
+            <p>
+              No schedule request matches the selected filter. New student
+              requests will appear here after submission.
+            </p>
           </div>
         ) : (
-          <div className="tableScroll">
-            <table>
+          <div className="adminScheduleTableWrap">
+            <table className="adminScheduleTable">
               <thead>
                 <tr>
                   <th>Student</th>
                   <th>Schedule</th>
                   <th>Mode</th>
+                  <th>Tutor Decision</th>
                   <th>Status</th>
                   <th>Submitted</th>
                   <th>Action</th>
@@ -259,11 +350,10 @@ function AdminSchedules() {
               </thead>
 
               <tbody>
-                {requests.map((request) => (
+                {filteredRequests.map((request) => (
                   <tr key={request.id}>
                     <td>
                       <strong>{request.student_name || "-"}</strong>
-                      <br />
                       <small>{request.student_email || "-"}</small>
                     </td>
 
@@ -272,7 +362,20 @@ function AdminSchedules() {
                     <td>{request.learning_mode || "-"}</td>
 
                     <td>
-                      <span className={`statusPill ${request.status}`}>
+                      <strong>{getTutorDecisionText(request)}</strong>
+                      <small>
+                        {request.tutor_notes
+                          ? request.tutor_notes
+                          : "No tutor note"}
+                      </small>
+                    </td>
+
+                    <td>
+                      <span
+                        className={`statusPill ${getStatusClass(
+                          request.status
+                        )}`}
+                      >
                         {getStatusLabel(request.status)}
                       </span>
                     </td>
@@ -297,14 +400,14 @@ function AdminSchedules() {
       </section>
 
       {selectedRequest && (
-        <section className="dashboardPanel scheduleReviewPanel">
+        <section className="dashboardPanel adminScheduleReviewPanel">
           <div className="panelHeaderRow">
             <div>
               <p className="eyebrow">Final Admin Review</p>
               <h2>{selectedRequest.student_name || "Student Schedule"}</h2>
               <p>
-                Review the student’s schedule and tutor decision before giving
-                final approval.
+                Review the student’s request and the tutor’s decision before
+                giving final approval.
               </p>
             </div>
 
@@ -317,7 +420,7 @@ function AdminSchedules() {
             </button>
           </div>
 
-          <div className="scheduleReviewGrid">
+          <div className="adminScheduleReviewGrid">
             <article>
               <h3>Student Details</h3>
               <p>
@@ -331,7 +434,11 @@ function AdminSchedules() {
               </p>
               <p>
                 <strong>Status:</strong>{" "}
-                <span className={`statusPill ${selectedRequest.status}`}>
+                <span
+                  className={`statusPill ${getStatusClass(
+                    selectedRequest.status
+                  )}`}
+                >
                   {getStatusLabel(selectedRequest.status)}
                 </span>
               </p>
@@ -340,11 +447,15 @@ function AdminSchedules() {
             <article>
               <h3>Requested Schedule</h3>
 
-              {getScheduleSlots(selectedRequest).map((slot, index) => (
-                <p key={`${slot.day}-${index}`}>
-                  <strong>Class {index + 1}:</strong> {slot.day} — {slot.time}
-                </p>
-              ))}
+              {getScheduleSlots(selectedRequest).length === 0 ? (
+                <p>No schedule slot was provided.</p>
+              ) : (
+                getScheduleSlots(selectedRequest).map((slot, index) => (
+                  <p key={`${slot.day}-${index}`}>
+                    <strong>Class {index + 1}:</strong> {slot.day} — {slot.time}
+                  </p>
+                ))
+              )}
             </article>
 
             <article>
@@ -356,13 +467,7 @@ function AdminSchedules() {
               <h3>Tutor Decision</h3>
               <p>
                 <strong>Tutor Status:</strong>{" "}
-                {selectedRequest.status === "tutor_approved"
-                  ? "Approved by tutor"
-                  : selectedRequest.status === "tutor_rejected"
-                  ? "Rejected by tutor"
-                  : selectedRequest.status === "pending_tutor"
-                  ? "Still waiting for tutor"
-                  : getStatusLabel(selectedRequest.status)}
+                {getTutorDecisionText(selectedRequest)}
               </p>
               <p>
                 <strong>Tutor Note:</strong>{" "}
@@ -374,7 +479,7 @@ function AdminSchedules() {
               </p>
             </article>
 
-            <article>
+            <article className="adminDecisionNoteCard">
               <h3>Admin Decision Note</h3>
 
               <label className="adminNotesBox">
@@ -415,7 +520,7 @@ function AdminSchedules() {
             </div>
           )}
 
-          <div className="tableActionGroup">
+          <div className="tableActionGroup adminScheduleActionGroup">
             <button
               type="button"
               className="tableActionBtn restoreBtn"
@@ -447,13 +552,12 @@ function AdminSchedules() {
         </section>
       )}
 
-      <section className="dashboardPanel">
+      <section className="dashboardPanel adminScheduleRulesPanel">
         <h2>Approval Rules</h2>
         <p>
           Schedule requests must first be approved by the assigned tutor. After
-          tutor approval, admin gives the final approval. If admin approves it,
-          the schedule becomes fully approved and both the student and tutor are
-          notified.
+          tutor approval, admin gives final approval. Once approved, both student
+          and tutor receive the final schedule status.
         </p>
       </section>
     </section>
