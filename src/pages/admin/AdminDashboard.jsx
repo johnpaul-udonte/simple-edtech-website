@@ -1,9 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   getAdminDashboardStats,
   getRecentStudentsForAdmin,
 } from "../../services/adminService";
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+}
+
+function getStatusClass(isRestricted) {
+  return isRestricted ? "urgent" : "issued";
+}
+
+function getClassesLeft(student) {
+  const total = Number(student.total_paid_classes || 0);
+  const completed = Number(student.completed_classes || 0);
+  return Math.max(total - completed, 0);
+}
 
 function AdminDashboard() {
   const { profile } = useAuth();
@@ -13,33 +32,79 @@ function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
-  useEffect(() => {
-    async function loadAdminDashboard() {
-      const { data: statsData, error: statsError } =
-        await getAdminDashboardStats();
+  async function loadAdminDashboard() {
+    setIsLoading(true);
+    setNotice("");
 
-      if (statsError) {
-        setNotice(statsError.message);
-        setIsLoading(false);
-        return;
-      }
+    const { data: statsData, error: statsError } =
+      await getAdminDashboardStats();
 
-      const { data: studentsData, error: studentsError } =
-        await getRecentStudentsForAdmin();
-
-      if (studentsError) {
-        setNotice(studentsError.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setStats(statsData);
-      setRecentStudents(studentsData || []);
+    if (statsError) {
+      setNotice(statsError.message || "Could not load admin dashboard stats.");
       setIsLoading(false);
+      return;
     }
 
+    const { data: studentsData, error: studentsError } =
+      await getRecentStudentsForAdmin();
+
+    if (studentsError) {
+      setNotice(studentsError.message || "Could not load recent students.");
+      setIsLoading(false);
+      return;
+    }
+
+    setStats(statsData);
+    setRecentStudents(studentsData || []);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
     loadAdminDashboard();
   }, []);
+
+  const adminCards = useMemo(() => {
+    return [
+      { label: "Total Students", value: stats?.totalStudents || 0 },
+      { label: "Active Students", value: stats?.activeStudents || 0 },
+      { label: "Restricted Students", value: stats?.restrictedStudents || 0 },
+      { label: "Active Tutors", value: stats?.activeTutors || 0 },
+      {
+        label: "Confirmed Payments",
+        value: formatMoney(stats?.totalConfirmedAmount || 0),
+        wide: true,
+      },
+      {
+        label: "Outstanding Balance",
+        value: formatMoney(stats?.totalPaymentBalance || 0),
+        wide: true,
+      },
+      { label: "Assignments", value: stats?.totalAssignments || 0 },
+      { label: "Pending Certificates", value: stats?.pendingCertificates || 0 },
+      { label: "Completed Classes", value: stats?.completedClasses || 0 },
+      { label: "Missed Classes", value: stats?.missedClasses || 0 },
+    ];
+  }, [stats]);
+
+  const riskSummary = useMemo(() => {
+    const studentsWithBalance = recentStudents.filter(
+      (student) => Number(student.payment_balance || 0) > 0
+    ).length;
+
+    const restrictedRecent = recentStudents.filter(
+      (student) => student.is_restricted
+    ).length;
+
+    const studentsWithoutTutor = recentStudents.filter(
+      (student) => !student.tutors?.profiles?.full_name
+    ).length;
+
+    return {
+      studentsWithBalance,
+      restrictedRecent,
+      studentsWithoutTutor,
+    };
+  }, [recentStudents]);
 
   if (isLoading) {
     return (
@@ -55,99 +120,149 @@ function AdminDashboard() {
       <section className="dashboardPanel">
         <h2>Admin dashboard issue</h2>
         <p>{notice}</p>
+        <button type="button" className="tableActionBtn" onClick={loadAdminDashboard}>
+          Try Again
+        </button>
       </section>
     );
   }
 
-  const adminCards = [
-    { label: "Total Students", value: stats?.totalStudents || 0 },
-    { label: "Active Students", value: stats?.activeStudents || 0 },
-    { label: "Restricted Students", value: stats?.restrictedStudents || 0 },
-    { label: "Active Tutors", value: stats?.activeTutors || 0 },
-    {
-      label: "Confirmed Payments",
-      value: `₦${Number(stats?.totalConfirmedAmount || 0).toLocaleString()}`,
-    },
-    {
-      label: "Outstanding Balance",
-      value: `₦${Number(stats?.totalPaymentBalance || 0).toLocaleString()}`,
-    },
-    { label: "Assignments", value: stats?.totalAssignments || 0 },
-    { label: "Pending Certificates", value: stats?.pendingCertificates || 0 },
-    { label: "Completed Classes", value: stats?.completedClasses || 0 },
-    { label: "Missed Classes", value: stats?.missedClasses || 0 },
-  ];
-
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="adminDashboardPage">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Admin Portal</p>
           <h1>Welcome back, {profile?.full_name || "Admin"}</h1>
           <p>
-            Monitor real platform activity across students, tutors, payments,
-            classes, assignments, certificates, and access restrictions.
+            Monitor live platform activity across students, tutors, payments,
+            classes, assignments, certificates, schedules, and access
+            restrictions.
           </p>
         </div>
 
-        <button>Create Student</button>
-      </div>
+        <div className="headerActionGroup">
+          <button type="button" onClick={loadAdminDashboard}>
+            Refresh
+          </button>
 
-      <div className="dashboardGrid">
+          <Link to="/admin/students" className="headerSecondaryBtn">
+            Manage Students
+          </Link>
+        </div>
+      </header>
+
+      <section className="adminDashboardSummaryGrid">
         {adminCards.map((card) => (
-          <article className="dashboardCard" key={card.label}>
+          <article
+            className={`dashboardCard ${card.wide ? "moneyDashboardCard" : ""}`}
+            key={card.label}
+          >
             <p>{card.label}</p>
             <h2>{card.value}</h2>
           </article>
         ))}
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Recent Students</h2>
+      <section className="dashboardPanel adminDashboardRiskPanel adminDashboardAttentionOnly">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Admin Attention</h2>
+            <p>Key areas that may need quick review.</p>
+          </div>
+        </div>
+
+        <div className="adminRiskGrid">
+          <div>
+            <p>Recent Students With Balance</p>
+            <h3>{riskSummary.studentsWithBalance}</h3>
+          </div>
+
+          <div>
+            <p>Restricted Recent Students</p>
+            <h3>{riskSummary.restrictedRecent}</h3>
+          </div>
+
+          <div>
+            <p>Students Without Tutor</p>
+            <h3>{riskSummary.studentsWithoutTutor}</h3>
+          </div>
+        </div>
+      </section>
+
+      <section className="dashboardPanel adminDashboardTablePanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Recent Students</h2>
+            <p>
+              Check recently created students, assigned tutors, remaining
+              classes, payment balance, and access status.
+            </p>
+          </div>
+
+          <Link to="/admin/students" className="tableActionBtn">
+            View All Students
+          </Link>
+        </div>
 
         {recentStudents.length === 0 ? (
-          <p>No students have been created yet.</p>
+          <div className="emptyStateBox">
+            <h3>No students yet</h3>
+            <p>No students have been created on the platform yet.</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Email</th>
-                <th>Course</th>
-                <th>Tutor</th>
-                <th>Classes Left</th>
-                <th>Balance</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+          <div className="adminDashboardTableWrap">
+            <table className="adminDashboardTable">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                  <th>Tutor</th>
+                  <th>Classes Left</th>
+                  <th>Balance</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {recentStudents.map((student) => {
-                const total = Number(student.total_paid_classes || 0);
-                const completed = Number(student.completed_classes || 0);
-                const remaining = Math.max(total - completed, 0);
-
-                return (
+              <tbody>
+                {recentStudents.map((student) => (
                   <tr key={student.id}>
-                    <td>{student.profiles?.full_name || "Unnamed Student"}</td>
+                    <td>
+                      <strong>
+                        {student.profiles?.full_name || "Unnamed Student"}
+                      </strong>
+                      <small>{student.student_code || "-"}</small>
+                    </td>
+
                     <td>{student.profiles?.email || "-"}</td>
-                    <td>{student.enrolled_course}</td>
+
+                    <td>{student.enrolled_course || "Data Analysis"}</td>
+
                     <td>
                       {student.tutors?.profiles?.full_name ||
                         "Tutor not assigned"}
                     </td>
-                    <td>{remaining}</td>
+
+                    <td>{getClassesLeft(student)}</td>
+
+                    <td>{formatMoney(student.payment_balance || 0)}</td>
+
                     <td>
-                      ₦{Number(student.payment_balance || 0).toLocaleString()}
+                      <span
+                        className={`statusPill ${getStatusClass(
+                          student.is_restricted
+                        )}`}
+                      >
+                        {student.is_restricted ? "Restricted" : "Active"}
+                      </span>
                     </td>
-                    <td>{student.is_restricted ? "Restricted" : "Active"}</td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
     </section>
   );
 }
