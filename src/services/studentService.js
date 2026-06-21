@@ -21,6 +21,8 @@ export async function getCurrentStudentRecord(userId) {
       id,
       student_code,
       enrolled_course,
+      course_fee,
+      amount_paid,
       total_paid_classes,
       completed_classes,
       missed_classes,
