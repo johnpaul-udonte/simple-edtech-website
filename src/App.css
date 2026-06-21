@@ -6385,3 +6385,62 @@ iframe {
     grid-template-columns: 1fr;
   }
 }
+
+/* REGISTER AS STUDENT / TUTOR */
+.registrationTypeSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+  padding: 8px;
+  border-radius: 20px;
+  background: #f1f6ff;
+  border: 1px solid #dbe8fb;
+}
+
+.registrationTypeSwitch button {
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  color: #0b4ea2;
+  padding: 14px 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.registrationTypeSwitch button.active {
+  background: #0b4ea2;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.18);
+}
+
+.tutorTimeGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.tutorTimeGrid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tutorTimeGrid::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.tutorTimeGrid::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+@media (max-width: 760px) {
+  .registrationTypeSwitch {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorTimeGrid {
+    grid-template-columns: 1fr;
+  }
+}
