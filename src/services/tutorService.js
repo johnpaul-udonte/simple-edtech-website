@@ -80,6 +80,15 @@ export async function getCurrentTutorRecord(userId) {
     };
   }
 
+  if (!userId) {
+    return {
+      data: null,
+      error: {
+        message: "Tutor login session was not found.",
+      },
+    };
+  }
+
   const { data: tutorRows, error } = await supabase
     .from("tutors")
     .select(
@@ -88,9 +97,15 @@ export async function getCurrentTutorRecord(userId) {
       profile_id,
       specialisation,
       bio,
+      tools,
+      teaching_mode,
+      available_days,
+      available_times,
+      years_of_experience,
       is_active,
       created_at,
-      profiles (
+      updated_at,
+      profiles:profiles!tutors_profile_id_fkey (
         full_name,
         email,
         role,
@@ -114,7 +129,8 @@ export async function getCurrentTutorRecord(userId) {
     return {
       data: null,
       error: {
-        message: "No tutor record was found for this logged-in user.",
+        message:
+          "No tutor record was found for this logged-in user. Please contact admin to confirm that your tutor application was approved correctly.",
       },
     };
   }
@@ -190,8 +206,52 @@ export async function getTutorStudentsForCurrentUser(userId) {
   };
 }
 
-export async function getAssignedStudents(userId) {
-  return getTutorStudentsForCurrentUser(userId);
+export async function getAssignedStudents(tutorId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  if (!tutorId) {
+    return {
+      data: [],
+      error: null,
+    };
+  }
+
+  const { data: students, error } = await supabase
+    .from("students")
+    .select(
+      `
+      id,
+      student_code,
+      enrolled_course,
+      total_paid_classes,
+      completed_classes,
+      missed_classes,
+      cancelled_classes,
+      rescheduled_classes,
+      payment_balance,
+      is_restricted,
+      created_at,
+      profiles:profiles!students_profile_id_fkey (
+        full_name,
+        email,
+        status
+      )
+    `
+    )
+    .eq("assigned_tutor_id", tutorId)
+    .order("created_at", { ascending: false });
+
+  return {
+    data: students || [],
+    error,
+  };
 }
 
 export async function getTutorScheduleForCurrentUser(userId) {
