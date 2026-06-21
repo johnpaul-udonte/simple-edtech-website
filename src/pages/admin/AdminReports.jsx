@@ -1,33 +1,124 @@
-import { useEffect, useState } from "react";
-import { getReportsForAdmin } from "../../services/adminService";
+import { useEffect, useMemo, useState } from "react";
+import { getAdminControlReportsForAdmin } from "../../services/adminService";
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+}
+
+function getAccessStatusClass(isRestricted) {
+  return isRestricted ? "urgent" : "issued";
+}
 
 function AdminReports() {
   const [reportData, setReportData] = useState(null);
+  const [activeCourseFilter, setActiveCourseFilter] = useState("all");
+  const [activeTutorFilter, setActiveTutorFilter] = useState("all");
+  const [activeAttentionFilter, setActiveAttentionFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
-  useEffect(() => {
-    async function loadReports() {
-      const { data, error } = await getReportsForAdmin();
+  async function loadReports() {
+    setIsLoading(true);
+    setNotice("");
 
-      if (error) {
-        setNotice(error.message);
-        setIsLoading(false);
-        return;
-      }
+    const { data, error } = await getAdminControlReportsForAdmin();
 
-      setReportData(data);
+    if (error) {
+      setNotice(error.message || "Could not load admin reports.");
       setIsLoading(false);
+      return;
     }
 
+    setReportData(data);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
     loadReports();
   }, []);
+
+  const summary = reportData?.summary || {};
+  const courseReports = reportData?.courseReports || [];
+  const tutorReports = reportData?.tutorReports || [];
+  const attentionStudents = reportData?.attentionStudents || [];
+
+  const filteredCourseReports = useMemo(() => {
+    if (activeCourseFilter === "all") return courseReports;
+
+    if (activeCourseFilter === "balance") {
+      return courseReports.filter((report) => Number(report.outstandingBalance || 0) > 0);
+    }
+
+    if (activeCourseFilter === "restricted") {
+      return courseReports.filter((report) => Number(report.restrictedStudents || 0) > 0);
+    }
+
+    if (activeCourseFilter === "certificate") {
+      return courseReports.filter((report) => Number(report.certificateReadyStudents || 0) > 0);
+    }
+
+    return courseReports;
+  }, [courseReports, activeCourseFilter]);
+
+  const filteredTutorReports = useMemo(() => {
+    if (activeTutorFilter === "all") return tutorReports;
+
+    if (activeTutorFilter === "balance") {
+      return tutorReports.filter((report) => Number(report.outstandingBalance || 0) > 0);
+    }
+
+    if (activeTutorFilter === "restricted") {
+      return tutorReports.filter((report) => Number(report.restrictedStudents || 0) > 0);
+    }
+
+    return tutorReports;
+  }, [tutorReports, activeTutorFilter]);
+
+  const filteredAttentionStudents = useMemo(() => {
+    if (activeAttentionFilter === "all") return attentionStudents;
+
+    if (activeAttentionFilter === "balance") {
+      return attentionStudents.filter((student) => Number(student.paymentBalance || 0) > 0);
+    }
+
+    if (activeAttentionFilter === "restricted") {
+      return attentionStudents.filter((student) => student.is_restricted);
+    }
+
+    if (activeAttentionFilter === "certificate") {
+      return attentionStudents.filter((student) => student.needsClassAttention);
+    }
+
+    return attentionStudents;
+  }, [attentionStudents, activeAttentionFilter]);
+
+  function getAttentionReasons(student) {
+    const reasons = [];
+
+    if (Number(student.paymentBalance || 0) > 0) {
+      reasons.push("Payment balance");
+    }
+
+    if (student.is_restricted) {
+      reasons.push("Restricted access");
+    }
+
+    if (student.needsClassAttention) {
+      reasons.push("Certificate ready");
+    }
+
+    return reasons.length ? reasons.join(", ") : "General review";
+  }
 
   if (isLoading) {
     return (
       <section className="dashboardPanel">
         <h2>Loading reports...</h2>
-        <p>Please wait while Jlux Academy reports are loaded.</p>
+        <p>Please wait while admin reports are prepared.</p>
       </section>
     );
   }
@@ -37,250 +128,336 @@ function AdminReports() {
       <section className="dashboardPanel">
         <h2>Report issue</h2>
         <p>{notice}</p>
+        <button type="button" className="tableActionBtn" onClick={loadReports}>
+          Try Again
+        </button>
       </section>
     );
   }
 
-  const summary = reportData?.summary || {};
-  const courseReports = reportData?.courseReports || [];
-  const tutorReports = reportData?.tutorReports || [];
-  const bookingStatusReports = reportData?.bookingStatusReports || [];
-  const assignmentReports = reportData?.assignmentReports || [];
-
-  const classCompletionRate =
-    Number(summary.totalPaidClasses || 0) > 0
-      ? Math.round(
-          (Number(summary.totalCompletedClasses || 0) /
-            Number(summary.totalPaidClasses || 0)) *
-            100
-        )
-      : 0;
-
-  const reportCards = [
-    { label: "Total Students", value: summary.totalStudents || 0 },
-    { label: "Active Students", value: summary.activeStudents || 0 },
-    { label: "Restricted Students", value: summary.restrictedStudents || 0 },
-    { label: "Active Tutors", value: summary.activeTutors || 0 },
-    {
-      label: "Outstanding Balance",
-      value: `₦${Number(
-        summary.totalOutstandingBalance || 0
-      ).toLocaleString()}`,
-    },
-    {
-      label: "Confirmed Payments",
-      value: `₦${Number(summary.totalConfirmedPayment || 0).toLocaleString()}`,
-    },
-    { label: "Class Completion", value: `${classCompletionRate}%` },
-    { label: "Total Bookings", value: summary.totalBookings || 0 },
-    { label: "Assignments", value: summary.totalAssignments || 0 },
-    { label: "Submissions", value: summary.totalSubmissions || 0 },
-    { label: "Pending Payments", value: summary.pendingPayments || 0 },
-    { label: "Rejected Payments", value: summary.rejectedPayments || 0 },
-  ];
-
   return (
-    <section>
-      <div className="dashboardHeader">
+    <section className="adminReportsPage">
+      <header className="dashboardHeader compactDashboardHeader">
         <div>
           <p className="eyebrow">Admin Portal</p>
-          <h1>Reports & Analytics</h1>
+          <h1>Admin Reports</h1>
           <p>
-            View real business reports across students, tutors, payments,
-            schedules, assignments, submissions, balances, and learning progress.
+            Review student progress, payment exposure, access restrictions,
+            tutor performance, course progress, and certificate readiness.
           </p>
         </div>
 
-        <button>Export Report</button>
-      </div>
+        <div className="headerActionGroup">
+          <button type="button" onClick={loadReports}>
+            Refresh
+          </button>
 
-      <div className="dashboardGrid">
-        {reportCards.map((card) => (
-          <article className="dashboardCard" key={card.label}>
-            <p>{card.label}</p>
-            <h2>{card.value}</h2>
-          </article>
-        ))}
-      </div>
+          <button
+            type="button"
+            className="headerSecondaryBtn"
+            onClick={() => window.print()}
+          >
+            Print Report
+          </button>
+        </div>
+      </header>
 
-      <div className="dashboardPanel">
-        <h2>Course Performance Report</h2>
+      <section className="adminReportsSummaryGrid">
+        <article className="dashboardCard">
+          <p>Total Students</p>
+          <h2>{summary.totalStudents || 0}</h2>
+        </article>
 
-        {courseReports.length === 0 ? (
-          <p>No course data available yet.</p>
+        <article className="dashboardCard">
+          <p>Restricted Students</p>
+          <h2>{summary.restrictedStudents || 0}</h2>
+        </article>
+
+        <article className="dashboardCard">
+          <p>Students With Balance</p>
+          <h2>{summary.studentsWithBalance || 0}</h2>
+        </article>
+
+        <article className="dashboardCard">
+          <p>Certificate Ready</p>
+          <h2>{summary.certificateReadyStudents || 0}</h2>
+        </article>
+
+        <article className="dashboardCard wideMoneyCard">
+          <p>Total Outstanding</p>
+          <h2>{formatMoney(summary.totalOutstandingBalance || 0)}</h2>
+        </article>
+      </section>
+
+      <section className="adminReportsFilterBar">
+        <button
+          type="button"
+          className={activeCourseFilter === "all" ? "active" : ""}
+          onClick={() => setActiveCourseFilter("all")}
+        >
+          All Courses
+        </button>
+
+        <button
+          type="button"
+          className={activeCourseFilter === "balance" ? "active" : ""}
+          onClick={() => setActiveCourseFilter("balance")}
+        >
+          With Balance
+        </button>
+
+        <button
+          type="button"
+          className={activeCourseFilter === "restricted" ? "active" : ""}
+          onClick={() => setActiveCourseFilter("restricted")}
+        >
+          Restricted
+        </button>
+
+        <button
+          type="button"
+          className={activeCourseFilter === "certificate" ? "active" : ""}
+          onClick={() => setActiveCourseFilter("certificate")}
+        >
+          Certificate Ready
+        </button>
+      </section>
+
+      <section className="dashboardPanel adminReportsTablePanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Course Performance Report</h2>
+            <p>
+              Compare students, class completion, payment exposure, restrictions,
+              and assessment performance by course.
+            </p>
+          </div>
+        </div>
+
+        {filteredCourseReports.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No course report found</h3>
+            <p>No course currently matches the selected filter.</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Course</th>
-                <th>Students</th>
-                <th>Active</th>
-                <th>Restricted</th>
-                <th>Completed Classes</th>
-                <th>Paid Classes</th>
-                <th>Completion</th>
-                <th>Outstanding Balance</th>
-              </tr>
-            </thead>
+          <div className="adminReportsTableWrap">
+            <table className="adminReportsTable">
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Students</th>
+                  <th>Classes Done</th>
+                  <th>Paid Classes</th>
+                  <th>With Balance</th>
+                  <th>Restricted</th>
+                  <th>Outstanding</th>
+                  <th>Avg Quiz</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {courseReports.map((course) => {
-                const completion =
-                  Number(course.paidClasses || 0) > 0
-                    ? Math.round(
-                        (Number(course.completedClasses || 0) /
-                          Number(course.paidClasses || 0)) *
-                          100
-                      )
-                    : 0;
-
-                return (
-                  <tr key={course.course}>
-                    <td>{course.course}</td>
-                    <td>{course.students}</td>
-                    <td>{course.active}</td>
-                    <td>{course.restricted}</td>
-                    <td>{course.completedClasses}</td>
-                    <td>{course.paidClasses}</td>
-                    <td>{completion}%</td>
-                    <td>₦{course.outstandingBalance.toLocaleString()}</td>
+              <tbody>
+                {filteredCourseReports.map((report) => (
+                  <tr key={report.course}>
+                    <td>
+                      <strong>{report.course || "Unnamed Course"}</strong>
+                    </td>
+                    <td>{report.totalStudents || 0}</td>
+                    <td>{report.completedClasses || 0}</td>
+                    <td>{report.totalPaidClasses || 0}</td>
+                    <td>{report.studentsWithBalance || 0}</td>
+                    <td>{report.restrictedStudents || 0}</td>
+                    <td>{formatMoney(report.outstandingBalance || 0)}</td>
+                    <td>{report.averageQuizScore || 0}%</td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Tutor Workload Report</h2>
+      <section className="adminTutorReportsFilterBar">
+        <button
+          type="button"
+          className={activeTutorFilter === "all" ? "active" : ""}
+          onClick={() => setActiveTutorFilter("all")}
+        >
+          All Tutors
+        </button>
 
-        {tutorReports.length === 0 ? (
-          <p>No tutor data available yet.</p>
+        <button
+          type="button"
+          className={activeTutorFilter === "balance" ? "active" : ""}
+          onClick={() => setActiveTutorFilter("balance")}
+        >
+          Students With Balance
+        </button>
+
+        <button
+          type="button"
+          className={activeTutorFilter === "restricted" ? "active" : ""}
+          onClick={() => setActiveTutorFilter("restricted")}
+        >
+          Restricted Students
+        </button>
+      </section>
+
+      <section className="dashboardPanel adminTutorReportsPanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Tutor Performance Report</h2>
+            <p>
+              Monitor assigned students, class progress, restricted students,
+              and outstanding balance by tutor.
+            </p>
+          </div>
+        </div>
+
+        {filteredTutorReports.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No tutor report found</h3>
+            <p>No tutor currently matches the selected filter.</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Tutor</th>
-                <th>Email</th>
-                <th>Specialisation</th>
-                <th>Assigned Students</th>
-                <th>Completed Classes</th>
-                <th>Student Balance</th>
-                <th>Restricted Students</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {tutorReports.map((tutor) => (
-                <tr key={tutor.id}>
-                  <td>{tutor.tutorName}</td>
-                  <td>{tutor.email}</td>
-                  <td>{tutor.specialisation}</td>
-                  <td>{tutor.assignedStudents}</td>
-                  <td>{tutor.completedClasses}</td>
-                  <td>₦{tutor.totalStudentBalance.toLocaleString()}</td>
-                  <td>{tutor.restrictedAssignedStudents}</td>
-                  <td>
-                    <span
-                      className={`statusPill ${
-                        tutor.isActive ? "approved" : "cancelled"
-                      }`}
-                    >
-                      {tutor.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </td>
+          <div className="adminReportsTableWrap">
+            <table className="adminTutorReportsTable">
+              <thead>
+                <tr>
+                  <th>Tutor</th>
+                  <th>Email</th>
+                  <th>Students</th>
+                  <th>Classes Done</th>
+                  <th>With Balance</th>
+                  <th>Restricted</th>
+                  <th>Outstanding</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {filteredTutorReports.map((report) => (
+                  <tr key={`${report.tutorName}-${report.email}`}>
+                    <td>
+                      <strong>{report.tutorName || "Unnamed Tutor"}</strong>
+                    </td>
+                    <td>{report.email || "-"}</td>
+                    <td>{report.totalStudents || 0}</td>
+                    <td>{report.completedClasses || 0}</td>
+                    <td>{report.studentsWithBalance || 0}</td>
+                    <td>{report.restrictedStudents || 0}</td>
+                    <td>{formatMoney(report.outstandingBalance || 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Schedule Status Report</h2>
+      <section className="adminAttentionFilterBar">
+        <button
+          type="button"
+          className={activeAttentionFilter === "all" ? "active" : ""}
+          onClick={() => setActiveAttentionFilter("all")}
+        >
+          All Attention
+        </button>
 
-        {bookingStatusReports.length === 0 ? (
-          <p>No schedule booking data available yet.</p>
+        <button
+          type="button"
+          className={activeAttentionFilter === "balance" ? "active" : ""}
+          onClick={() => setActiveAttentionFilter("balance")}
+        >
+          Payment Balance
+        </button>
+
+        <button
+          type="button"
+          className={activeAttentionFilter === "restricted" ? "active" : ""}
+          onClick={() => setActiveAttentionFilter("restricted")}
+        >
+          Restricted
+        </button>
+
+        <button
+          type="button"
+          className={activeAttentionFilter === "certificate" ? "active" : ""}
+          onClick={() => setActiveAttentionFilter("certificate")}
+        >
+          Certificate Ready
+        </button>
+      </section>
+
+      <section className="dashboardPanel adminAttentionPanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Students Requiring Attention</h2>
+            <p>
+              Students listed here may need payment follow-up, access review, or
+              certificate action.
+            </p>
+          </div>
+        </div>
+
+        {filteredAttentionStudents.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No urgent attention needed</h3>
+            <p>No student currently matches the selected attention filter.</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Booking Status</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {bookingStatusReports.map((item) => (
-                <tr key={item.status}>
-                  <td>
-                    <span className={`statusPill ${item.status}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td>{item.count}</td>
+          <div className="adminReportsTableWrap">
+            <table className="adminAttentionTable">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Reason</th>
+                  <th>Payment Balance</th>
+                  <th>Access</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {filteredAttentionStudents.map((student) => (
+                  <tr key={student.id}>
+                    <td>
+                      <strong>
+                        {student.profiles?.full_name || "Unnamed Student"}
+                      </strong>
+                      <small>{student.student_code || "-"}</small>
+                    </td>
+
+                    <td>{student.enrolled_course || "Data Analysis"}</td>
+
+                    <td>{getAttentionReasons(student)}</td>
+
+                    <td>{formatMoney(student.paymentBalance || 0)}</td>
+
+                    <td>
+                      <span
+                        className={`statusPill ${getAccessStatusClass(
+                          student.is_restricted
+                        )}`}
+                      >
+                        {student.is_restricted ? "Restricted" : "Allowed"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="dashboardPanel">
-        <h2>Assignment Report</h2>
-
-        {assignmentReports.length === 0 ? (
-          <p>No assignment data available yet.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Assignment</th>
-                <th>Tutor</th>
-                <th>Tool</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th>Submissions</th>
-                <th>Pending</th>
-                <th>Graded</th>
-                <th>Average Score</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {assignmentReports.map((assignment) => (
-                <tr key={assignment.id}>
-                  <td>{assignment.title}</td>
-                  <td>{assignment.tutorName}</td>
-                  <td>{assignment.tool || "General"}</td>
-                  <td>{assignment.dueDate || "-"}</td>
-                  <td>
-                    <span className={`statusPill ${assignment.status}`}>
-                      {assignment.status}
-                    </span>
-                  </td>
-                  <td>{assignment.submissions}</td>
-                  <td>{assignment.pending}</td>
-                  <td>{assignment.graded}</td>
-                  <td>{assignment.averageScore}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      <div className="dashboardPanel">
-        <h2>Management Interpretation</h2>
+      <section className="dashboardPanel adminReportsRulesPanel">
+        <h2>Report Reading Guide</h2>
         <p>
-          This report gives admin a single view of learning progress, tutor
-          workload, student restrictions, outstanding balances, payment
-          confirmation, schedule movement, assignment submission, and grading
-          performance.
+          Use this page to monitor learning progress, payment exposure, access
+          risks, tutor workload, and certificate readiness. Students with payment
+          balances, restrictions, or certificate readiness should be reviewed
+          first.
         </p>
-      </div>
+      </section>
     </section>
   );
 }
