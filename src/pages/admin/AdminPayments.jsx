@@ -33,6 +33,22 @@ function formatDateTime(value) {
   });
 }
 
+function getPaymentStatusClass(status) {
+  if (status === "confirmed") return "issued";
+  if (status === "rejected") return "urgent";
+  return "pending";
+}
+
+function getPaymentStatusLabel(status) {
+  const labels = {
+    confirmed: "Confirmed",
+    pending: "Pending",
+    rejected: "Rejected",
+  };
+
+  return labels[status] || status || "-";
+}
+
 function AdminPayments() {
   const { session, profile } = useAuth();
 
@@ -41,6 +57,8 @@ function AdminPayments() {
   const [courseFee, setCourseFee] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
+  const [studentFilter, setStudentFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
@@ -81,6 +99,51 @@ function AdminPayments() {
 
     return Math.max(fee - paid, 0);
   }, [courseFee, amountPaid]);
+
+  const summary = useMemo(() => {
+    const studentsWithBalance = students.filter(
+      (student) => Number(student.payment_balance || 0) > 0
+    ).length;
+
+    const clearedStudents = students.filter(
+      (student) => Number(student.payment_balance || 0) <= 0
+    ).length;
+
+    return {
+      totalConfirmed: paymentData?.totalConfirmedAmount || 0,
+      outstanding: paymentData?.totalOutstandingBalance || 0,
+      confirmed: paymentData?.confirmedPaymentsCount || 0,
+      pending: paymentData?.pendingPaymentsCount || 0,
+      rejected: paymentData?.rejectedPaymentsCount || 0,
+      restricted: paymentData?.restrictedStudents || 0,
+      studentsWithBalance,
+      clearedStudents,
+    };
+  }, [paymentData, students]);
+
+  const filteredStudents = useMemo(() => {
+    if (studentFilter === "all") return students;
+
+    if (studentFilter === "balance") {
+      return students.filter((student) => Number(student.payment_balance || 0) > 0);
+    }
+
+    if (studentFilter === "cleared") {
+      return students.filter((student) => Number(student.payment_balance || 0) <= 0);
+    }
+
+    if (studentFilter === "restricted") {
+      return students.filter((student) => student.is_restricted);
+    }
+
+    return students;
+  }, [students, studentFilter]);
+
+  const filteredPayments = useMemo(() => {
+    if (paymentFilter === "all") return payments;
+
+    return payments.filter((payment) => payment.status === paymentFilter);
+  }, [payments, paymentFilter]);
 
   function handleSelectStudent(studentId) {
     setSelectedStudentId(studentId);
@@ -141,6 +204,11 @@ function AdminPayments() {
 
     if (paidValue < 0) {
       setActionError("Amount paid cannot be negative.");
+      return;
+    }
+
+    if (paidValue > feeValue) {
+      setActionError("Amount paid cannot be higher than the course fee.");
       return;
     }
 
@@ -291,14 +359,24 @@ function AdminPayments() {
           <p className="eyebrow">Admin Portal</p>
           <h1>Payment Management</h1>
           <p>
-            Enter student course fee, amount paid, and automatically calculate
-            the balance remaining for the student portal.
+            Update student course fee, amount paid, balance remaining, payment
+            records, and student portal payment visibility.
           </p>
         </div>
 
-        <button type="button" onClick={loadPayments}>
-          Refresh
-        </button>
+        <div className="headerActionGroup">
+          <button type="button" onClick={loadPayments}>
+            Refresh
+          </button>
+
+          <button
+            type="button"
+            className="headerSecondaryBtn"
+            onClick={() => window.print()}
+          >
+            Print Report
+          </button>
+        </div>
       </header>
 
       {successMessage && (
@@ -313,35 +391,45 @@ function AdminPayments() {
         </div>
       )}
 
-      <section className="dashboardGrid adminPaymentSummaryGrid">
-        <article className="dashboardCard">
+      <section className="adminPaymentSummaryGrid">
+        <article className="dashboardCard moneyCard">
           <p>Total Confirmed</p>
-          <h2>{formatMoney(paymentData?.totalConfirmedAmount || 0)}</h2>
+          <h2>{formatMoney(summary.totalConfirmed)}</h2>
         </article>
 
-        <article className="dashboardCard">
+        <article className="dashboardCard moneyCard">
           <p>Outstanding</p>
-          <h2>{formatMoney(paymentData?.totalOutstandingBalance || 0)}</h2>
+          <h2>{formatMoney(summary.outstanding)}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Confirmed</p>
-          <h2>{paymentData?.confirmedPaymentsCount || 0}</h2>
+          <h2>{summary.confirmed}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Pending</p>
-          <h2>{paymentData?.pendingPaymentsCount || 0}</h2>
+          <h2>{summary.pending}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Rejected</p>
-          <h2>{paymentData?.rejectedPaymentsCount || 0}</h2>
+          <h2>{summary.rejected}</h2>
         </article>
 
         <article className="dashboardCard">
           <p>Restricted</p>
-          <h2>{paymentData?.restrictedStudents || 0}</h2>
+          <h2>{summary.restricted}</h2>
+        </article>
+
+        <article className="dashboardCard">
+          <p>With Balance</p>
+          <h2>{summary.studentsWithBalance}</h2>
+        </article>
+
+        <article className="dashboardCard">
+          <p>Cleared Students</p>
+          <h2>{summary.clearedStudents}</h2>
         </article>
       </section>
 
@@ -350,8 +438,8 @@ function AdminPayments() {
           <div>
             <h2>Update Student Payment</h2>
             <p>
-              Select a student, enter the total course fee and total amount paid.
-              The balance will be calculated automatically.
+              Select a student, enter total course fee and total amount paid.
+              The balance will calculate automatically.
             </p>
           </div>
         </div>
@@ -417,6 +505,10 @@ function AdminPayments() {
               <span>{selectedStudent.profiles?.email}</span>
               <span>{selectedStudent.student_code}</span>
               <span>{selectedStudent.enrolled_course || "Data Analysis"}</span>
+              <span>
+                Current Balance:{" "}
+                <strong>{formatMoney(selectedStudent.payment_balance || 0)}</strong>
+              </span>
             </div>
           )}
 
@@ -426,14 +518,59 @@ function AdminPayments() {
         </form>
       </section>
 
-      <section className="dashboardPanel adminPaymentsTablePanel">
-        <h2>Student Balances</h2>
+      <section className="adminPaymentFilterBar">
+        <button
+          type="button"
+          className={studentFilter === "all" ? "active" : ""}
+          onClick={() => setStudentFilter("all")}
+        >
+          All Students
+        </button>
 
-        {students.length === 0 ? (
-          <p>No student balances found.</p>
+        <button
+          type="button"
+          className={studentFilter === "balance" ? "active" : ""}
+          onClick={() => setStudentFilter("balance")}
+        >
+          With Balance
+        </button>
+
+        <button
+          type="button"
+          className={studentFilter === "cleared" ? "active" : ""}
+          onClick={() => setStudentFilter("cleared")}
+        >
+          Cleared
+        </button>
+
+        <button
+          type="button"
+          className={studentFilter === "restricted" ? "active" : ""}
+          onClick={() => setStudentFilter("restricted")}
+        >
+          Restricted
+        </button>
+      </section>
+
+      <section className="dashboardPanel adminPaymentsTablePanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Student Balances</h2>
+            <p>
+              Monitor each student’s course fee, total payment, balance, course,
+              and access status.
+            </p>
+          </div>
+        </div>
+
+        {filteredStudents.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No student balance found</h3>
+            <p>No student matches this payment filter.</p>
+          </div>
         ) : (
           <div className="adminPaymentsTableWrap">
-            <table className="adminPaymentsTable">
+            <table className="adminPaymentsTable adminStudentBalanceTable">
               <thead>
                 <tr>
                   <th>Student</th>
@@ -448,21 +585,32 @@ function AdminPayments() {
               </thead>
 
               <tbody>
-                {students.map((student) => (
+                {filteredStudents.map((student) => (
                   <tr key={student.id}>
-                    <td>{student.profiles?.full_name || "Unnamed Student"}</td>
+                    <td>
+                      <strong>
+                        {student.profiles?.full_name || "Unnamed Student"}
+                      </strong>
+                    </td>
+
                     <td>{student.profiles?.email || "-"}</td>
+
                     <td>{student.student_code || "-"}</td>
+
                     <td>{student.enrolled_course || "Data Analysis"}</td>
+
                     <td>{formatMoney(student.course_fee || 0)}</td>
+
                     <td>{formatMoney(student.amount_paid || 0)}</td>
+
                     <td>
                       <strong>{formatMoney(student.payment_balance || 0)}</strong>
                     </td>
+
                     <td>
                       <span
                         className={`statusPill ${
-                          student.is_restricted ? "urgent" : "approved"
+                          student.is_restricted ? "urgent" : "issued"
                         }`}
                       >
                         {student.is_restricted ? "Restricted" : "Active"}
@@ -476,17 +624,62 @@ function AdminPayments() {
         )}
       </section>
 
-      <section className="dashboardPanel adminPaymentsTablePanel">
-        <h2>Payment Records</h2>
+      <section className="adminPaymentRecordFilterBar">
+        <button
+          type="button"
+          className={paymentFilter === "all" ? "active" : ""}
+          onClick={() => setPaymentFilter("all")}
+        >
+          All Records
+        </button>
 
-        {payments.length === 0 ? (
-          <p>
-            No payment records have been added yet. Student balances are showing
-            from the student records, but no actual payment rows exist yet.
-          </p>
+        <button
+          type="button"
+          className={paymentFilter === "confirmed" ? "active" : ""}
+          onClick={() => setPaymentFilter("confirmed")}
+        >
+          Confirmed
+        </button>
+
+        <button
+          type="button"
+          className={paymentFilter === "pending" ? "active" : ""}
+          onClick={() => setPaymentFilter("pending")}
+        >
+          Pending
+        </button>
+
+        <button
+          type="button"
+          className={paymentFilter === "rejected" ? "active" : ""}
+          onClick={() => setPaymentFilter("rejected")}
+        >
+          Rejected
+        </button>
+      </section>
+
+      <section className="dashboardPanel adminPaymentsTablePanel">
+        <div className="panelHeaderRow">
+          <div>
+            <h2>Payment Records</h2>
+            <p>
+              Track recorded payment rows, confirmation status, confirming admin,
+              confirmation date, and notes.
+            </p>
+          </div>
+        </div>
+
+        {filteredPayments.length === 0 ? (
+          <div className="emptyStateBox">
+            <h3>No payment record found</h3>
+            <p>
+              No payment record matches this filter. Student balances may still
+              exist even when no payment row has been inserted yet.
+            </p>
+          </div>
         ) : (
           <div className="adminPaymentsTableWrap">
-            <table className="adminPaymentsTable">
+            <table className="adminPaymentsTable adminPaymentRecordsTable">
               <thead>
                 <tr>
                   <th>Student</th>
@@ -499,21 +692,32 @@ function AdminPayments() {
               </thead>
 
               <tbody>
-                {payments.map((payment) => (
+                {filteredPayments.map((payment) => (
                   <tr key={payment.id}>
                     <td>
-                      {payment.students?.profiles?.full_name || "Unknown Student"}
-                      <br />
+                      <strong>
+                        {payment.students?.profiles?.full_name ||
+                          "Unknown Student"}
+                      </strong>
                       <small>{payment.students?.student_code || "-"}</small>
                     </td>
+
                     <td>{formatMoney(payment.amount || 0)}</td>
+
                     <td>
-                      <span className={`statusPill ${payment.status}`}>
-                        {payment.status}
+                      <span
+                        className={`statusPill ${getPaymentStatusClass(
+                          payment.status
+                        )}`}
+                      >
+                        {getPaymentStatusLabel(payment.status)}
                       </span>
                     </td>
+
                     <td>{payment.profiles?.full_name || "-"}</td>
+
                     <td>{formatDateTime(payment.confirmed_at)}</td>
+
                     <td>{payment.notes || "-"}</td>
                   </tr>
                 ))}
