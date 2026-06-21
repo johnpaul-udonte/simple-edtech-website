@@ -2160,3 +2160,103 @@ export async function getStudentLoginCredentialsForAdmin() {
     error,
   };
 }
+
+export async function getTutorApplicationsForAdmin() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("tutor_applications")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  return {
+    data: data || [],
+    error,
+  };
+}
+
+export async function approveTutorApplicationForAdmin(applicationId) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { data, error } = await supabase.functions.invoke(
+    "approve-tutor-application",
+    {
+      body: {
+        applicationId,
+      },
+    }
+  );
+
+  if (error) {
+    let detailedMessage = error.message || "Tutor application could not be approved.";
+
+    try {
+      if (error.context) {
+        const errorBody = await error.context.json();
+        detailedMessage =
+          errorBody?.error ||
+          errorBody?.message ||
+          detailedMessage;
+      }
+    } catch {
+      // Keep the original Supabase error message.
+    }
+
+    return {
+      data: null,
+      error: {
+        message: detailedMessage,
+      },
+    };
+  }
+
+  return {
+    data,
+    error: null,
+  };
+}
+
+export async function rejectTutorApplicationForAdmin(
+  applicationId,
+  adminProfileId,
+  adminNotes = ""
+) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: {
+        message: "Supabase is not configured yet.",
+      },
+    };
+  }
+
+  const { error } = await supabase
+    .from("tutor_applications")
+    .update({
+      application_status: "rejected",
+      admin_notes: adminNotes || "Rejected by admin.",
+      reviewed_by: adminProfileId || null,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", applicationId);
+
+  return {
+    data: true,
+    error,
+  };
+}

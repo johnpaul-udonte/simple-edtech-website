@@ -346,7 +346,7 @@ function Register() {
       available_days: tutorForm.available_days,
       available_times: tutorForm.available_times,
       education_level: tutorForm.education_level,
-      current_role: tutorForm.current_role,
+      current_job_role: tutorForm.current_role,
       portfolio_url: tutorForm.portfolio_url,
       short_bio: tutorForm.short_bio,
       why_teach: tutorForm.why_teach,
