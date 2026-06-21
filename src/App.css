@@ -8932,3 +8932,623 @@ iframe {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   ADMIN ASSIGNMENTS PAGE
+========================================= */
+
+.adminAssignmentsPage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.adminAssignmentsSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.adminAssignmentsSummaryGrid .dashboardCard {
+  min-height: 112px !important;
+  padding: 16px 12px !important;
+  border-radius: 20px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+.adminAssignmentsSummaryGrid .dashboardCard p {
+  width: 100% !important;
+  margin-bottom: 6px !important;
+  color: #5f718b !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+}
+
+.adminAssignmentsSummaryGrid .dashboardCard h2 {
+  width: 100% !important;
+  color: #0b4ea2 !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.04em !important;
+  overflow-wrap: anywhere !important;
+}
+
+.adminAssignmentFilterBar,
+.adminSubmissionFilterBar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #f1f6ff;
+  border: 1px solid #dbe8fb;
+}
+
+.adminAssignmentFilterBar {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.adminSubmissionFilterBar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adminAssignmentFilterBar button,
+.adminSubmissionFilterBar button {
+  min-height: 48px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #0b4ea2;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.adminAssignmentFilterBar button.active,
+.adminSubmissionFilterBar button.active {
+  background: #0b4ea2;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.16);
+}
+
+.adminAssignmentTablePanel,
+.adminSubmissionTablePanel {
+  padding: 26px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+  margin-bottom: 22px !important;
+}
+
+.adminAssignmentTablePanel .panelHeaderRow,
+.adminSubmissionTablePanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.adminAssignmentTablePanel .panelHeaderRow h2,
+.adminSubmissionTablePanel .panelHeaderRow h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminAssignmentTablePanel .panelHeaderRow p,
+.adminSubmissionTablePanel .panelHeaderRow p {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.adminAssignmentTableWrap,
+.adminSubmissionTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid #dfeaf8;
+  background: #ffffff;
+}
+
+.adminAssignmentTableWrap::-webkit-scrollbar,
+.adminSubmissionTableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.adminAssignmentTableWrap::-webkit-scrollbar-track,
+.adminSubmissionTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.adminAssignmentTableWrap::-webkit-scrollbar-thumb,
+.adminSubmissionTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+.adminAssignmentTable,
+.adminSubmissionTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.adminAssignmentTable {
+  min-width: 1120px;
+}
+
+.adminSubmissionTable {
+  min-width: 1300px;
+}
+
+.adminAssignmentTable th,
+.adminAssignmentTable td,
+.adminSubmissionTable th,
+.adminSubmissionTable td {
+  padding: 14px 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.adminAssignmentTable th,
+.adminSubmissionTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.adminAssignmentTable strong,
+.adminSubmissionTable strong {
+  display: block;
+  color: #082b61;
+  font-size: 13.5px;
+}
+
+.adminAssignmentTable small,
+.adminSubmissionTable small {
+  display: block;
+  margin-top: 4px;
+  color: #5f718b;
+  font-size: 11.5px;
+}
+
+.adminAssignmentTable th:nth-child(1),
+.adminAssignmentTable td:nth-child(1) {
+  width: 310px;
+}
+
+.adminAssignmentTable th:nth-child(2),
+.adminAssignmentTable td:nth-child(2) {
+  width: 190px;
+}
+
+.adminAssignmentTable th:nth-child(3),
+.adminAssignmentTable td:nth-child(3) {
+  width: 110px;
+}
+
+.adminAssignmentTable th:nth-child(4),
+.adminAssignmentTable td:nth-child(4) {
+  width: 130px;
+}
+
+.adminAssignmentTable th:nth-child(5),
+.adminAssignmentTable td:nth-child(5) {
+  width: 130px;
+}
+
+.adminAssignmentTable th:nth-child(6),
+.adminAssignmentTable td:nth-child(6),
+.adminAssignmentTable th:nth-child(7),
+.adminAssignmentTable td:nth-child(7),
+.adminAssignmentTable th:nth-child(8),
+.adminAssignmentTable td:nth-child(8) {
+  width: 110px;
+}
+
+.adminSubmissionTable th:nth-child(1),
+.adminSubmissionTable td:nth-child(1) {
+  width: 180px;
+}
+
+.adminSubmissionTable th:nth-child(2),
+.adminSubmissionTable td:nth-child(2) {
+  width: 240px;
+}
+
+.adminSubmissionTable th:nth-child(3),
+.adminSubmissionTable td:nth-child(3) {
+  width: 190px;
+}
+
+.adminSubmissionTable th:nth-child(4),
+.adminSubmissionTable td:nth-child(4) {
+  width: 100px;
+}
+
+.adminSubmissionTable th:nth-child(5),
+.adminSubmissionTable td:nth-child(5) {
+  width: 130px;
+}
+
+.adminSubmissionTable th:nth-child(6),
+.adminSubmissionTable td:nth-child(6) {
+  width: 100px;
+}
+
+.adminSubmissionTable th:nth-child(7),
+.adminSubmissionTable td:nth-child(7) {
+  width: 170px;
+}
+
+.adminSubmissionTable th:nth-child(8),
+.adminSubmissionTable td:nth-child(8) {
+  width: 120px;
+}
+
+.adminSubmissionTable th:nth-child(9),
+.adminSubmissionTable td:nth-child(9) {
+  width: 190px;
+}
+
+.tableLink {
+  color: #0b4ea2;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.tableLink:hover {
+  text-decoration: underline;
+}
+
+.adminAssignmentRulesPanel {
+  margin-top: 22px !important;
+  padding: 28px !important;
+  border-radius: 28px !important;
+  text-align: center;
+}
+
+.adminAssignmentRulesPanel h2 {
+  font-size: 30px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminAssignmentRulesPanel p {
+  max-width: 850px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 1150px) {
+  .adminAssignmentsSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .adminAssignmentFilterBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 750px) {
+  .adminAssignmentsSummaryGrid,
+  .adminAssignmentFilterBar,
+  .adminSubmissionFilterBar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   ADMIN ASSIGNMENTS PAGE
+========================================= */
+
+.adminAssignmentsPage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.adminAssignmentsSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.adminAssignmentsSummaryGrid .dashboardCard {
+  min-height: 112px !important;
+  padding: 16px 12px !important;
+  border-radius: 20px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+.adminAssignmentsSummaryGrid .dashboardCard p {
+  width: 100% !important;
+  margin-bottom: 6px !important;
+  color: #5f718b !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+}
+
+.adminAssignmentsSummaryGrid .dashboardCard h2 {
+  width: 100% !important;
+  color: #0b4ea2 !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.04em !important;
+  overflow-wrap: anywhere !important;
+}
+
+.adminAssignmentFilterBar,
+.adminSubmissionFilterBar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #f1f6ff;
+  border: 1px solid #dbe8fb;
+}
+
+.adminAssignmentFilterBar {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.adminSubmissionFilterBar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adminAssignmentFilterBar button,
+.adminSubmissionFilterBar button {
+  min-height: 48px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #0b4ea2;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.adminAssignmentFilterBar button.active,
+.adminSubmissionFilterBar button.active {
+  background: #0b4ea2;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.16);
+}
+
+.adminAssignmentTablePanel,
+.adminSubmissionTablePanel {
+  padding: 26px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+  margin-bottom: 22px !important;
+}
+
+.adminAssignmentTablePanel .panelHeaderRow,
+.adminSubmissionTablePanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.adminAssignmentTablePanel .panelHeaderRow h2,
+.adminSubmissionTablePanel .panelHeaderRow h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminAssignmentTablePanel .panelHeaderRow p,
+.adminSubmissionTablePanel .panelHeaderRow p {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.adminAssignmentTableWrap,
+.adminSubmissionTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid #dfeaf8;
+  background: #ffffff;
+}
+
+.adminAssignmentTableWrap::-webkit-scrollbar,
+.adminSubmissionTableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.adminAssignmentTableWrap::-webkit-scrollbar-track,
+.adminSubmissionTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.adminAssignmentTableWrap::-webkit-scrollbar-thumb,
+.adminSubmissionTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+.adminAssignmentTable,
+.adminSubmissionTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.adminAssignmentTable {
+  min-width: 1120px;
+}
+
+.adminSubmissionTable {
+  min-width: 1300px;
+}
+
+.adminAssignmentTable th,
+.adminAssignmentTable td,
+.adminSubmissionTable th,
+.adminSubmissionTable td {
+  padding: 14px 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.adminAssignmentTable th,
+.adminSubmissionTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.adminAssignmentTable strong,
+.adminSubmissionTable strong {
+  display: block;
+  color: #082b61;
+  font-size: 13.5px;
+}
+
+.adminAssignmentTable small,
+.adminSubmissionTable small {
+  display: block;
+  margin-top: 4px;
+  color: #5f718b;
+  font-size: 11.5px;
+}
+
+.adminAssignmentTable th:nth-child(1),
+.adminAssignmentTable td:nth-child(1) {
+  width: 310px;
+}
+
+.adminAssignmentTable th:nth-child(2),
+.adminAssignmentTable td:nth-child(2) {
+  width: 190px;
+}
+
+.adminAssignmentTable th:nth-child(3),
+.adminAssignmentTable td:nth-child(3) {
+  width: 110px;
+}
+
+.adminAssignmentTable th:nth-child(4),
+.adminAssignmentTable td:nth-child(4) {
+  width: 130px;
+}
+
+.adminAssignmentTable th:nth-child(5),
+.adminAssignmentTable td:nth-child(5) {
+  width: 130px;
+}
+
+.adminAssignmentTable th:nth-child(6),
+.adminAssignmentTable td:nth-child(6),
+.adminAssignmentTable th:nth-child(7),
+.adminAssignmentTable td:nth-child(7),
+.adminAssignmentTable th:nth-child(8),
+.adminAssignmentTable td:nth-child(8) {
+  width: 110px;
+}
+
+.adminSubmissionTable th:nth-child(1),
+.adminSubmissionTable td:nth-child(1) {
+  width: 180px;
+}
+
+.adminSubmissionTable th:nth-child(2),
+.adminSubmissionTable td:nth-child(2) {
+  width: 240px;
+}
+
+.adminSubmissionTable th:nth-child(3),
+.adminSubmissionTable td:nth-child(3) {
+  width: 190px;
+}
+
+.adminSubmissionTable th:nth-child(4),
+.adminSubmissionTable td:nth-child(4) {
+  width: 100px;
+}
+
+.adminSubmissionTable th:nth-child(5),
+.adminSubmissionTable td:nth-child(5) {
+  width: 130px;
+}
+
+.adminSubmissionTable th:nth-child(6),
+.adminSubmissionTable td:nth-child(6) {
+  width: 100px;
+}
+
+.adminSubmissionTable th:nth-child(7),
+.adminSubmissionTable td:nth-child(7) {
+  width: 170px;
+}
+
+.adminSubmissionTable th:nth-child(8),
+.adminSubmissionTable td:nth-child(8) {
+  width: 120px;
+}
+
+.adminSubmissionTable th:nth-child(9),
+.adminSubmissionTable td:nth-child(9) {
+  width: 190px;
+}
+
+.tableLink {
+  color: #0b4ea2;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.tableLink:hover {
+  text-decoration: underline;
+}
+
+.adminAssignmentRulesPanel {
+  margin-top: 22px !important;
+  padding: 28px !important;
+  border-radius: 28px !important;
+  text-align: center;
+}
+
+.adminAssignmentRulesPanel h2 {
+  font-size: 30px !important;
+  margin-bottom: 8px !important;
+}
+
+.adminAssignmentRulesPanel p {
+  max-width: 850px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 1150px) {
+  .adminAssignmentsSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .adminAssignmentFilterBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 750px) {
+  .adminAssignmentsSummaryGrid,
+  .adminAssignmentFilterBar,
+  .adminSubmissionFilterBar {
+    grid-template-columns: 1fr;
+  }
+}
