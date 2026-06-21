@@ -11062,3 +11062,371 @@ iframe {
     white-space: normal !important;
   }
 }
+
+/* =========================================
+   ADMIN CERTIFICATES PAGE
+========================================= */
+
+.adminCertificatesPage .dashboardHeader {
+  margin-bottom: 20px !important;
+}
+
+.adminCertificateSummaryGrid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 22px !important;
+}
+
+.adminCertificateSummaryGrid .dashboardCard {
+  min-height: 118px !important;
+  padding: 18px 16px !important;
+  border-radius: 22px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+.adminCertificateSummaryGrid .dashboardCard p {
+  width: 100% !important;
+  margin-bottom: 8px !important;
+  color: #5f718b !important;
+  font-size: 12.5px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+}
+
+.adminCertificateSummaryGrid .dashboardCard h2 {
+  width: 100% !important;
+  color: #0b4ea2 !important;
+  font-size: 30px !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.certificateUploadPanel,
+.adminCertificatesTablePanel,
+.adminCertificateRulesPanel {
+  padding: 26px !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+  margin-bottom: 22px !important;
+}
+
+.certificateUploadPanel .panelHeaderRow,
+.adminCertificatesTablePanel .panelHeaderRow {
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.certificateUploadPanel .panelHeaderRow h2,
+.adminCertificatesTablePanel .panelHeaderRow h2,
+.adminCertificateRulesPanel h2 {
+  font-size: 32px !important;
+  margin-bottom: 8px !important;
+}
+
+.certificateUploadPanel .panelHeaderRow p,
+.adminCertificatesTablePanel .panelHeaderRow p {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.certificateUploadForm {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.certificateUploadForm label {
+  display: grid;
+  gap: 8px;
+  color: #082b61;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.certificateUploadForm select,
+.certificateUploadForm input,
+.certificateUploadForm textarea {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid #d5dce8;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #ffffff;
+  color: #082b61;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.certificateUploadForm textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.certificateUploadForm label:first-child {
+  grid-column: span 2;
+}
+
+.certificateNotesField {
+  grid-column: span 2;
+}
+
+.selectedCertificateStudentPreview {
+  grid-column: span 2;
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 20px;
+  background: #f8fbff;
+  border: 1px solid #e4edf9;
+  color: #475467;
+}
+
+.selectedCertificateStudentPreview strong {
+  color: #082b61;
+}
+
+.certificateUploadForm button[type="submit"] {
+  grid-column: span 4;
+  justify-self: center;
+  min-width: 260px;
+  height: 52px;
+  border: none;
+  border-radius: 15px;
+  background: #0b4ea2;
+  color: #ffffff;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(11, 78, 162, 0.18);
+}
+
+.certificateUploadForm button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.adminCertificateFilterBar,
+.adminCertificateRecordFilterBar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #f1f6ff;
+  border: 1px solid #dbe8fb;
+}
+
+.adminCertificateFilterBar {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.adminCertificateRecordFilterBar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adminCertificateFilterBar button,
+.adminCertificateRecordFilterBar button {
+  min-height: 48px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #0b4ea2;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.adminCertificateFilterBar button.active,
+.adminCertificateRecordFilterBar button.active {
+  background: #0b4ea2;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(11, 78, 162, 0.16);
+}
+
+.adminCertificatesTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid #dfeaf8;
+  background: #ffffff;
+}
+
+.adminCertificatesTableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.adminCertificatesTableWrap::-webkit-scrollbar-track {
+  background: #eef4ff;
+  border-radius: 999px;
+}
+
+.adminCertificatesTableWrap::-webkit-scrollbar-thumb {
+  background: #0b4ea2;
+  border-radius: 999px;
+}
+
+.adminCertificatesTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.adminCertificateEligibilityTable {
+  min-width: 1080px;
+}
+
+.adminCertificateRecordsTable {
+  min-width: 1120px;
+}
+
+.adminCertificatesTable th,
+.adminCertificatesTable td {
+  padding: 14px 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid #eef3fb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.adminCertificatesTable th {
+  background: #f1f6ff;
+  color: #082b61;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.adminCertificatesTable strong {
+  display: block;
+  color: #082b61;
+  font-size: 13.5px;
+}
+
+.adminCertificatesTable small {
+  display: block;
+  margin-top: 4px;
+  color: #5f718b;
+  font-size: 11.5px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(1),
+.adminCertificateEligibilityTable td:nth-child(1) {
+  width: 210px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(2),
+.adminCertificateEligibilityTable td:nth-child(2) {
+  width: 230px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(3),
+.adminCertificateEligibilityTable td:nth-child(3) {
+  width: 180px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(4),
+.adminCertificateEligibilityTable td:nth-child(4) {
+  width: 190px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(5),
+.adminCertificateEligibilityTable td:nth-child(5) {
+  width: 140px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(6),
+.adminCertificateEligibilityTable td:nth-child(6) {
+  width: 110px;
+}
+
+.adminCertificateEligibilityTable th:nth-child(7),
+.adminCertificateEligibilityTable td:nth-child(7) {
+  width: 140px;
+}
+
+.adminCertificateRecordsTable th:nth-child(1),
+.adminCertificateRecordsTable td:nth-child(1) {
+  width: 230px;
+}
+
+.adminCertificateRecordsTable th:nth-child(2),
+.adminCertificateRecordsTable td:nth-child(2) {
+  width: 190px;
+}
+
+.adminCertificateRecordsTable th:nth-child(3),
+.adminCertificateRecordsTable td:nth-child(3) {
+  width: 170px;
+}
+
+.adminCertificateRecordsTable th:nth-child(4),
+.adminCertificateRecordsTable td:nth-child(4) {
+  width: 120px;
+}
+
+.adminCertificateRecordsTable th:nth-child(5),
+.adminCertificateRecordsTable td:nth-child(5) {
+  width: 170px;
+}
+
+.adminCertificateRecordsTable th:nth-child(6),
+.adminCertificateRecordsTable td:nth-child(6) {
+  width: 260px;
+}
+
+.adminCertificateRecordsTable th:nth-child(7),
+.adminCertificateRecordsTable td:nth-child(7) {
+  width: 120px;
+}
+
+.adminCertificateRulesPanel {
+  background: linear-gradient(135deg, #ffffff, #f8fbff) !important;
+}
+
+.adminCertificateRulesPanel p {
+  max-width: 980px;
+  color: #475467;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+@media (max-width: 1150px) {
+  .adminCertificateSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .certificateUploadForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .certificateUploadForm button[type="submit"] {
+    grid-column: span 2;
+  }
+
+  .adminCertificateFilterBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .adminCertificateSummaryGrid,
+  .certificateUploadForm,
+  .adminCertificateFilterBar,
+  .adminCertificateRecordFilterBar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .certificateUploadForm label:first-child,
+  .certificateNotesField,
+  .selectedCertificateStudentPreview,
+  .certificateUploadForm button[type="submit"] {
+    grid-column: span 1;
+  }
+}
