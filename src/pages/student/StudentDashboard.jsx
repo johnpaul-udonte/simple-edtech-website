@@ -127,8 +127,8 @@ function StudentDashboard() {
           <p className="eyebrow">Student Portal</p>
           <h1>Welcome back, {profile?.full_name || "Student"}</h1>
           <p>
-            Track your class balance, payment balance, tutor assignment,
-            attendance status, assignments, drills, and certificates.
+            Your learning space is ready. Continue your classes, track your progress,
+            complete your drills, and stay focused on completing your certification.
           </p>
         </div>
 

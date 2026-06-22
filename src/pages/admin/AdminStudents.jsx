@@ -7,12 +7,31 @@ import {
   updateStudentRestrictionForAdmin,
 } from "../../services/adminService";
 
+const courseClassTargets = {
+  Excel: 10,
+  "Power BI": 10,
+  SQL: 8,
+  Python: 14,
+  "Excel + Power BI + SQL": 28,
+  "Full Data Analysis Training": 42,
+  "Data Analysis": 42,
+};
+
 function formatMoney(value) {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
+}
+
+function getCourseTotalClasses(courseName) {
+  return courseClassTargets[courseName] || 42;
+}
+
+function getProgressPercent(attended, total) {
+  if (!total) return 0;
+  return Math.min(100, Math.round((Number(attended || 0) / total) * 100));
 }
 
 function getAccessClass(isRestricted) {
@@ -41,6 +60,7 @@ function AdminStudents() {
   const [studentData, setStudentData] = useState(null);
   const [tutors, setTutors] = useState([]);
   const [selectedTutorByStudentId, setSelectedTutorByStudentId] = useState({});
+  const [attendedClassesByStudentId, setAttendedClassesByStudentId] = useState({});
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
@@ -48,15 +68,17 @@ function AdminStudents() {
   const [actionError, setActionError] = useState("");
   const [updatingStudentId, setUpdatingStudentId] = useState("");
   const [assigningStudentId, setAssigningStudentId] = useState("");
+  const [savingClassesStudentId, setSavingClassesStudentId] = useState("");
 
   async function loadStudents() {
     setIsLoading(true);
     setNotice("");
     setActionError("");
 
-    const [studentResult, tutorResult] = await Promise.all([
+    const [studentResult, tutorResult, attendedResult] = await Promise.all([
       getStudentControlCenterForAdmin(),
       getAllTutorsForAdmin(),
+      supabase.from("students").select("id, attended_classes"),
     ]);
 
     if (studentResult.error) {
@@ -71,17 +93,42 @@ function AdminStudents() {
       return;
     }
 
-    setStudentData(studentResult.data);
-    setTutors(tutorResult.data || []);
+    if (attendedResult.error) {
+      setNotice(attendedResult.error.message || "Could not load attended class records.");
+      setIsLoading(false);
+      return;
+    }
+
+    const attendedMap = {};
+    attendedResult.data?.forEach((row) => {
+      attendedMap[row.id] = Number(row.attended_classes || 0);
+    });
 
     const studentList = studentResult.data?.students || [];
-    const initialTutorMap = {};
 
-    studentList.forEach((student) => {
+    const enrichedStudents = studentList.map((student) => ({
+      ...student,
+      attended_classes:
+        attendedMap[student.id] ?? Number(student.attended_classes || 0),
+    }));
+
+    setStudentData({
+      ...studentResult.data,
+      students: enrichedStudents,
+    });
+
+    setTutors(tutorResult.data || []);
+
+    const initialTutorMap = {};
+    const initialAttendedMap = {};
+
+    enrichedStudents.forEach((student) => {
       initialTutorMap[student.id] = student.assigned_tutor_id || "";
+      initialAttendedMap[student.id] = Number(student.attended_classes || 0);
     });
 
     setSelectedTutorByStudentId(initialTutorMap);
+    setAttendedClassesByStudentId(initialAttendedMap);
     setIsLoading(false);
   }
 
@@ -94,6 +141,32 @@ function AdminStudents() {
   }, [studentData]);
 
   const summary = studentData?.summary || {};
+
+  const progressSummary = useMemo(() => {
+    if (students.length === 0) {
+      return {
+        averageProgress: 0,
+        completedStudents: 0,
+      };
+    }
+
+    const totalProgress = students.reduce((sum, student) => {
+      const totalClasses = getCourseTotalClasses(student.enrolled_course);
+      const attendedClasses = Number(student.attended_classes || 0);
+      return sum + getProgressPercent(attendedClasses, totalClasses);
+    }, 0);
+
+    const completedStudents = students.filter((student) => {
+      const totalClasses = getCourseTotalClasses(student.enrolled_course);
+      const attendedClasses = Number(student.attended_classes || 0);
+      return attendedClasses >= totalClasses;
+    }).length;
+
+    return {
+      averageProgress: Math.round(totalProgress / students.length),
+      completedStudents,
+    };
+  }, [students]);
 
   const filteredStudents = useMemo(() => {
     if (activeFilter === "all") return students;
@@ -116,6 +189,13 @@ function AdminStudents() {
 
     if (activeFilter === "noTutor") {
       return students.filter((student) => !student.tutors?.profiles?.full_name);
+    }
+
+    if (activeFilter === "completed") {
+      return students.filter((student) => {
+        const totalClasses = getCourseTotalClasses(student.enrolled_course);
+        return Number(student.attended_classes || 0) >= totalClasses;
+      });
     }
 
     return students;
@@ -177,12 +257,6 @@ function AdminStudents() {
     setActionError("");
     setAssigningStudentId(student.id);
 
-    if (!supabase) {
-      setActionError("Supabase is not configured yet.");
-      setAssigningStudentId("");
-      return;
-    }
-
     const selectedTutorId = selectedTutorByStudentId[student.id] || null;
 
     const { error } = await supabase
@@ -207,6 +281,47 @@ function AdminStudents() {
 
     await loadStudents();
     setAssigningStudentId("");
+  }
+
+  async function handleSaveAttendedClasses(student) {
+    setSuccessMessage("");
+    setActionError("");
+    setSavingClassesStudentId(student.id);
+
+    const totalClasses = getCourseTotalClasses(student.enrolled_course);
+    const attendedClasses = Number(attendedClassesByStudentId[student.id] || 0);
+
+    if (attendedClasses < 0) {
+      setActionError("Attended classes cannot be less than 0.");
+      setSavingClassesStudentId("");
+      return;
+    }
+
+    if (attendedClasses > totalClasses) {
+      setActionError(
+        `Attended classes cannot be more than ${totalClasses} for ${student.enrolled_course}.`
+      );
+      setSavingClassesStudentId("");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("students")
+      .update({
+        attended_classes: attendedClasses,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", student.id);
+
+    if (error) {
+      setActionError(error.message || "Could not save attended classes.");
+      setSavingClassesStudentId("");
+      return;
+    }
+
+    setSuccessMessage("Student attended classes and progress have been updated.");
+    await loadStudents();
+    setSavingClassesStudentId("");
   }
 
   if (isLoading) {
@@ -239,8 +354,7 @@ function AdminStudents() {
           <h1>Student Control Centre</h1>
           <p>
             Monitor student progress, tutor assignment, payment balance, class
-            balance, drill performance, certificate readiness, and access
-            restriction status.
+            attendance, certificate readiness, and access restriction status.
           </p>
         </div>
 
@@ -278,13 +392,13 @@ function AdminStudents() {
         </article>
 
         <article className="dashboardCard">
-          <p>With Balance</p>
-          <h2>{summary.studentsWithBalance || 0}</h2>
+          <p>Average Progress</p>
+          <h2>{progressSummary.averageProgress}%</h2>
         </article>
 
         <article className="dashboardCard">
-          <p>Certificate Ready</p>
-          <h2>{summary.certificateReadyStudents || 0}</h2>
+          <p>Completed</p>
+          <h2>{progressSummary.completedStudents}</h2>
         </article>
 
         <article className="dashboardCard adminStudentsMoneyCard">
@@ -336,6 +450,14 @@ function AdminStudents() {
 
         <button
           type="button"
+          className={activeFilter === "completed" ? "active" : ""}
+          onClick={() => setActiveFilter("completed")}
+        >
+          Completed
+        </button>
+
+        <button
+          type="button"
           className={activeFilter === "noTutor" ? "active" : ""}
           onClick={() => setActiveFilter("noTutor")}
         >
@@ -348,8 +470,8 @@ function AdminStudents() {
           <div>
             <h2>Student Access & Progress Table</h2>
             <p>
-              Review students, assign tutors, monitor payments, track progress,
-              and control portal access.
+              Assign tutors, input attended classes, monitor progress percentage,
+              and control student access.
             </p>
           </div>
         </div>
@@ -368,7 +490,7 @@ function AdminStudents() {
                   <th>Current Tutor</th>
                   <th>Assign Tutor</th>
                   <th>Course</th>
-                  <th>Classes</th>
+                  <th>Attended / Progress</th>
                   <th>Payment</th>
                   <th>Drills</th>
                   <th>Certificate</th>
@@ -381,7 +503,18 @@ function AdminStudents() {
                 {filteredStudents.map((student) => {
                   const isUpdating = updatingStudentId === student.id;
                   const isAssigning = assigningStudentId === student.id;
+                  const isSavingClasses = savingClassesStudentId === student.id;
                   const paymentBalance = Number(student.paymentBalance || 0);
+
+                  const totalClasses = getCourseTotalClasses(student.enrolled_course);
+                  const attendedClasses = Number(
+                    attendedClassesByStudentId[student.id] || 0
+                  );
+                  const remainingClasses = Math.max(totalClasses - attendedClasses, 0);
+                  const progressPercent = getProgressPercent(
+                    attendedClasses,
+                    totalClasses
+                  );
 
                   return (
                     <tr key={student.id}>
@@ -431,18 +564,47 @@ function AdminStudents() {
                         </div>
                       </td>
 
-                      <td>{student.enrolled_course || "Data Analysis"}</td>
+                      <td>
+                        <strong>{student.enrolled_course || "Data Analysis"}</strong>
+                        <small>Total: {totalClasses} classes</small>
+                      </td>
 
                       <td>
-                        <strong>
-                          {student.completedClasses || 0}/
-                          {student.totalPaidClasses || 0}
-                        </strong>
-                        <small>Remaining: {student.remainingClasses || 0}</small>
-                        <small>
-                          Missed: {student.missed_classes || 0} | Cancelled:{" "}
-                          {student.cancelled_classes || 0}
-                        </small>
+                        <div className="attendedClassBox">
+                          <div className="attendedClassInputRow">
+                            <input
+                              type="number"
+                              min="0"
+                              max={totalClasses}
+                              value={attendedClassesByStudentId[student.id] ?? 0}
+                              onChange={(event) =>
+                                setAttendedClassesByStudentId((current) => ({
+                                  ...current,
+                                  [student.id]: event.target.value,
+                                }))
+                              }
+                            />
+
+                            <button
+                              type="button"
+                              className="tableActionBtn"
+                              disabled={isSavingClasses}
+                              onClick={() => handleSaveAttendedClasses(student)}
+                            >
+                              {isSavingClasses ? "Saving..." : "Save"}
+                            </button>
+                          </div>
+
+                          <div className="studentProgressBar">
+                            <span style={{ width: `${progressPercent}%` }} />
+                          </div>
+
+                          <small>
+                            {attendedClasses}/{totalClasses} classes attended
+                          </small>
+                          <strong>{progressPercent}% complete</strong>
+                          <small>Remaining: {remainingClasses} classes</small>
+                        </div>
                       </td>
 
                       <td>

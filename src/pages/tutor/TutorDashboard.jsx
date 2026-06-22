@@ -156,8 +156,8 @@ function TutorDashboard() {
           <p className="eyebrow">Tutor Portal</p>
           <h1>Welcome back, {profile?.full_name || "Tutor"}</h1>
           <p>
-            Monitor your assigned students, class progress, payment restrictions,
-            schedule approvals, assignments, and drills.
+            Your teaching workspace is ready. Review assigned students, update class
+            progress, manage learning activities, and support students toward completion.
           </p>
         </div>
 

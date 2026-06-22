@@ -3,6 +3,8 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 
+import NotificationBell from "../components/NotificationBell";
+
 function DashboardLayout({ role }) {
   const navigate = useNavigate();
   const { logout, profile } = useAuth();
@@ -126,6 +128,7 @@ function DashboardLayout({ role }) {
 
   return (
     <div className="dashboardShell">
+      <NotificationBell />
       <aside className="sidebar">
         <Link to="/" className="dashboardBrand">
           <img src="/images/jlux-logo.png" alt="Jlux Academy Logo" />

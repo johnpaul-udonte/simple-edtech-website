@@ -54,7 +54,7 @@ const dataQuotes = [
 ];
 
 const pricingSnapshot = [
-  { course: "Full Data Analysis", fee: "₦120,000" },
+  { course: "Full Data Analysis", fee: "₦150,000" },
   { course: "Excel", fee: "₦40,000" },
   { course: "Power BI", fee: "₦40,000" },
   { course: "SQL", fee: "₦40,000" },

@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { getPaymentsForAdmin } from "../../services/adminService";
 
 const coursePrices = {
-  "Full Data Analysis Training": 120000,
+  "Full Data Analysis Training": 150000,
   "Data Analysis": 120000,
   Excel: 40000,
   "Power BI": 40000,

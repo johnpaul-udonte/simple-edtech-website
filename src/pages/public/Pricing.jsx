@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 const pricingPlans = [
   {
     title: "Full Data Analysis Training",
-    price: "₦120,000",
+    price: "₦150,000",
     description: "Complete practical training in Excel, Power BI, SQL, and Python.",
     tag: "Best Value",
     featured: true,
