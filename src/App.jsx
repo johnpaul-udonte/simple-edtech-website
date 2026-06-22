@@ -47,6 +47,8 @@ import AdminLoginCredentials from "./pages/admin/AdminLoginCredentials";
 
 import StudentRestrictionGuard from "./components/StudentRestrictionGuard";
 
+
+import ResetPassword from "./pages/ResetPassword";
 function App() {
   return (
     <BrowserRouter>
@@ -62,7 +64,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
-        </Route>
+          <Route path="/reset-password" element={<ResetPassword />} />
+          </Route>
 
         <Route
           element={
