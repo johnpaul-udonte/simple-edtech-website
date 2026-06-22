@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabaseClient";
 import {
+  getAllTutorsForAdmin,
   getStudentControlCenterForAdmin,
   updateStudentRestrictionForAdmin,
 } from "../../services/adminService";
@@ -37,27 +39,49 @@ function AdminStudents() {
   const { session } = useAuth();
 
   const [studentData, setStudentData] = useState(null);
+  const [tutors, setTutors] = useState([]);
+  const [selectedTutorByStudentId, setSelectedTutorByStudentId] = useState({});
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [actionError, setActionError] = useState("");
   const [updatingStudentId, setUpdatingStudentId] = useState("");
+  const [assigningStudentId, setAssigningStudentId] = useState("");
 
   async function loadStudents() {
     setIsLoading(true);
     setNotice("");
     setActionError("");
 
-    const { data, error } = await getStudentControlCenterForAdmin();
+    const [studentResult, tutorResult] = await Promise.all([
+      getStudentControlCenterForAdmin(),
+      getAllTutorsForAdmin(),
+    ]);
 
-    if (error) {
-      setNotice(error.message || "Could not load student records.");
+    if (studentResult.error) {
+      setNotice(studentResult.error.message || "Could not load student records.");
       setIsLoading(false);
       return;
     }
 
-    setStudentData(data);
+    if (tutorResult.error) {
+      setNotice(tutorResult.error.message || "Could not load tutor records.");
+      setIsLoading(false);
+      return;
+    }
+
+    setStudentData(studentResult.data);
+    setTutors(tutorResult.data || []);
+
+    const studentList = studentResult.data?.students || [];
+    const initialTutorMap = {};
+
+    studentList.forEach((student) => {
+      initialTutorMap[student.id] = student.assigned_tutor_id || "";
+    });
+
+    setSelectedTutorByStudentId(initialTutorMap);
     setIsLoading(false);
   }
 
@@ -146,6 +170,43 @@ function AdminStudents() {
 
     await loadStudents();
     setUpdatingStudentId("");
+  }
+
+  async function handleAssignTutor(student) {
+    setSuccessMessage("");
+    setActionError("");
+    setAssigningStudentId(student.id);
+
+    if (!supabase) {
+      setActionError("Supabase is not configured yet.");
+      setAssigningStudentId("");
+      return;
+    }
+
+    const selectedTutorId = selectedTutorByStudentId[student.id] || null;
+
+    const { error } = await supabase
+      .from("students")
+      .update({
+        assigned_tutor_id: selectedTutorId || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", student.id);
+
+    if (error) {
+      setActionError(error.message || "Could not assign tutor to student.");
+      setAssigningStudentId("");
+      return;
+    }
+
+    setSuccessMessage(
+      selectedTutorId
+        ? "Tutor assigned to student successfully."
+        : "Tutor removed from student successfully."
+    );
+
+    await loadStudents();
+    setAssigningStudentId("");
   }
 
   if (isLoading) {
@@ -287,8 +348,8 @@ function AdminStudents() {
           <div>
             <h2>Student Access & Progress Table</h2>
             <p>
-              Review students, assigned tutors, class progress, payment exposure,
-              drill performance, certificate readiness, and access status.
+              Review students, assign tutors, monitor payments, track progress,
+              and control portal access.
             </p>
           </div>
         </div>
@@ -300,11 +361,12 @@ function AdminStudents() {
           </div>
         ) : (
           <div className="adminStudentsTableWrap">
-            <table className="adminStudentsTable">
+            <table className="adminStudentsTable adminStudentsTutorAssignTable">
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Tutor</th>
+                  <th>Current Tutor</th>
+                  <th>Assign Tutor</th>
                   <th>Course</th>
                   <th>Classes</th>
                   <th>Payment</th>
@@ -318,6 +380,7 @@ function AdminStudents() {
               <tbody>
                 {filteredStudents.map((student) => {
                   const isUpdating = updatingStudentId === student.id;
+                  const isAssigning = assigningStudentId === student.id;
                   const paymentBalance = Number(student.paymentBalance || 0);
 
                   return (
@@ -335,6 +398,37 @@ function AdminStudents() {
                           {student.tutors?.profiles?.full_name ||
                             "Tutor not assigned"}
                         </strong>
+                      </td>
+
+                      <td>
+                        <div className="assignTutorBox">
+                          <select
+                            value={selectedTutorByStudentId[student.id] || ""}
+                            onChange={(event) =>
+                              setSelectedTutorByStudentId((current) => ({
+                                ...current,
+                                [student.id]: event.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">No tutor</option>
+                            {tutors.map((tutor) => (
+                              <option key={tutor.id} value={tutor.id}>
+                                {tutor.profiles?.full_name || "Unnamed Tutor"} —{" "}
+                                {tutor.specialisation || "Tutor"}
+                              </option>
+                            ))}
+                          </select>
+
+                          <button
+                            type="button"
+                            className="tableActionBtn"
+                            disabled={isAssigning}
+                            onClick={() => handleAssignTutor(student)}
+                          >
+                            {isAssigning ? "Saving..." : "Save"}
+                          </button>
+                        </div>
                       </td>
 
                       <td>{student.enrolled_course || "Data Analysis"}</td>

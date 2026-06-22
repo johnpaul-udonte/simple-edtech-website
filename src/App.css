@@ -11581,3 +11581,87 @@ iframe {
     font-size: 10px !important;
   }
 }
+
+/* =========================================
+   ADMIN STUDENTS - TUTOR ASSIGNMENT
+========================================= */
+
+.adminStudentsTutorAssignTable {
+  min-width: 1480px !important;
+}
+
+.assignTutorBox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.assignTutorBox select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #d5dce8;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: #ffffff;
+  color: #082b61;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.assignTutorBox .tableActionBtn {
+  min-height: 40px;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  white-space: nowrap;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(1),
+.adminStudentsTutorAssignTable td:nth-child(1) {
+  width: 230px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(2),
+.adminStudentsTutorAssignTable td:nth-child(2) {
+  width: 180px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(3),
+.adminStudentsTutorAssignTable td:nth-child(3) {
+  width: 280px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(4),
+.adminStudentsTutorAssignTable td:nth-child(4) {
+  width: 160px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(5),
+.adminStudentsTutorAssignTable td:nth-child(5) {
+  width: 170px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(6),
+.adminStudentsTutorAssignTable td:nth-child(6) {
+  width: 160px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(7),
+.adminStudentsTutorAssignTable td:nth-child(7) {
+  width: 120px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(8),
+.adminStudentsTutorAssignTable td:nth-child(8) {
+  width: 140px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(9),
+.adminStudentsTutorAssignTable td:nth-child(9) {
+  width: 160px;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(10),
+.adminStudentsTutorAssignTable td:nth-child(10) {
+  width: 120px;
+}
