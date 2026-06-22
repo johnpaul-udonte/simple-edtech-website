@@ -75,12 +75,6 @@ function Pricing() {
       </section>
 
       <section className="pricingNoteBox">
-        <h3>Payment Tracking Included</h3>
-        <p>
-          After enrolment, admin can record how much a student has paid and the
-          outstanding balance. The student will be able to see this inside their
-          portal.
-        </p>
       </section>
     </main>
   );

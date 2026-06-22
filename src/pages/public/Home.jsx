@@ -68,7 +68,7 @@ function Home() {
       <header className="homeHero compactHomeHero">
         <section className="hero">
           <div className="heroText">
-            <p className="eyebrow">Premium Data Skills Academy</p>
+            <p className="eyebrow">Premium Data Skills in Demand</p>
 
             <h2>
               Learn practical data skills with coaching, structure, and
@@ -212,7 +212,7 @@ function Home() {
         <section className="section compactSection">
           <div className="sectionHeader compactSectionHeader">
             <p className="eyebrow">Pricing Snapshot</p>
-            <h2>Clear training fees</h2>
+            <h2>Professional training fees</h2>
           </div>
 
           <div className="homePricingGrid">

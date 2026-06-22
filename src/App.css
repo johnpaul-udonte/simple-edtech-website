@@ -12774,3 +12774,455 @@ iframe {
   background: rgba(255, 255, 255, 0.14) !important;
   color: #ffffff !important;
 }
+
+/* =========================================
+   FINAL MOBILE RESPONSIVENESS POLISH
+   Public pages + dashboards + forms + tables
+========================================= */
+
+@media (max-width: 900px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-size: 15px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Public page spacing */
+  .publicLayout,
+  .homePage,
+  .publicHomePage,
+  .homeMain,
+  .pricingPage,
+  .publicPricingPage,
+  .authPage {
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  section,
+  .homeSection,
+  .pricingSection,
+  .pricingSnapshot,
+  .dashboardPanel {
+    max-width: 100% !important;
+  }
+
+  /* Hero areas */
+  .homeHero,
+  .heroSection,
+  .publicHero {
+    width: calc(100% - 24px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 34px 22px !important;
+    border-radius: 26px !important;
+    text-align: center !important;
+  }
+
+  .homeHero h1,
+  .heroSection h1,
+  .publicHero h1,
+  .pricingPage h1,
+  .publicPricingPage h1 {
+    font-size: clamp(32px, 9vw, 48px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.055em !important;
+  }
+
+  .homeHero p,
+  .heroSection p,
+  .publicHero p,
+  .pricingPage p,
+  .publicPricingPage p {
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+  }
+
+  /* Cards and grids */
+  .pricingGrid,
+  .pricingSnapshotGrid,
+  .homePricingGrid,
+  .courseGrid,
+  .featuresGrid,
+  .statsGrid,
+  .adminStudentsSummaryGrid,
+  .dashboardStatsGrid,
+  .dashboardGrid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  .pricingGrid article,
+  .pricingSnapshotGrid article,
+  .homePricingGrid article,
+  .pricingCard,
+  .homePriceCard,
+  .courseCard,
+  .dashboardCard {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-radius: 22px !important;
+  }
+
+  /* Registration page */
+  .authPage {
+    padding: 22px 10px 48px !important;
+  }
+
+  .authPage .studentApplicationCard {
+    width: 100% !important;
+    border-radius: 24px !important;
+  }
+
+  .authPage .studentApplicationCard > .eyebrow,
+  .authPage .studentApplicationCard > h2,
+  .authPage .studentApplicationCard > p,
+  .authPage .studentApplicationCard > .registrationTypeSwitch,
+  .authPage .studentApplicationCard > .successNotice,
+  .authPage .studentApplicationCard > .errorNotice {
+    width: calc(100% - 28px) !important;
+  }
+
+  .studentApplicationForm {
+    padding: 24px 14px 34px !important;
+    gap: 22px !important;
+  }
+
+  .formGrid,
+  .checkboxGrid,
+  .tutorTimeGrid,
+  .registrationTypeSwitch {
+    grid-template-columns: 1fr !important;
+  }
+
+  .formSectionTitle {
+    border-radius: 20px !important;
+    padding: 18px !important;
+  }
+
+  .studentApplicationForm input,
+  .studentApplicationForm select,
+  .studentApplicationForm textarea {
+    min-height: 52px !important;
+    font-size: 14px !important;
+    border-radius: 15px !important;
+  }
+
+  .checkboxItem {
+    min-height: 42px !important;
+    font-size: 12.5px !important;
+  }
+
+  .studentApplicationForm > button[type="submit"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 56px !important;
+  }
+
+  /* Dashboard becomes mobile-first */
+  .dashboardShell {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+  }
+
+  .sidebar {
+    position: relative !important;
+    width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    padding: 14px !important;
+    border-radius: 0 0 24px 24px !important;
+    overflow: visible !important;
+  }
+
+  .dashboardBrand {
+    display: flex !important;
+    justify-content: center !important;
+    text-align: left !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .dashboardBrand img {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .dashboardBrand h2 {
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+  }
+
+  .dashboardBrand p {
+    font-size: 11px !important;
+  }
+
+  .userMiniCard {
+    margin: 12px 0 !important;
+    padding: 14px !important;
+    border-radius: 20px !important;
+  }
+
+  .studentProfilePhotoWrap,
+  .studentProfilePhoto {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .sideNav {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .sideNav a,
+  .sideNav button {
+    min-height: 42px !important;
+    padding: 10px 9px !important;
+    border-radius: 13px !important;
+    font-size: 12.5px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  .dashboardMain {
+    width: 100% !important;
+    padding: 20px 12px 44px !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashboardHeader,
+  .compactDashboardHeader {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    text-align: center !important;
+    padding: 0 !important;
+    margin-bottom: 18px !important;
+  }
+
+  .dashboardHeader h1,
+  .compactDashboardHeader h1 {
+    font-size: clamp(30px, 8vw, 42px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .dashboardHeader p,
+  .compactDashboardHeader p {
+    font-size: 14px !important;
+    line-height: 1.65 !important;
+  }
+
+  .dashboardHeader button,
+  .compactDashboardHeader button {
+    width: 100% !important;
+    min-height: 48px !important;
+  }
+
+  .dashboardPanel {
+    padding: 18px 14px !important;
+    border-radius: 22px !important;
+  }
+
+  .panelHeaderRow {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    text-align: center !important;
+  }
+
+  /* Tables should scroll, not break screen */
+  .adminStudentsTableWrap,
+  .tableWrap,
+  .dashboardTableWrap,
+  .adminTableWrap {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 8px !important;
+  }
+
+  table,
+  .adminStudentsTable,
+  .adminStudentsTutorAssignTable {
+    min-width: 980px !important;
+  }
+
+  th,
+  td {
+    font-size: 12px !important;
+  }
+
+  .assignTutorBox,
+  .attendedClassInputRow {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignTutorBox select,
+  .attendedClassInputRow input,
+  .assignTutorBox button,
+  .attendedClassInputRow button {
+    width: 100% !important;
+  }
+
+  /* Notification bell */
+  .notificationBellWrap {
+    top: 12px !important;
+    right: 12px !important;
+    z-index: 5000 !important;
+  }
+
+  .notificationBellBtn {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 14px !important;
+  }
+
+  .notificationDropdown {
+    position: fixed !important;
+    top: 62px !important;
+    right: 10px !important;
+    width: calc(100vw - 20px) !important;
+    max-width: 360px !important;
+    border-radius: 22px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  /* Navbar tighter on very small phones */
+  .navbar {
+    padding: 10px 12px !important;
+  }
+
+  .navbar .brandLogo {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .navbar .brand h1 {
+    font-size: 15px !important;
+  }
+
+  .navbar .brand p {
+    font-size: 9px !important;
+  }
+
+  .mobileMenuToggle {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 21px !important;
+  }
+
+  .navbar.mobileMenuOpen .navLinks,
+  .navbar.mobileMenuOpen .navActions {
+    grid-template-columns: 1fr !important;
+    gap: 7px !important;
+  }
+
+  .navbar.mobileMenuOpen .navLinks a,
+  .navbar.mobileMenuOpen .loginBtn,
+  .navbar.mobileMenuOpen .primaryNavBtn {
+    min-height: 36px !important;
+    font-size: 12px !important;
+    border-radius: 11px !important;
+  }
+
+  /* Public cards */
+  .pricingGrid,
+  .pricingSnapshotGrid,
+  .homePricingGrid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .pricingGrid article,
+  .pricingSnapshotGrid article,
+  .homePricingGrid article,
+  .pricingCard,
+  .homePriceCard {
+    padding: 22px 16px !important;
+    text-align: center !important;
+  }
+
+  .pricingGrid h2,
+  .pricingGrid h3,
+  .pricingCard h2,
+  .pricingCard h3 {
+    font-size: 23px !important;
+  }
+
+  .pricingGrid strong,
+  .pricingCard strong,
+  .homePriceCard strong {
+    font-size: 30px !important;
+  }
+
+  /* Dashboard nav becomes one column on very small screens */
+  .sideNav {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboardMain {
+    padding: 18px 10px 40px !important;
+  }
+
+  .dashboardPanel {
+    padding: 16px 12px !important;
+  }
+
+  .dashboardCard {
+    padding: 18px 14px !important;
+  }
+
+  .studentCell strong,
+  td strong {
+    font-size: 12.5px !important;
+  }
+
+  .statusPill {
+    font-size: 10.5px !important;
+    padding: 6px 8px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .homeHero h1,
+  .heroSection h1,
+  .publicHero h1,
+  .dashboardHeader h1,
+  .compactDashboardHeader h1,
+  .authPage .studentApplicationCard > h2 {
+    font-size: 28px !important;
+  }
+
+  .homeHero,
+  .heroSection,
+  .publicHero {
+    padding: 28px 16px !important;
+    border-radius: 22px !important;
+  }
+
+  .studentApplicationForm {
+    padding: 20px 10px 30px !important;
+  }
+
+  .notificationDropdown {
+    right: 6px !important;
+    width: calc(100vw - 12px) !important;
+  }
+}
