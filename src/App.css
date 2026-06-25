@@ -13485,3 +13485,45 @@ iframe {
     font-size: 21px !important;
   }
 }
+
+/* =========================================
+   FIX ADMIN STUDENT TUTOR ASSIGNMENT COLUMN
+========================================= */
+
+.adminStudentsTutorAssignTable {
+  min-width: 1750px !important;
+}
+
+.adminStudentsTutorAssignTable th:nth-child(3),
+.adminStudentsTutorAssignTable td:nth-child(3) {
+  min-width: 280px !important;
+  width: 280px !important;
+}
+
+.assignTutorBox {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 240px !important;
+}
+
+.assignTutorBox select {
+  display: block !important;
+  width: 100% !important;
+  min-width: 220px !important;
+  min-height: 42px !important;
+  border: 1px solid #d5dce8 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #082b61 !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.assignTutorBox button {
+  width: 100% !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+}
