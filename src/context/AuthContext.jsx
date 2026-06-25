@@ -1,96 +1,150 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { getCurrentSession, signOut } from "../services/authService";
-import { getProfileByUserId } from "../services/profileService";
 
 const AuthContext = createContext(null);
+
+function getDashboardPath(role) {
+  const cleanRole = String(role || "").toLowerCase();
+
+  if (cleanRole === "admin") return "/admin/dashboard";
+  if (cleanRole === "tutor") return "/tutor/dashboard";
+  if (cleanRole === "student") return "/student/dashboard";
+
+  return "/login";
+}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  async function loadUserProfile(currentSession) {
-    if (!currentSession?.user?.id) {
+  async function loadProfile(userId) {
+    if (!supabase || !userId) {
       setProfile(null);
-      return;
+      return null;
     }
 
-    const { data, error } = await getProfileByUserId(currentSession.user.id);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
 
     if (error) {
-      console.error("Profile fetch error:", error.message);
+      console.log("Profile loading error:", error);
       setProfile(null);
+      return null;
+    }
+
+    setProfile(data || null);
+    return data || null;
+  }
+
+  async function refreshAuth() {
+    if (!supabase) {
+      setSession(null);
+      setProfile(null);
+      setIsAuthLoading(false);
       return;
     }
 
-    setProfile(data);
-  }
+    setIsAuthLoading(true);
 
-  useEffect(() => {
-    let isMounted = true;
+    const { data, error } = await supabase.auth.getSession();
 
-    async function loadSession() {
-      try {
-        const { data } = await getCurrentSession();
-        const currentSession = data?.session || null;
-
-        if (!isMounted) return;
-
-        setSession(currentSession);
-        await loadUserProfile(currentSession);
-      } catch (error) {
-        console.error("Auth loading error:", error);
-        setSession(null);
-        setProfile(null);
-      } finally {
-        if (isMounted) {
-          setIsLoadingAuth(false);
-        }
-      }
+    if (error || !data?.session) {
+      setSession(null);
+      setProfile(null);
+      setIsAuthLoading(false);
+      return;
     }
 
-    loadSession();
+    setSession(data.session);
+    await loadProfile(data.session.user.id);
+    setIsAuthLoading(false);
+  }
 
+  async function login(email, password) {
     if (!supabase) {
-      return () => {
-        isMounted = false;
+      return {
+        data: null,
+        error: { message: "Supabase is not configured yet." },
       };
     }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      setSession(newSession);
-      await loadUserProfile(newSession);
-      setIsLoadingAuth(false);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
+    if (error) {
+      return { data: null, error };
+    }
+
+    setSession(data.session);
+
+    const userProfile = await loadProfile(data.user.id);
+
+    return {
+      data: {
+        session: data.session,
+        user: data.user,
+        profile: userProfile,
+        redirectTo: getDashboardPath(userProfile?.role),
+      },
+      error: null,
     };
-  }, []);
+  }
 
   async function logout() {
-    await signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+
     setSession(null);
     setProfile(null);
   }
 
-  return (
-    <AuthContext.Provider
-      value={{
-        session,
-        profile,
-        isLoadingAuth,
-        isAuthenticated: Boolean(session),
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  useEffect(() => {
+    refreshAuth();
+
+    if (!supabase) return undefined;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      setSession(currentSession);
+
+      if (currentSession?.user?.id) {
+        await loadProfile(currentSession.user.id);
+      } else {
+        setProfile(null);
+      }
+
+      setIsAuthLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      session,
+      profile,
+      isAuthLoading,
+      isLoggedIn: Boolean(session?.user),
+      login,
+      logout,
+      refreshAuth,
+      loadProfile,
+      getDashboardPath,
+    }),
+    [session, profile, isAuthLoading]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

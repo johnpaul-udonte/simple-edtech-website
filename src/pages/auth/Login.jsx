@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmail, signOut } from "../../services/authService";
-import { getProfileByUserId } from "../../services/profileService";
+import { useAuth } from "../../context/AuthContext";
 import EyePasswordInput from "../../components/EyePasswordInput";
 
 function Login() {
   const navigate = useNavigate();
+  const { login, logout } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,37 +18,29 @@ function Login() {
     setIsLoading(true);
     setNotice("");
 
-    const { data, error } = await signInWithEmail(email, password);
+    const cleanEmail = email.trim().toLowerCase();
+
+    const { data, error } = await login(cleanEmail, password);
 
     if (error) {
-      setNotice(error.message);
+      setNotice(error.message || "Invalid login details.");
       setIsLoading(false);
       return;
     }
 
-    const userId = data?.user?.id;
+    const profile = data?.profile;
 
-    if (!userId) {
-      setNotice("Login succeeded, but no user ID was returned.");
-      setIsLoading(false);
-      return;
-    }
-
-    const { data: profile, error: profileError } = await getProfileByUserId(
-      userId
-    );
-
-    if (profileError || !profile) {
-      await signOut();
+    if (!profile) {
+      await logout();
       setNotice(
-        "Login succeeded, but no matching profile was found. Please create a profile record for this user."
+        "Login succeeded, but no matching profile was found. Please contact admin."
       );
       setIsLoading(false);
       return;
     }
 
     if (profile.status !== "active") {
-      await signOut();
+      await logout();
       setNotice(
         `Your account is currently ${profile.status}. Please contact admin.`
       );
@@ -57,21 +49,21 @@ function Login() {
     }
 
     if (profile.role === "admin") {
-      navigate("/admin/dashboard");
+      navigate("/admin/dashboard", { replace: true });
       return;
     }
 
     if (profile.role === "tutor") {
-      navigate("/tutor/dashboard");
+      navigate("/tutor/dashboard", { replace: true });
       return;
     }
 
     if (profile.role === "student") {
-      navigate("/student/dashboard");
+      navigate("/student/dashboard", { replace: true });
       return;
     }
 
-    await signOut();
+    await logout();
     setNotice("Unknown user role. Please contact admin.");
     setIsLoading(false);
   }
@@ -81,7 +73,10 @@ function Login() {
       <section className="authCard">
         <p className="eyebrow">Portal Login</p>
         <h2>Welcome back</h2>
-        <p>Student, tutor, and admin login will connect through Supabase.</p>
+        <p>
+          Sign in to access your Jlux Academy dashboard, learning activities,
+          class progress, and account updates.
+        </p>
 
         {notice && <div className="formNotice">{notice}</div>}
 
@@ -90,9 +85,10 @@ function Login() {
             Email Address
             <input
               type="email"
-              placeholder="Enter email"
+              placeholder="Enter email address"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
               required
             />
           </label>
@@ -107,7 +103,7 @@ function Login() {
           />
 
           <button type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? "Opening Dashboard..." : "Login"}
           </button>
         </form>
       </section>
